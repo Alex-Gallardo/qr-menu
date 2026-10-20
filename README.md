@@ -54,6 +54,24 @@ En producción: `pnpm db:deploy` (= `prisma migrate deploy` + `db:sql`).
 
 **Regla de RLS:** RLS está activo en **todas** las tablas. Prisma se conecta como dueño y no pasa por RLS (la protección en servidor es `requireAccess`). Solo se abren políticas para lo que el navegador toca directo con la llave pública: pedidos (Realtime) y archivos (Storage). Una tabla nueva sin política queda cerrada por defecto: al agregar tablas, corre `pnpm db:sql` para activar su RLS.
 
+## Deploy (Vercel) y errores (Sentry)
+
+**Vercel** (plan Pro: el gratuito no permite uso comercial):
+
+1. _Add New → Project_ e importa `Alex-Gallardo/qr-menu`. Framework: Next.js (detectado); comando de instalación `pnpm install`.
+2. _Settings → Git_: **Production Branch = `master`**. Cada PR y la rama `develop` generan una URL de _preview_.
+3. _Settings → Environment Variables_, separadas por entorno:
+   - **Production** → valores del proyecto Supabase **prod**.
+   - **Preview** y **Development** → valores del proyecto Supabase **dev**.
+4. Las funciones corren en `iad1` (`vercel.json`), la misma región que Supabase `us-east-1`.
+
+**Sentry** (plan gratuito):
+
+1. Crea un proyecto _Next.js_ en sentry.io.
+2. En Vercel agrega `NEXT_PUBLIC_SENTRY_DSN`, `SENTRY_ORG`, `SENTRY_PROJECT` y `SENTRY_AUTH_TOKEN` (_Settings → Auth Tokens_ en Sentry, con permiso de releases y source maps). El token va **solo** en Vercel.
+3. Sentry se activa solo en builds de producción con DSN. En el navegador se carga diferido (cuando el hilo principal está libre) para no sumar ~50 KB al JS inicial del menú. Los eventos pasan por el túnel `/api/monitoring` para que los bloqueadores no los descarten.
+4. Privacidad: `sendDefaultPii: false` (sin IPs, cookies ni datos del comensal).
+
 ## Scripts
 
 | Script            | Qué hace                              |
