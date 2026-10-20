@@ -63,6 +63,7 @@ const valid: BranchFormInput = {
   address: "4a avenida 12-30",
   address_reference: "",
   city: "Ciudad de Guatemala",
+  location: { lat: 14.6012, lng: -90.5146 },
   whatsapp: "5555-1234",
   phone: "",
   google_place_id: "",
@@ -96,6 +97,15 @@ describe("branchFormSchema", () => {
       preorder_min_lead_min: 30,
     });
     expect(out.hours).toHaveLength(6);
+  });
+
+  it("guarda la ubicación del pin como lat/lng (o null sin pin)", () => {
+    expect(branchFormSchema.parse(valid).data).toMatchObject({ lat: 14.6012, lng: -90.5146 });
+    expect(branchFormSchema.parse({ ...valid, location: null }).data).toMatchObject({
+      lat: null,
+      lng: null,
+    });
+    expect(issues({ ...valid, location: { lat: 120, lng: 0 } })).toContain("location");
   });
 
   it("sin domicilio no guarda costos de entrega", () => {

@@ -10,6 +10,8 @@ type StoredBranch = {
   address: string | null;
   address_reference: string | null;
   city: string | null;
+  lat: number | null;
+  lng: number | null;
   whatsapp_e164: string;
   phone: string | null;
   google_place_id: string | null;
@@ -42,6 +44,7 @@ export function toBranchFormInput(
       address: "",
       address_reference: "",
       city: defaults.city ?? "",
+      location: null,
       whatsapp: "",
       phone: "",
       google_place_id: "",
@@ -68,6 +71,8 @@ export function toBranchFormInput(
     address: branch.address ?? "",
     address_reference: branch.address_reference ?? "",
     city: branch.city ?? "",
+    location:
+      branch.lat !== null && branch.lng !== null ? { lat: branch.lat, lng: branch.lng } : null,
     whatsapp: formatPhone(branch.whatsapp_e164),
     phone: formatPhone(branch.phone),
     google_place_id: branch.google_place_id ?? "",

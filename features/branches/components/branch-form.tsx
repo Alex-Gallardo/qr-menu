@@ -18,6 +18,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { slugify } from "@/features/businesses/slug";
+import { LocationPicker } from "@/features/location/components/location-picker";
+import type { Coords } from "@/features/location/lib/coords";
 import type { ActionResult } from "@/lib/action-result";
 import { createBranch, updateBranch } from "../actions";
 import { WEEKDAYS } from "../hours";
@@ -33,6 +35,8 @@ type Props = {
   canPreorder: boolean;
   /** Ruta del listado de sucursales (para volver después de crear). */
   listHref: string;
+  /** Dónde centrar el mapa si la sucursal aún no tiene pin. */
+  mapCenter?: Coords;
 };
 
 const PREORDER_OPTIONS = [
@@ -53,7 +57,14 @@ const PREORDER_OPTIONS = [
   },
 ] as const;
 
-export function BranchForm({ mode, initial, publicPrefix, canPreorder, listHref }: Props) {
+export function BranchForm({
+  mode,
+  initial,
+  publicPrefix,
+  canPreorder,
+  listHref,
+  mapCenter,
+}: Props) {
   const router = useRouter();
   const [result, setResult] = useState<ActionResult | null>(null);
   const [saving, startSave] = useTransition();
@@ -170,6 +181,18 @@ export function BranchForm({ mode, initial, publicPrefix, canPreorder, listHref 
             {...form.register("address_reference")}
           />
         </Field>
+        <Controller
+          control={control}
+          name="location"
+          render={({ field }) => (
+            <LocationPicker
+              value={field.value ?? null}
+              onChange={field.onChange}
+              fallbackCenter={mapCenter}
+              label="Ubicación del local"
+            />
+          )}
+        />
         <div className="grid gap-5 sm:grid-cols-2">
           <Field id="phone" label="Teléfono (opcional)" error={errors.phone?.message}>
             <PrefixedInput

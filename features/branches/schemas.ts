@@ -2,6 +2,7 @@ import { z } from "zod";
 import { slugFormatProblem, SLUG_MESSAGES } from "@/features/businesses/slug";
 import { parseQ } from "@/lib/money";
 import { toE164 } from "@/lib/phone";
+import { isValidCoords } from "@/features/location/lib/coords";
 import { dayProblem, type DayHours } from "./hours";
 
 const NO_RESERVED = new Set<string>();
@@ -34,6 +35,10 @@ export const branchFormSchema = z
     address: text(160),
     address_reference: text(160),
     city: text(60),
+    location: z
+      .object({ lat: z.number(), lng: z.number() })
+      .nullable()
+      .refine((v) => v === null || isValidCoords(v), "Esa ubicación no es válida."),
     whatsapp: z.string(),
     phone: z.string(),
     google_place_id: z
@@ -98,6 +103,8 @@ export const branchFormSchema = z
       address: v.address,
       address_reference: v.address_reference,
       city: v.city,
+      lat: v.location?.lat ?? null,
+      lng: v.location?.lng ?? null,
       whatsapp_e164: toE164(v.whatsapp)!,
       phone: toE164(v.phone),
       google_place_id: v.google_place_id,

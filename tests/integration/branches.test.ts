@@ -34,6 +34,7 @@ const form = (businessId: string, over: Partial<BranchFormInput>): BranchFormInp
   address: "",
   address_reference: "",
   city: "",
+  location: null,
   whatsapp: "5555-1234",
   phone: "",
   google_place_id: "",
@@ -90,6 +91,7 @@ describe("sucursales", () => {
     const a = await create(id, {
       name: "Zona 10",
       slug: "zona-10",
+      location: { lat: 14.6012, lng: -90.5146 },
       whatsapp: "5555-1010",
       accepts_delivery: true,
       delivery_fee: "15",
@@ -109,6 +111,8 @@ describe("sucursales", () => {
 
     const [zona10, antigua] = await Promise.all([getBranch(id, a.id), getBranch(id, b.id)]);
     expect(zona10).toMatchObject({
+      lat: 14.6012,
+      lng: -90.5146,
       whatsapp_e164: "+50255551010",
       accepts_delivery: true,
       delivery_fee_cents: 1500,
