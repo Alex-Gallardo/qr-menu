@@ -34,3 +34,6 @@ Thumbs.db
 # vercel / sentry
 .vercel
 .sentryclirc
+
+# local de Claude Code
+.claude/
