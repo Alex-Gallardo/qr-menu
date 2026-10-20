@@ -6,6 +6,7 @@ import { getAuthUser, getProfile } from "@/lib/auth/session";
 import { BrandSection } from "./_sections/brand";
 import { ButtonsSection } from "./_sections/buttons";
 import { ColorSection } from "./_sections/color";
+import { FeedbackSection, FormsSection } from "./_sections/forms-feedback";
 import { SurfacesSection } from "./_sections/surfaces";
 import { TypographySection } from "./_sections/typography";
 
@@ -20,6 +21,8 @@ const NAV = [
   { id: "tipografia", label: "Tipografía" },
   { id: "superficies", label: "Radios y sombras" },
   { id: "botones", label: "Botones" },
+  { id: "formularios", label: "Formularios" },
+  { id: "feedback", label: "Feedback" },
 ] as const;
 
 /**
@@ -75,6 +78,8 @@ function Styleguide() {
         <TypographySection />
         <SurfacesSection />
         <ButtonsSection />
+        <FormsSection />
+        <FeedbackSection />
       </main>
     </div>
   );
