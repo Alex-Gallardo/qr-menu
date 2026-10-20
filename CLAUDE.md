@@ -6,3 +6,4 @@
 - La marca visible nunca se escribe directo: usar `BRAND` de `lib/brand.ts`.
 - Ramas: `feat/QRM-0XX-slug` desde `develop`; PR siempre a `develop`. `master` es producción.
 - Antes de commitear: `pnpm check`. Repo público: nunca commitear secretos.
+- Cambios de esquema: editar `prisma/schema.prisma` → `pnpm db:migrate`; luego `pnpm db:sql` (activa RLS en tablas nuevas) y `pnpm db:verify`. SQL de Supabase (auth, RLS, Storage, Realtime) solo en `prisma/sql/`, idempotente.
