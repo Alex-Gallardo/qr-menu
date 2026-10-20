@@ -34,3 +34,9 @@ Thumbs.db
 # vercel / sentry
 .vercel
 .sentryclirc
+
+# local de Claude Code
+.claude/
+
+# cliente Prisma generado
+/generated/

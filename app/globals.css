@@ -1,0 +1,242 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ───────────── Tokens de marca (fuente de verdad: /styleguide) ───────────── */
+@theme {
+  --color-tomate: #d23b22;
+  --color-tomate-700: #a82e1a;
+  --color-masa: #fbf6ee;
+  --color-nube: #f1ebe3;
+  --color-frijol: #231a17;
+  --color-canela: #7a6a60;
+  --color-maiz: #f6b73c;
+  --color-aguacate: #3f8f5a;
+  --color-chile: #c62e2e;
+  --color-whatsapp: #25d366;
+
+  --ease-suave: cubic-bezier(0.76, 0, 0.24, 1);
+  --ease-rapida: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --shadow-1: 0 1px 2px rgb(35 26 23 / 0.06), 0 1px 3px rgb(35 26 23 / 0.04);
+  --shadow-2: 0 4px 12px rgb(35 26 23 / 0.08), 0 2px 4px rgb(35 26 23 / 0.04);
+  --shadow-3: 0 12px 32px rgb(35 26 23 / 0.12), 0 4px 8px rgb(35 26 23 / 0.06);
+
+  --container-menu: 480px;
+  --container-landing: 1200px;
+}
+
+:root {
+  --duration-fast: 120ms;
+  --duration-base: 250ms;
+  --duration-slow: 400ms;
+}
+
+/* Puente entre los tokens semánticos de shadcn y la marca */
+@theme inline {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-display);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-success: var(--success);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+}
+
+:root {
+  --background: var(--color-masa);
+  --foreground: var(--color-frijol);
+  --card: #ffffff;
+  --card-foreground: var(--color-frijol);
+  --popover: #ffffff;
+  --popover-foreground: var(--color-frijol);
+  --primary: var(--color-tomate);
+  --primary-foreground: #ffffff;
+  --secondary: var(--color-nube);
+  --secondary-foreground: var(--color-frijol);
+  --muted: var(--color-nube);
+  --muted-foreground: var(--color-canela);
+  --accent: var(--color-nube);
+  --accent-foreground: var(--color-frijol);
+  --destructive: var(--color-chile);
+  --success: var(--color-aguacate);
+  --border: #e6ddd2;
+  --input: #ddd2c5;
+  --ring: var(--color-tomate);
+  --radius: 16px;
+  --sidebar: var(--color-nube);
+  --sidebar-foreground: var(--color-frijol);
+  --sidebar-primary: var(--color-tomate);
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #e8e0d6;
+  --sidebar-accent-foreground: var(--color-frijol);
+  --sidebar-border: #e6ddd2;
+  --sidebar-ring: var(--color-tomate);
+}
+
+.dark {
+  --background: var(--color-frijol);
+  --foreground: #f5efe8;
+  --card: #2e2420;
+  --card-foreground: #f5efe8;
+  --popover: #2e2420;
+  --popover-foreground: #f5efe8;
+  --primary: #e5543b;
+  --primary-foreground: #ffffff;
+  --secondary: #3a2f2a;
+  --secondary-foreground: #f5efe8;
+  --muted: #3a2f2a;
+  --muted-foreground: #bfb0a6;
+  --accent: #3a2f2a;
+  --accent-foreground: #f5efe8;
+  --destructive: #e25a5a;
+  --success: #5bb07a;
+  --border: rgb(255 255 255 / 0.1);
+  --input: rgb(255 255 255 / 0.15);
+  --ring: #e5543b;
+  --sidebar: #2e2420;
+  --sidebar-foreground: #f5efe8;
+  --sidebar-primary: #e5543b;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #3a2f2a;
+  --sidebar-accent-foreground: #f5efe8;
+  --sidebar-border: rgb(255 255 255 / 0.1);
+  --sidebar-ring: #e5543b;
+}
+
+/* Tema del negocio: el menú público y el panel de staff sobreescriben --biz-* desde la DB */
+.menu-theme {
+  --m-primary: var(--biz-primary, #d23b22);
+  --m-accent: var(--biz-accent, #f6b73c);
+  --m-bg: var(--biz-bg, #fbf6ee);
+  --m-surface: var(--biz-surface, #ffffff);
+  --m-text: var(--biz-text, #231a17);
+  --m-radius: var(--biz-radius, 16px);
+  --m-font-heading: var(--biz-font-heading, var(--font-display));
+  --m-font-body: var(--biz-font-body, var(--font-sans));
+  --m-splash-bg: var(--biz-splash-bg, var(--m-primary));
+}
+
+/* ───────────── Escala tipográfica (móvil → escritorio en md) ───────────── */
+@utility type-display {
+  font-family: var(--font-display);
+  font-size: 40px;
+  line-height: 1.05;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  @media (width >= 48rem) {
+    font-size: 64px;
+    line-height: 1;
+  }
+}
+@utility type-h1 {
+  font-family: var(--font-display);
+  font-size: 30px;
+  line-height: 1.15;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  @media (width >= 48rem) {
+    font-size: 40px;
+    line-height: 1.1;
+  }
+}
+@utility type-h2 {
+  font-family: var(--font-display);
+  font-size: 22px;
+  line-height: 1.25;
+  font-weight: 600;
+  @media (width >= 48rem) {
+    font-size: 28px;
+    line-height: 1.2;
+  }
+}
+@utility type-h3 {
+  font-size: 18px;
+  line-height: 1.3;
+  font-weight: 600;
+  @media (width >= 48rem) {
+    font-size: 20px;
+  }
+}
+@utility type-body {
+  font-size: 16px;
+  line-height: 1.5;
+  @media (width >= 48rem) {
+    line-height: 1.6;
+  }
+}
+@utility type-small {
+  font-size: 14px;
+  line-height: 1.45;
+}
+@utility type-caption {
+  font-size: 12px;
+  line-height: 1.4;
+}
+@utility type-price {
+  font-size: 16px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    @apply font-sans;
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+  /* Iconografía Lucide con trazo 1.75 */
+  svg.lucide {
+    stroke-width: 1.75;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    transition-duration: 1ms !important;
+  }
+}
