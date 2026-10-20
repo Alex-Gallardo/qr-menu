@@ -9,6 +9,7 @@ export default defineConfig({
   schema: "prisma/schema.prisma",
   migrations: {
     path: "prisma/migrations",
+    seed: "tsx prisma/seed.ts",
   },
   // Las migraciones usan la conexión directa (sin pooler). En runtime la app
   // usa DATABASE_URL (pooler en modo transacción) desde lib/db.ts.

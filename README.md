@@ -38,9 +38,22 @@ Hay dos proyectos de Supabase: **dev** (desarrollo y previews) y **prod** (produ
 pnpm db:migrate    # aplica las migraciones de Prisma (37 tablas)
 pnpm db:sql        # aplica el SQL de Supabase (funciones, triggers, RLS, Storage, Realtime)
 pnpm db:verify     # comprueba tablas, RLS, políticas, triggers, bucket y Realtime
+pnpm db:seed       # planes, ajustes, negocio demo y usuarios de prueba
 ```
 
-En producción: `pnpm db:deploy` (= `prisma migrate deploy` + `db:sql`).
+En producción: `pnpm db:deploy` (= `prisma migrate deploy` + `db:sql`) y `SEED_SCOPE=demo pnpm db:seed`.
+
+### Datos semilla
+
+`pnpm db:seed` es idempotente: actualiza planes y ajustes (sin pisar los que ya editó el super admin) y vuelve a crear el negocio demo.
+
+| Alcance (`SEED_SCOPE`) | Crea                                                                                                                                                                                                                                                                                           | ¿Producción?              |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------- |
+| `base`                 | 3 planes (Gratis Q0, Pro Q149, Negocio Q299) y `platform_settings` (slugs reservados, días de prueba y gracia, fuentes, paletas, bienvenida)                                                                                                                                                   | Sí                        |
+| `demo`                 | `base` + **Café El Portal** (`/cafe-el-portal`): 2 sucursales (Zona 1 y Antigua), licencia de prueba Negocio, 3 franjas, 3 menús con programación, 25 productos con foto, "Pasta con mariscos" agotada solo en Antigua, 2 cuentas bancarias, 8 QR y 30 pedidos (5 a domicilio con coordenadas) | Sí (es la demo de ventas) |
+| `dev` (por defecto)    | `demo` + usuarios de prueba (admin de plataforma, dueño, encargado solo de Antigua) y 1 staff con PIN por sucursal                                                                                                                                                                             | **No** (el seed se niega) |
+
+Los usuarios de prueba usan `SEED_USERS_PASSWORD` de `.env.local`; si no existe, el seed la genera y la guarda ahí. Pon tu número en `SEED_DEMO_WHATSAPP` para recibir los pedidos del demo; por defecto es un número inválido para no escribirle a un desconocido.
 
 `lib/env.ts` valida las variables con Zod en el primer uso y muestra cuáles faltan, sin imprimir sus valores. El cliente Prisma se genera en `generated/` (ignorado por git) al instalar dependencias.
 
@@ -74,21 +87,22 @@ En producción: `pnpm db:deploy` (= `prisma migrate deploy` + `db:sql`).
 
 ## Scripts
 
-| Script            | Qué hace                              |
-| ----------------- | ------------------------------------- |
-| `pnpm dev`        | Servidor de desarrollo                |
-| `pnpm build`      | Build de producción                   |
-| `pnpm lint`       | ESLint (sin warnings permitidos)      |
-| `pnpm typecheck`  | Genera tipos de rutas y corre `tsc`   |
-| `pnpm format`     | Formatea con Prettier                 |
-| `pnpm test`       | Pruebas unitarias con Vitest          |
-| `pnpm check`      | Lint + typecheck + formato + tests    |
-| `pnpm db:migrate` | Crea y aplica migraciones (dev)       |
-| `pnpm db:sql`     | Aplica el SQL de Supabase (RLS, etc.) |
-| `pnpm db:verify`  | Verifica tablas, RLS y políticas      |
-| `pnpm db:deploy`  | Migraciones + SQL en producción       |
-| `pnpm db:status`  | Estado de las migraciones             |
-| `pnpm db:studio`  | Explorador visual de la base de datos |
+| Script            | Qué hace                               |
+| ----------------- | -------------------------------------- |
+| `pnpm dev`        | Servidor de desarrollo                 |
+| `pnpm build`      | Build de producción                    |
+| `pnpm lint`       | ESLint (sin warnings permitidos)       |
+| `pnpm typecheck`  | Genera tipos de rutas y corre `tsc`    |
+| `pnpm format`     | Formatea con Prettier                  |
+| `pnpm test`       | Pruebas unitarias con Vitest           |
+| `pnpm check`      | Lint + typecheck + formato + tests     |
+| `pnpm db:migrate` | Crea y aplica migraciones (dev)        |
+| `pnpm db:sql`     | Aplica el SQL de Supabase (RLS, etc.)  |
+| `pnpm db:verify`  | Verifica tablas, RLS y políticas       |
+| `pnpm db:deploy`  | Migraciones + SQL en producción        |
+| `pnpm db:seed`    | Datos semilla (planes, demo, usuarios) |
+| `pnpm db:status`  | Estado de las migraciones              |
+| `pnpm db:studio`  | Explorador visual de la base de datos  |
 
 ## Flujo de trabajo con Git
 
