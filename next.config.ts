@@ -4,6 +4,9 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   cacheComponents: true,
   partialPrefetching: true,
+  // En desarrollo Next imprime los argumentos de cada Server Action en la terminal
+  // (incluidas contraseñas). Desactivado.
+  logging: { serverFunctions: false },
 };
 
 export default withSentryConfig(nextConfig, {
