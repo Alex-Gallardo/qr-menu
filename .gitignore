@@ -37,3 +37,6 @@ Thumbs.db
 
 # local de Claude Code
 .claude/
+
+# cliente Prisma generado
+/generated/

@@ -23,17 +23,38 @@ pnpm dev
 
 Abre <http://localhost:3000>.
 
+## Supabase y base de datos
+
+Hay dos proyectos de Supabase: **dev** (desarrollo y previews) y **prod** (producción). Cada uno tiene sus propias llaves; nunca se mezclan.
+
+1. Crea el proyecto en [supabase.com](https://supabase.com) (región más cercana a Guatemala, p. ej. `us-east-1`).
+2. En **Project Settings → API Keys** copia la URL, la _publishable key_ y la _secret key_ a `.env.local`.
+3. En **Connect → ORMs** copia las cadenas de conexión:
+   - `DATABASE_URL`: _Transaction pooler_ (puerto 6543, con `?pgbouncer=true`). La usa la app en runtime.
+   - `DIRECT_URL`: _Session pooler_ o conexión directa (puerto 5432). La usan las migraciones.
+4. Verifica la conexión:
+
+```bash
+pnpm db:status     # estado de las migraciones
+pnpm db:migrate    # crea y aplica migraciones en dev
+```
+
+`lib/env.ts` valida las variables con Zod en el primer uso y muestra cuáles faltan, sin imprimir sus valores. El cliente Prisma se genera en `generated/` (ignorado por git) al instalar dependencias.
+
 ## Scripts
 
-| Script           | Qué hace                            |
-| ---------------- | ----------------------------------- |
-| `pnpm dev`       | Servidor de desarrollo              |
-| `pnpm build`     | Build de producción                 |
-| `pnpm lint`      | ESLint (sin warnings permitidos)    |
-| `pnpm typecheck` | Genera tipos de rutas y corre `tsc` |
-| `pnpm format`    | Formatea con Prettier               |
-| `pnpm test`      | Pruebas unitarias con Vitest        |
-| `pnpm check`     | Lint + typecheck + formato + tests  |
+| Script            | Qué hace                              |
+| ----------------- | ------------------------------------- |
+| `pnpm dev`        | Servidor de desarrollo                |
+| `pnpm build`      | Build de producción                   |
+| `pnpm lint`       | ESLint (sin warnings permitidos)      |
+| `pnpm typecheck`  | Genera tipos de rutas y corre `tsc`   |
+| `pnpm format`     | Formatea con Prettier                 |
+| `pnpm test`       | Pruebas unitarias con Vitest          |
+| `pnpm check`      | Lint + typecheck + formato + tests    |
+| `pnpm db:migrate` | Crea y aplica migraciones (dev)       |
+| `pnpm db:status`  | Estado de las migraciones             |
+| `pnpm db:studio`  | Explorador visual de la base de datos |
 
 ## Flujo de trabajo con Git
 
