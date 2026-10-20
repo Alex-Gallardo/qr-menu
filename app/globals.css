@@ -1,0 +1,25 @@
+/* Estilos mínimos temporales. Tailwind v4 y los tokens de marca llegan en QRM-002. */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  min-height: 100dvh;
+  background: #fbf6ee;
+  color: #231a17;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.home {
+  display: grid;
+  place-content: center;
+  gap: 8px;
+  min-height: 100dvh;
+  padding: 16px;
+  text-align: center;
+}
