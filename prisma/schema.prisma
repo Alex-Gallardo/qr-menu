@@ -1,4 +1,10 @@
-// Esquema de datos de qr-menu. Las 37 tablas llegan en QRM-005.
+// Esquema de datos de qr-menu: 37 tablas en 6 grupos.
+// Catálogo, menús y marca viven a nivel negocio; la operación (pedidos,
+// horarios, QR, disponibilidad, staff) a nivel sucursal.
+// Precios en centavos enteros (*_cents). Fechas con zona horaria (timestamptz).
+//
+// Lo que Prisma no modela (FK a auth.users, triggers, índices parciales,
+// CHECKs, RLS, Storage y Realtime) vive en prisma/sql/ y se aplica con `pnpm db:sql`.
 // La conexión se configura en prisma.config.ts (Prisma 7).
 
 generator client {
@@ -8,4 +14,907 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+}
+
+enum PlatformRole {
+  none
+  admin
+  support
+  sales
+}
+
+enum MemberRole {
+  owner
+  manager
+}
+
+enum LicenseStatus {
+  trial
+  active
+  grace
+  suspended
+  cancelled
+}
+
+enum SlotKey {
+  breakfast
+  lunch
+  dinner
+  custom
+}
+
+enum OrderType {
+  dine_in
+  takeout
+  delivery
+}
+
+enum PayMethod {
+  cash
+  card_on_site
+  transfer
+}
+
+enum OrderStatus {
+  new
+  accepted
+  preparing
+  ready
+  delivered
+  cancelled
+}
+
+/// Fuera de horario: no permitir / para cuando abra / siempre
+enum PreorderMode {
+  off
+  next_open
+  always
+}
+
+enum BgType {
+  color
+  gradient
+  image
+  video
+}
+
+enum MenuTemplate {
+  clasico
+  galeria
+  minimal
+  tarjetas
+}
+
+/// levantar (default), desvanecer, alejar, sin splash
+enum SplashStyle {
+  lift
+  fade
+  zoom
+  none
+}
+
+enum SplashEasing {
+  suave
+  elastico
+  rapido
+}
+
+enum SplashFrequency {
+  always
+  once_per_session
+  first_visit
+}
+
+enum PaymentStatus {
+  pending
+  verified
+  rejected
+}
+
+// ───────────── Identidad y acceso ─────────────
+
+/// 1:1 con auth.users (FK y trigger de alta en prisma/sql/).
+model profiles {
+  id            String       @id @db.Uuid
+  full_name     String?
+  phone         String?
+  avatar_url    String?
+  /// admin | support | sales = equipo de la plataforma
+  platform_role PlatformRole @default(none)
+  created_at    DateTime     @default(now()) @db.Timestamptz(6)
+
+  memberships        business_members[]
+  push_subscriptions push_subscriptions[]
+}
+
+model business_members {
+  id           String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  business_id  String     @db.Uuid
+  user_id      String     @db.Uuid
+  role         MemberRole
+  /// false = solo las sucursales de member_branches
+  all_branches Boolean    @default(true)
+  created_at   DateTime   @default(now()) @db.Timestamptz(6)
+
+  business businesses        @relation(fields: [business_id], references: [id], onDelete: Cascade)
+  user     profiles          @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  branches member_branches[]
+
+  @@unique([business_id, user_id])
+  @@index([user_id])
+}
+
+model member_branches {
+  member_id String @db.Uuid
+  branch_id String @db.Uuid
+
+  member business_members @relation(fields: [member_id], references: [id], onDelete: Cascade)
+  branch branches         @relation(fields: [branch_id], references: [id], onDelete: Cascade)
+
+  @@id([member_id, branch_id])
+  @@index([branch_id])
+}
+
+model staff_members {
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  business_id       String    @db.Uuid
+  branch_id         String    @db.Uuid
+  /// "Rosa - caja"
+  display_name      String
+  /// bcrypt, nunca el PIN en claro
+  pin_hash          String
+  is_active         Boolean   @default(true)
+  /// Oculto (no borrado) al degradar la licencia por exceder límites
+  hidden_by_license Boolean   @default(false)
+  failed_attempts   Int       @default(0)
+  locked_until      DateTime? @db.Timestamptz(6)
+  last_login_at     DateTime? @db.Timestamptz(6)
+  created_at        DateTime  @default(now()) @db.Timestamptz(6)
+
+  business           businesses           @relation(fields: [business_id], references: [id], onDelete: Cascade)
+  branch             branches             @relation(fields: [branch_id], references: [id], onDelete: Cascade)
+  sessions           staff_sessions[]
+  push_subscriptions push_subscriptions[]
+
+  @@index([branch_id, is_active])
+  @@index([business_id])
+}
+
+model staff_devices {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  business_id  String    @db.Uuid
+  branch_id    String    @db.Uuid
+  /// "Tablet de caja"
+  name         String
+  /// Hash del token de la cookie httpOnly del dispositivo
+  token_hash   String    @unique
+  approved_by  String    @db.Uuid
+  last_seen_at DateTime? @db.Timestamptz(6)
+  revoked_at   DateTime? @db.Timestamptz(6)
+  created_at   DateTime  @default(now()) @db.Timestamptz(6)
+
+  business businesses       @relation(fields: [business_id], references: [id], onDelete: Cascade)
+  branch   branches         @relation(fields: [branch_id], references: [id], onDelete: Cascade)
+  sessions staff_sessions[]
+
+  @@index([branch_id])
+  @@index([business_id])
+}
+
+model staff_sessions {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  /// Usuario anónimo de Supabase del dispositivo
+  auth_user_id    String    @unique @db.Uuid
+  staff_member_id String    @db.Uuid
+  device_id       String    @db.Uuid
+  business_id     String    @db.Uuid
+  branch_id       String    @db.Uuid
+  /// Turno de 12 h
+  expires_at      DateTime  @db.Timestamptz(6)
+  ended_at        DateTime? @db.Timestamptz(6)
+  created_at      DateTime  @default(now()) @db.Timestamptz(6)
+
+  staff    staff_members @relation(fields: [staff_member_id], references: [id], onDelete: Cascade)
+  device   staff_devices @relation(fields: [device_id], references: [id], onDelete: Cascade)
+  business businesses    @relation(fields: [business_id], references: [id], onDelete: Cascade)
+  branch   branches      @relation(fields: [branch_id], references: [id], onDelete: Cascade)
+
+  @@index([staff_member_id])
+  @@index([device_id])
+  @@index([branch_id])
+  @@index([business_id])
+}
+
+// ───────────── Negocio y sucursales ─────────────
+
+model businesses {
+  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  /// {app}/{negocio}
+  slug              String   @unique
+  name              String
+  description       String?
+  logo_url          String?
+  cover_url         String?
+  email             String?
+  instagram         String?
+  facebook          String?
+  tiktok            String?
+  /// Saludo y despedida editables del mensaje de WhatsApp
+  whatsapp_greeting String?
+  whatsapp_farewell String?
+  currency          String   @default("GTQ")
+  timezone          String   @default("America/Guatemala")
+  published         Boolean  @default(false)
+  created_at        DateTime @default(now()) @db.Timestamptz(6)
+  updated_at        DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+
+  branches           branches[]
+  members            business_members[]
+  staff              staff_members[]
+  staff_devices      staff_devices[]
+  staff_sessions     staff_sessions[]
+  theme              themes?
+  bank_accounts      bank_accounts[]
+  categories         product_categories[]
+  products           products[]
+  time_slots         time_slots[]
+  menus              menus[]
+  overrides          menu_overrides[]
+  orders             orders[]
+  reviews            reviews[]
+  qr_codes           qr_codes[]
+  push_subscriptions push_subscriptions[]
+  media              media[]
+  license            licenses?
+}
+
+model branches {
+  id                         String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  business_id                String       @db.Uuid
+  /// {app}/{negocio}/{sucursal}
+  slug                       String
+  /// "Zona 10"
+  name                       String
+  address                    String?
+  address_reference          String?
+  city                       String?
+  lat                        Float?
+  lng                        Float?
+  /// +50255551234, recibe los pedidos
+  whatsapp_e164              String
+  phone                      String?
+  /// Reseñas de Google por local
+  google_place_id            String?
+  accepts_dine_in            Boolean      @default(true)
+  accepts_takeout            Boolean      @default(true)
+  accepts_delivery           Boolean      @default(false)
+  /// Ofrece pago por transferencia en esta sucursal
+  accepts_transfer           Boolean      @default(true)
+  delivery_fee_cents         Int          @default(0)
+  /// null = sin límite
+  delivery_radius_km         Float?
+  min_order_cents            Int          @default(0)
+  delivery_requires_location Boolean      @default(true)
+  preorder_mode              PreorderMode @default(next_open)
+  preorder_min_lead_min      Int          @default(30)
+  preorder_max_days          Int          @default(2)
+  next_order_number          Int          @default(1)
+  is_active                  Boolean      @default(true)
+  /// Oculta (no borrada) al degradar la licencia por exceder límites
+  hidden_by_license          Boolean      @default(false)
+  sort                       Int          @default(0)
+  created_at                 DateTime     @default(now()) @db.Timestamptz(6)
+
+  business           businesses           @relation(fields: [business_id], references: [id], onDelete: Cascade)
+  hours              branch_hours[]
+  products           branch_products[]
+  members            member_branches[]
+  staff              staff_members[]
+  devices            staff_devices[]
+  staff_sessions     staff_sessions[]
+  bank_accounts      bank_accounts[]
+  schedules          menu_schedules[]
+  overrides          menu_overrides[]
+  orders             orders[]
+  reviews            reviews[]
+  qr_codes           qr_codes[]
+  push_subscriptions push_subscriptions[]
+
+  @@unique([business_id, slug])
+}
+
+model branch_hours {
+  id        String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  branch_id String @db.Uuid
+  /// 0=domingo … 6=sábado
+  weekday   Int
+  /// "07:00"
+  opens     String
+  /// "22:00"
+  closes    String
+
+  branch branches @relation(fields: [branch_id], references: [id], onDelete: Cascade)
+
+  @@index([branch_id, weekday])
+}
+
+model themes {
+  id                 String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  business_id        String          @unique @db.Uuid
+  template           MenuTemplate    @default(clasico)
+  /// Id de paleta lista, "custom" o "logo"
+  palette_preset     String          @default("tomate")
+  color_primary      String          @default("#D23B22")
+  color_accent       String          @default("#F6B73C")
+  color_bg           String          @default("#FBF6EE")
+  color_surface      String          @default("#FFFFFF")
+  color_text         String          @default("#231A17")
+  bg_type            BgType          @default(color)
+  bg_value           String?
+  bg_video_url       String?
+  bg_poster_url      String?
+  bg_overlay         Float           @default(0.35)
+  font_heading       String          @default("Bricolage Grotesque")
+  font_body          String          @default("Inter")
+  radius             Int             @default(16)
+  /// logo | puntos | plato
+  loader_style       String          @default("logo")
+  show_powered_by    Boolean         @default(true)
+  splash_style       SplashStyle     @default(lift)
+  /// color | gradient | image
+  splash_bg_type     BgType          @default(color)
+  splash_bg_value    String          @default("#D23B22")
+  /// px
+  splash_logo_size   Int             @default(112)
+  splash_show_name   Boolean         @default(true)
+  splash_tagline     String?
+  splash_hold_ms     Int             @default(700)
+  /// Total, 1200–3000
+  splash_duration_ms Int             @default(1800)
+  splash_easing      SplashEasing    @default(suave)
+  splash_frequency   SplashFrequency @default(once_per_session)
+
+  business businesses @relation(fields: [business_id], references: [id], onDelete: Cascade)
+}
+
+model bank_accounts {
+  id             String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  business_id    String  @db.Uuid
+  /// null = todas las sucursales
+  branch_id      String? @db.Uuid
+  bank_name      String
+  /// "Monetaria" | "Ahorro"
+  account_type   String
+  account_number String
+  holder_name    String
+  instructions   String?
+  is_active      Boolean @default(true)
+  sort           Int     @default(0)
+
+  business businesses @relation(fields: [business_id], references: [id], onDelete: Cascade)
+  branch   branches?  @relation(fields: [branch_id], references: [id], onDelete: Cascade)
+
+  @@index([business_id])
+  @@index([branch_id])
+}
+
+model media {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  business_id String   @db.Uuid
+  /// {business_id}/products/{uuid}.webp
+  path        String
+  /// image | video
+  kind        String
+  width       Int?
+  height      Int?
+  bytes       Int
+  blurhash    String?
+  created_at  DateTime @default(now()) @db.Timestamptz(6)
+
+  business businesses @relation(fields: [business_id], references: [id], onDelete: Cascade)
+
+  @@index([business_id])
+}
+
+// ───────────── Catálogo ─────────────
+
+model product_categories {
+  id          String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  business_id String @db.Uuid
+  name        String
+  sort        Int    @default(0)
+
+  business businesses @relation(fields: [business_id], references: [id], onDelete: Cascade)
+  products products[]
+
+  @@index([business_id])
+}
+
+model products {
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  business_id       String    @db.Uuid
+  category_id       String?   @db.Uuid
+  name              String
+  description       String?
+  price_cents       Int
+  compare_at_cents  Int?
+  image_url         String?
+  image_blurhash    String?
+  /// picante, vegetariano, nuevo, popular
+  tags              String[]
+  /// Agotado en TODAS las sucursales
+  is_available      Boolean   @default(true)
+  /// Oculto (no borrado) al degradar la licencia por exceder límites
+  hidden_by_license Boolean   @default(false)
+  prep_minutes      Int?
+  sort              Int       @default(0)
+  deleted_at        DateTime? @db.Timestamptz(6)
+  created_at        DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at        DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
+
+  business        businesses              @relation(fields: [business_id], references: [id], onDelete: Cascade)
+  category        product_categories?     @relation(fields: [category_id], references: [id], onDelete: SetNull)
+  option_groups   product_option_groups[]
+  menu_items      menu_items[]
+  branch_settings branch_products[]
+  order_items     order_items[]
+
+  @@index([business_id, sort])
+  @@index([category_id])
+}
+
+model branch_products {
+  branch_id            String  @db.Uuid
+  product_id           String  @db.Uuid
+  /// Agotado solo en esta sucursal
+  is_available         Boolean @default(true)
+  price_override_cents Int?
+
+  branch  branches @relation(fields: [branch_id], references: [id], onDelete: Cascade)
+  product products @relation(fields: [product_id], references: [id], onDelete: Cascade)
+
+  @@id([branch_id, product_id])
+  @@index([product_id])
+}
+
+model product_option_groups {
+  id         String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  product_id String @db.Uuid
+  /// "Tamaño", "Extras"
+  name       String
+  min_select Int    @default(0)
+  max_select Int    @default(1)
+  sort       Int    @default(0)
+
+  product products          @relation(fields: [product_id], references: [id], onDelete: Cascade)
+  options product_options[]
+
+  @@index([product_id])
+}
+
+model product_options {
+  id                String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  group_id          String  @db.Uuid
+  name              String
+  price_delta_cents Int     @default(0)
+  is_available      Boolean @default(true)
+  sort              Int     @default(0)
+
+  group product_option_groups @relation(fields: [group_id], references: [id], onDelete: Cascade)
+
+  @@index([group_id])
+}
+
+// ───────────── Menús ─────────────
+
+model time_slots {
+  id          String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  business_id String  @db.Uuid
+  key         SlotKey
+  /// "Desayunos"
+  name        String
+  /// "06:30"
+  start_time  String
+  /// "11:00"
+  end_time    String
+  is_active   Boolean @default(true)
+  sort        Int     @default(0)
+
+  business  businesses       @relation(fields: [business_id], references: [id], onDelete: Cascade)
+  schedules menu_schedules[]
+  overrides menu_overrides[]
+
+  @@index([business_id])
+}
+
+model menus {
+  id                String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  business_id       String        @db.Uuid
+  name              String
+  description       String?
+  template          MenuTemplate?
+  is_active         Boolean       @default(true)
+  /// Único por negocio (índice parcial one_default_menu en prisma/sql/)
+  is_default        Boolean       @default(false)
+  /// Oculto (no borrado) al degradar la licencia por exceder límites
+  hidden_by_license Boolean       @default(false)
+  created_at        DateTime      @default(now()) @db.Timestamptz(6)
+  updated_at        DateTime      @default(now()) @updatedAt @db.Timestamptz(6)
+
+  business  businesses       @relation(fields: [business_id], references: [id], onDelete: Cascade)
+  sections  menu_sections[]
+  schedules menu_schedules[]
+  overrides menu_overrides[]
+  orders    orders[]
+
+  @@index([business_id])
+}
+
+model menu_sections {
+  id          String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  menu_id     String  @db.Uuid
+  name        String
+  description String?
+  sort        Int     @default(0)
+
+  menu  menus        @relation(fields: [menu_id], references: [id], onDelete: Cascade)
+  items menu_items[]
+
+  @@index([menu_id, sort])
+}
+
+model menu_items {
+  id                   String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  section_id           String  @db.Uuid
+  product_id           String  @db.Uuid
+  price_override_cents Int?
+  is_featured          Boolean @default(false)
+  sort                 Int     @default(0)
+
+  section menu_sections @relation(fields: [section_id], references: [id], onDelete: Cascade)
+  product products      @relation(fields: [product_id], references: [id], onDelete: Cascade)
+
+  @@unique([section_id, product_id])
+  @@index([product_id])
+}
+
+model menu_schedules {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  menu_id      String    @db.Uuid
+  time_slot_id String    @db.Uuid
+  /// null = todas las sucursales
+  branch_id    String?   @db.Uuid
+  weekdays     Int[]
+  starts_on    DateTime? @db.Date
+  ends_on      DateTime? @db.Date
+  /// La regla de sucursal gana a la general
+  priority     Int       @default(0)
+
+  menu      menus      @relation(fields: [menu_id], references: [id], onDelete: Cascade)
+  time_slot time_slots @relation(fields: [time_slot_id], references: [id], onDelete: Cascade)
+  branch    branches?  @relation(fields: [branch_id], references: [id], onDelete: Cascade)
+
+  @@index([menu_id])
+  @@index([time_slot_id])
+  @@index([branch_id])
+}
+
+model menu_overrides {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  business_id  String   @db.Uuid
+  /// null = todas las sucursales
+  branch_id    String?  @db.Uuid
+  date         DateTime @db.Date
+  /// null = todo el día
+  time_slot_id String?  @db.Uuid
+  /// null = cerrado
+  menu_id      String?  @db.Uuid
+  note         String?
+
+  business  businesses  @relation(fields: [business_id], references: [id], onDelete: Cascade)
+  branch    branches?   @relation(fields: [branch_id], references: [id], onDelete: Cascade)
+  time_slot time_slots? @relation(fields: [time_slot_id], references: [id], onDelete: Cascade)
+  menu      menus?      @relation(fields: [menu_id], references: [id], onDelete: SetNull)
+
+  @@index([business_id, date])
+  @@index([branch_id])
+  @@index([time_slot_id])
+  @@index([menu_id])
+}
+
+// ───────────── Operación ─────────────
+
+model orders {
+  id                        String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  business_id               String      @db.Uuid
+  branch_id                 String      @db.Uuid
+  /// Consecutivo por sucursal (branches.next_order_number, nunca MAX+1)
+  number                    Int
+  menu_id                   String?     @db.Uuid
+  qr_code_id                String?     @db.Uuid
+  customer_name             String
+  customer_phone            String?
+  /// Solo si el cliente lo dejó
+  customer_email            String?
+  order_type                OrderType
+  table_label               String?
+  /// null = lo antes posible
+  scheduled_for             DateTime?   @db.Timestamptz(6)
+  address                   String?
+  address_reference         String?
+  /// Se borran (null) a los 90 días por cron
+  delivery_lat              Float?
+  delivery_lng              Float?
+  delivery_accuracy_m       Float?
+  /// gps | mapa | manual
+  location_source           String?
+  distance_km               Float?
+  payment_method            PayMethod
+  notes                     String?
+  subtotal_cents            Int
+  delivery_fee_cents        Int         @default(0)
+  total_cents               Int
+  status                    OrderStatus @default(new)
+  whatsapp_opened_at        DateTime?   @db.Timestamptz(6)
+  /// Email de confirmación al cliente
+  confirmation_sent_at      DateTime?   @db.Timestamptz(6)
+  /// Pushes de escalamiento enviados mientras sigue "nuevo" (máx. 3)
+  push_reminders_sent       Int         @default(0)
+  /// Aviso 30 min antes de scheduled_for
+  preorder_reminder_sent_at DateTime?   @db.Timestamptz(6)
+  client_session_id         String?
+  created_at                DateTime    @default(now()) @db.Timestamptz(6)
+  updated_at                DateTime    @default(now()) @updatedAt @db.Timestamptz(6)
+
+  business businesses            @relation(fields: [business_id], references: [id], onDelete: Cascade)
+  branch   branches              @relation(fields: [branch_id], references: [id], onDelete: Cascade)
+  menu     menus?                @relation(fields: [menu_id], references: [id], onDelete: SetNull)
+  qr_code  qr_codes?             @relation(fields: [qr_code_id], references: [id], onDelete: SetNull)
+  items    order_items[]
+  events   order_status_events[]
+  review   reviews?
+
+  @@unique([branch_id, number])
+  @@index([branch_id, status, created_at])
+  @@index([business_id, created_at])
+  @@index([qr_code_id])
+  @@index([menu_id])
+}
+
+model order_items {
+  id               String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  order_id         String  @db.Uuid
+  product_id       String? @db.Uuid
+  name_snapshot    String
+  unit_price_cents Int
+  quantity         Int
+  options_snapshot Json
+  notes            String?
+  line_total_cents Int
+
+  order   orders    @relation(fields: [order_id], references: [id], onDelete: Cascade)
+  product products? @relation(fields: [product_id], references: [id], onDelete: SetNull)
+
+  @@index([order_id])
+  @@index([product_id])
+}
+
+model order_status_events {
+  id          String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  order_id    String      @db.Uuid
+  status      OrderStatus
+  /// Historial: sin FK para conservarlo aunque se borre el usuario o staff
+  by_user_id  String?     @db.Uuid
+  by_staff_id String?     @db.Uuid
+  created_at  DateTime    @default(now()) @db.Timestamptz(6)
+
+  order orders @relation(fields: [order_id], references: [id], onDelete: Cascade)
+
+  @@index([order_id, created_at])
+}
+
+model reviews {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  business_id    String   @db.Uuid
+  branch_id      String   @db.Uuid
+  order_id       String?  @unique @db.Uuid
+  /// 1–5 (CHECK rating_range en prisma/sql/)
+  rating         Int
+  comment        String?
+  customer_name  String?
+  clicked_google Boolean  @default(false)
+  is_hidden      Boolean  @default(false)
+  created_at     DateTime @default(now()) @db.Timestamptz(6)
+
+  business businesses @relation(fields: [business_id], references: [id], onDelete: Cascade)
+  branch   branches   @relation(fields: [branch_id], references: [id], onDelete: Cascade)
+  order    orders?    @relation(fields: [order_id], references: [id], onDelete: SetNull)
+
+  @@index([business_id, created_at])
+  @@index([branch_id, created_at])
+}
+
+model qr_codes {
+  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  business_id       String   @db.Uuid
+  branch_id         String   @db.Uuid
+  /// "Mesa 4", "Volante"
+  label             String
+  /// {app}/q/{short_code}
+  short_code        String   @unique
+  table_label       String?
+  style             Json?
+  scans             Int      @default(0)
+  /// Oculto (no borrado) al degradar la licencia por exceder límites
+  hidden_by_license Boolean  @default(false)
+  created_at        DateTime @default(now()) @db.Timestamptz(6)
+
+  business businesses @relation(fields: [business_id], references: [id], onDelete: Cascade)
+  branch   branches   @relation(fields: [branch_id], references: [id], onDelete: Cascade)
+  orders   orders[]
+
+  @@index([business_id])
+  @@index([branch_id])
+}
+
+model push_subscriptions {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  business_id     String    @db.Uuid
+  /// null = todas (dueño)
+  branch_id       String?   @db.Uuid
+  user_id         String?   @db.Uuid
+  staff_member_id String?   @db.Uuid
+  endpoint        String    @unique
+  p256dh          String
+  auth            String
+  user_agent      String?
+  last_success_at DateTime? @db.Timestamptz(6)
+  created_at      DateTime  @default(now()) @db.Timestamptz(6)
+
+  business businesses     @relation(fields: [business_id], references: [id], onDelete: Cascade)
+  branch   branches?      @relation(fields: [branch_id], references: [id], onDelete: Cascade)
+  user     profiles?      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  staff    staff_members? @relation(fields: [staff_member_id], references: [id], onDelete: Cascade)
+
+  @@index([business_id, branch_id])
+  @@index([user_id])
+  @@index([staff_member_id])
+}
+
+// ───────────── Plataforma y licencias ─────────────
+
+model plans {
+  /// "gratis" | "pro" | "negocio"
+  id        String   @id
+  name      String
+  price_gtq Int
+  /// {branches:1, products:25, menus:1, staff:1, qr:1, storage_mb:200}
+  limits    Json
+  /// ["scheduling","video_bg","custom_splash","analytics_full","remove_branding","preorders","staff_pin"]
+  features  String[]
+  is_public Boolean  @default(true)
+  sort      Int      @default(0)
+
+  licenses licenses[]
+}
+
+/// "Gratis (degradada)" = plan_id "gratis" + status active + evento "downgraded".
+model licenses {
+  id                 String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  business_id        String        @unique @db.Uuid
+  plan_id            String
+  status             LicenseStatus @default(trial)
+  starts_at          DateTime      @default(now()) @db.Timestamptz(6)
+  /// Fin del periodo pagado o de la prueba
+  ends_at            DateTime      @db.Timestamptz(6)
+  grace_days         Int           @default(7)
+  /// {branches: 5}
+  limit_overrides    Json?
+  /// {add:["remove_branding"], remove:[]}
+  feature_overrides  Json?
+  /// Precio fundador
+  price_override_gtq Int?
+  notes              String?
+  updated_by         String?       @db.Uuid
+  updated_at         DateTime      @default(now()) @updatedAt @db.Timestamptz(6)
+
+  business businesses       @relation(fields: [business_id], references: [id], onDelete: Cascade)
+  plan     plans            @relation(fields: [plan_id], references: [id])
+  events   license_events[]
+  payments payments[]
+
+  @@index([plan_id])
+  @@index([status, ends_at])
+}
+
+model license_events {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  license_id String   @db.Uuid
+  /// created | plan_changed | extended | limits_changed | features_changed | grace | downgraded | suspended | reactivated | cancelled | payment_verified | payment_rejected
+  type       String
+  data       Json?
+  /// null = proceso automático
+  actor_id   String?  @db.Uuid
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+
+  license licenses @relation(fields: [license_id], references: [id], onDelete: Cascade)
+
+  @@index([license_id, created_at])
+}
+
+model payments {
+  id               String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  license_id       String        @db.Uuid
+  amount_cents     Int
+  /// transfer | deposit
+  method           String
+  bank             String?
+  /// Número de boleta o transferencia
+  reference        String
+  receipt_url      String?
+  period_start     DateTime      @db.Timestamptz(6)
+  period_end       DateTime      @db.Timestamptz(6)
+  status           PaymentStatus @default(pending)
+  /// Motivo visible para el negocio cuando se rechaza
+  rejection_reason String?
+  verified_by      String?       @db.Uuid
+  created_at       DateTime      @default(now()) @db.Timestamptz(6)
+
+  license licenses @relation(fields: [license_id], references: [id], onDelete: Cascade)
+
+  @@index([license_id, created_at])
+  @@index([status, created_at])
+}
+
+model platform_settings {
+  /// maintenance_mode | reserved_slugs | font_catalog | palette_presets | trial_days | grace_days | splash_defaults
+  key        String   @id
+  value      Json
+  updated_by String?  @db.Uuid
+  updated_at DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+}
+
+model announcements {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title     String
+  body      String
+  /// all | plan:pro | business:{id}
+  audience  String
+  starts_at DateTime  @db.Timestamptz(6)
+  ends_at   DateTime? @db.Timestamptz(6)
+  is_active Boolean   @default(true)
+}
+
+/// Alto volumen: sin FKs para que insertar sea barato.
+model analytics_events {
+  id          BigInt   @id @default(autoincrement())
+  business_id String   @db.Uuid
+  branch_id   String?  @db.Uuid
+  /// page_view | product_view | add_to_cart | checkout_start | order_created | whatsapp_opened | location_shared | review_submitted | app_installed
+  event       String
+  session_id  String
+  qr_code_id  String?  @db.Uuid
+  product_id  String?  @db.Uuid
+  menu_id     String?  @db.Uuid
+  meta        Json?
+  created_at  DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([business_id, branch_id, event, created_at])
+}
+
+/// Historial inmutable: sin FKs para conservarlo aunque se borre la entidad.
+model audit_logs {
+  id          BigInt   @id @default(autoincrement())
+  actor_id    String?  @db.Uuid
+  /// user | staff | platform | system
+  actor_kind  String
+  business_id String?  @db.Uuid
+  /// product.update, license.extend, staff.pin_reset …
+  action      String
+  entity      String
+  entity_id   String?
+  diff        Json?
+  created_at  DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([business_id, created_at])
 }

@@ -32,14 +32,27 @@ Hay dos proyectos de Supabase: **dev** (desarrollo y previews) y **prod** (produ
 3. En **Connect → ORMs** copia las cadenas de conexión:
    - `DATABASE_URL`: _Transaction pooler_ (puerto 6543, con `?pgbouncer=true`). La usa la app en runtime.
    - `DIRECT_URL`: _Session pooler_ o conexión directa (puerto 5432). La usan las migraciones.
-4. Verifica la conexión:
+4. Crea el esquema y verifica:
 
 ```bash
-pnpm db:status     # estado de las migraciones
-pnpm db:migrate    # crea y aplica migraciones en dev
+pnpm db:migrate    # aplica las migraciones de Prisma (37 tablas)
+pnpm db:sql        # aplica el SQL de Supabase (funciones, triggers, RLS, Storage, Realtime)
+pnpm db:verify     # comprueba tablas, RLS, políticas, triggers, bucket y Realtime
 ```
 
+En producción: `pnpm db:deploy` (= `prisma migrate deploy` + `db:sql`).
+
 `lib/env.ts` valida las variables con Zod en el primer uso y muestra cuáles faltan, sin imprimir sus valores. El cliente Prisma se genera en `generated/` (ignorado por git) al instalar dependencias.
+
+### Dónde vive cada cosa del esquema
+
+| Qué                                                                              | Dónde                                         | Por qué                                                                     |
+| -------------------------------------------------------------------------------- | --------------------------------------------- | --------------------------------------------------------------------------- |
+| Tablas, enums, relaciones e índices                                              | `prisma/schema.prisma` → `prisma/migrations/` | Prisma los genera y versiona                                                |
+| Índices parciales y `CHECK` (p. ej. `one_default_menu`, `rating_range`)          | Migración SQL manual en `prisma/migrations/`  | Postgres estándar que Prisma no modela; se replica en la base _shadow_      |
+| Funciones con `auth.uid()`, triggers sobre `auth.users`, RLS, Storage y Realtime | `prisma/sql/*.sql` (idempotentes, en orden)   | Dependen de Supabase; la base _shadow_ de Prisma no tiene el esquema `auth` |
+
+**Regla de RLS:** RLS está activo en **todas** las tablas. Prisma se conecta como dueño y no pasa por RLS (la protección en servidor es `requireAccess`). Solo se abren políticas para lo que el navegador toca directo con la llave pública: pedidos (Realtime) y archivos (Storage). Una tabla nueva sin política queda cerrada por defecto: al agregar tablas, corre `pnpm db:sql` para activar su RLS.
 
 ## Deploy (Vercel) y errores (Sentry)
 
@@ -71,6 +84,9 @@ pnpm db:migrate    # crea y aplica migraciones en dev
 | `pnpm test`       | Pruebas unitarias con Vitest          |
 | `pnpm check`      | Lint + typecheck + formato + tests    |
 | `pnpm db:migrate` | Crea y aplica migraciones (dev)       |
+| `pnpm db:sql`     | Aplica el SQL de Supabase (RLS, etc.) |
+| `pnpm db:verify`  | Verifica tablas, RLS y políticas      |
+| `pnpm db:deploy`  | Migraciones + SQL en producción       |
 | `pnpm db:status`  | Estado de las migraciones             |
 | `pnpm db:studio`  | Explorador visual de la base de datos |
 
