@@ -87,6 +87,33 @@ Los usuarios de prueba usan `SEED_USERS_PASSWORD` de `.env.local`; si no existe,
 - _Emails_: el SMTP por defecto de Supabase envía pocos correos por hora; para producción se configura Resend como SMTP (QRM-029).
 - _MFA_: TOTP habilitado (viene activo por defecto).
 
+### Permisos y licencias en el servidor
+
+Nada se habilita solo en el frontend. Toda Server Action sigue este orden:
+
+```ts
+"use server";
+export async function createBranch(input: unknown): Promise<ActionResult> {
+  const parsed = branchSchema.safeParse(input); // 1. Zod
+  if (!parsed.success) return { ok: false, message: "Revisa los datos." };
+  try {
+    await requireAccess(businessId, { roles: ["owner"], write: true }); // 2. sesión, rol, sucursal, licencia
+    await assertWithinLimit(businessId, "branches"); // 3. límite del plan
+    // 4. escribir con Prisma → 5. audit_logs → 6. revalidateTag
+    return { ok: true };
+  } catch (error) {
+    return actionError(error); // AccessError / LimitExceededError → mensaje amable
+  }
+}
+```
+
+| Pieza                                                            | Archivo                                                                 | Qué hace                                                                                                                                                     |
+| ---------------------------------------------------------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `getEntitlements(businessId)`                                    | `features/licensing/server.ts`                                          | Plan + ajustes del super admin + estado efectivo (prueba, activa, gracia, gratis, suspendida, cancelada). Aplica vencimientos aunque el cron no haya corrido |
+| `assertWithinLimit(businessId, recurso)`                         | `features/licensing/server.ts`                                          | Sucursales, productos, menús, franjas, QR, encargados, staff y MB. Mensaje: "Tu plan incluye 1 sucursal. Pasa a Negocio para agregar más."                   |
+| `requireAccess(businessId, { roles, branchId, feature, write })` | `lib/auth/require-access.ts`                                            | Sesión → membresía → sucursal del negocio → rol → licencia → función                                                                                         |
+| Lógica pura                                                      | `features/licensing/entitlements.ts`, `limits.ts`, `lib/auth/access.ts` | Sin base de datos: con pruebas unitarias                                                                                                                     |
+
 ## Deploy (Vercel) y errores (Sentry)
 
 **Vercel** (plan Pro: el gratuito no permite uso comercial):
@@ -107,22 +134,23 @@ Los usuarios de prueba usan `SEED_USERS_PASSWORD` de `.env.local`; si no existe,
 
 ## Scripts
 
-| Script            | Qué hace                               |
-| ----------------- | -------------------------------------- |
-| `pnpm dev`        | Servidor de desarrollo                 |
-| `pnpm build`      | Build de producción                    |
-| `pnpm lint`       | ESLint (sin warnings permitidos)       |
-| `pnpm typecheck`  | Genera tipos de rutas y corre `tsc`    |
-| `pnpm format`     | Formatea con Prettier                  |
-| `pnpm test`       | Pruebas unitarias con Vitest           |
-| `pnpm check`      | Lint + typecheck + formato + tests     |
-| `pnpm db:migrate` | Crea y aplica migraciones (dev)        |
-| `pnpm db:sql`     | Aplica el SQL de Supabase (RLS, etc.)  |
-| `pnpm db:verify`  | Verifica tablas, RLS y políticas       |
-| `pnpm db:deploy`  | Migraciones + SQL en producción        |
-| `pnpm db:seed`    | Datos semilla (planes, demo, usuarios) |
-| `pnpm db:status`  | Estado de las migraciones              |
-| `pnpm db:studio`  | Explorador visual de la base de datos  |
+| Script                  | Qué hace                                              |
+| ----------------------- | ----------------------------------------------------- |
+| `pnpm dev`              | Servidor de desarrollo                                |
+| `pnpm build`            | Build de producción                                   |
+| `pnpm lint`             | ESLint (sin warnings permitidos)                      |
+| `pnpm typecheck`        | Genera tipos de rutas y corre `tsc`                   |
+| `pnpm format`           | Formatea con Prettier                                 |
+| `pnpm test`             | Pruebas unitarias con Vitest                          |
+| `pnpm test:integration` | Pruebas contra Supabase dev (requiere `pnpm db:seed`) |
+| `pnpm check`            | Lint + typecheck + formato + tests                    |
+| `pnpm db:migrate`       | Crea y aplica migraciones (dev)                       |
+| `pnpm db:sql`           | Aplica el SQL de Supabase (RLS, etc.)                 |
+| `pnpm db:verify`        | Verifica tablas, RLS y políticas                      |
+| `pnpm db:deploy`        | Migraciones + SQL en producción                       |
+| `pnpm db:seed`          | Datos semilla (planes, demo, usuarios)                |
+| `pnpm db:status`        | Estado de las migraciones                             |
+| `pnpm db:studio`        | Explorador visual de la base de datos                 |
 
 ## Flujo de trabajo con Git
 
