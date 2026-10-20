@@ -181,7 +181,7 @@ export function BusinessSettingsForm({ businessId, appHost, initial }: Props) {
         </Field>
       </section>
 
-      <div className="sticky bottom-16 z-10 -mx-4 grid gap-3 border-t border-border bg-background/95 px-4 py-3 backdrop-blur lg:bottom-0 lg:mx-0 lg:rounded-xl lg:border lg:px-5">
+      <div className="sticky bottom-16 z-10 -mx-4 grid gap-3 border-t border-border bg-background/95 px-4 py-3 backdrop-blur lg:bottom-0 lg:mx-0 lg:rounded-xl lg:border lg:px-5 [@media(max-height:500px)]:static">
         {result ? (
           <FormMessage tone={result.ok ? "success" : "error"}>{result.message}</FormMessage>
         ) : null}
