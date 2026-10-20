@@ -13,7 +13,7 @@ const SLOW_MESSAGE = "Está tardando más de lo normal";
  * Se monta una vez en el layout raíz y se controla con withLoading().
  */
 export function LoadingOverlay() {
-  const { visible, message, slow, loader, logoUrl, color } = useLoading();
+  const { visible, message, slow, loader, logoUrl, color, progress } = useLoading();
   const ref = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
@@ -43,6 +43,7 @@ export function LoadingOverlay() {
           <Loader style={loader} logoUrl={logoUrl} />
         </span>
         <p className="type-body font-semibold">{slow ? SLOW_MESSAGE : message}</p>
+        {progress !== null && !slow ? <ProgressBar value={progress} color={color} /> : null}
         {slow ? (
           <p className="type-small -mt-2 text-muted-foreground">
             Puede ser el internet. ¿Probamos otra vez?
@@ -60,5 +61,27 @@ export function LoadingOverlay() {
         </div>
       ) : null}
     </dialog>
+  );
+}
+
+function ProgressBar({ value, color }: { value: number; color: string | null }) {
+  const percent = Math.round(value * 100);
+  return (
+    <div className="-mt-1 grid w-full gap-1.5">
+      <div
+        role="progressbar"
+        aria-label="Avance"
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={percent}
+        className="h-2 w-full overflow-hidden rounded-full bg-muted"
+      >
+        <div
+          className="h-full rounded-full bg-primary transition-[width] duration-200 ease-out"
+          style={{ width: `${percent}%`, ...(color ? { backgroundColor: color } : {}) }}
+        />
+      </div>
+      <span className="type-small text-muted-foreground tabular-nums">{percent} %</span>
+    </div>
   );
 }

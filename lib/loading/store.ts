@@ -12,6 +12,8 @@ type LoadingStore = LoadingView & {
   logoUrl: string | null;
   /** Color del indicador (el primario del negocio en el menú público). */
   color: string | null;
+  /** Avance 0–1 de una subida (barra en el modal); null si no aplica. */
+  progress: number | null;
 };
 
 /** Estado global del modal "Cargando…" (lo lee <LoadingOverlay/>). */
@@ -20,9 +22,12 @@ export const useLoading = create<LoadingStore>(() => ({
   loader: "logo",
   logoUrl: null,
   color: null,
+  progress: null,
 }));
 
-const controller = createLoadingController((view) => useLoading.setState(view));
+const controller = createLoadingController((view) =>
+  useLoading.setState(view.visible ? view : { ...view, progress: null }),
+);
 
 /**
  * Envuelve una acción que bloquea la pantalla (enviar pedido, subir imagen,
@@ -34,7 +39,15 @@ const controller = createLoadingController((view) => useLoading.setState(view));
  * LoadingCancelledError.
  */
 export function withLoading<T>(message: string, action: (signal: AbortSignal) => Promise<T>) {
+  useLoading.setState({ progress: null });
   return controller.run(message, action);
+}
+
+/** Muestra una barra de avance en el modal (p. ej. al subir una foto). */
+export function setLoadingProgress(fraction: number | null) {
+  useLoading.setState({
+    progress: fraction === null ? null : Math.min(1, Math.max(0, fraction)),
+  });
 }
 
 export const cancelLoading = () => controller.cancel();

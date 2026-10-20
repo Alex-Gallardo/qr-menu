@@ -34,6 +34,8 @@ export async function getBusinessSettings(businessId: string) {
       tiktok: true,
       whatsapp_greeting: true,
       whatsapp_farewell: true,
+      logo_url: true,
+      cover_url: true,
     },
   });
 }
