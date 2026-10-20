@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { Suspense, type ReactNode } from "react";
 import { Logo } from "@/components/brand/logo";
+import { getAuthUser, getProfile } from "@/lib/auth/session";
 import { BrandSection } from "./_sections/brand";
 import { ButtonsSection } from "./_sections/buttons";
 import { ColorSection } from "./_sections/color";
@@ -22,11 +24,27 @@ const NAV = [
 
 /**
  * Fuente de verdad visual: todo componente nuevo nace aquí antes de usarse.
- * Oculta en producción; en QRM-007 se abre también para admins de plataforma.
+ * En producción solo la ve el equipo de la plataforma; en desarrollo y previews, cualquiera.
  */
 export default function StyleguidePage() {
-  if (process.env.VERCEL_ENV === "production") notFound();
+  if (process.env.VERCEL_ENV !== "production") return <Styleguide />;
+  return (
+    <Suspense fallback={null}>
+      <PlatformOnly>
+        <Styleguide />
+      </PlatformOnly>
+    </Suspense>
+  );
+}
 
+async function PlatformOnly({ children }: { children: ReactNode }) {
+  const user = await getAuthUser();
+  const profile = user && !user.isAnonymous ? await getProfile(user.id) : null;
+  if (!profile || profile.platform_role === "none") notFound();
+  return children;
+}
+
+function Styleguide() {
   return (
     <div className="min-h-dvh">
       <header className="sticky top-0 z-10 border-b border-border bg-background/90 backdrop-blur">

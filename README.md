@@ -67,6 +67,26 @@ Los usuarios de prueba usan `SEED_USERS_PASSWORD` de `.env.local`; si no existe,
 
 **Regla de RLS:** RLS está activo en **todas** las tablas. Prisma se conecta como dueño y no pasa por RLS (la protección en servidor es `requireAccess`). Solo se abren políticas para lo que el navegador toca directo con la llave pública: pedidos (Realtime) y archivos (Storage). Una tabla nueva sin política queda cerrada por defecto: al agregar tablas, corre `pnpm db:sql` para activar su RLS.
 
+## Autenticación y acceso
+
+| Ruta                                 | Quién entra                                                      | Cómo se protege                                                                       |
+| ------------------------------------ | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `/entrar`, `/registro`, `/recuperar` | Cualquiera (con sesión, `/entrar` y `/registro` llevan al panel) | —                                                                                     |
+| `/panel/**`, `/onboarding`           | Usuario con email                                                | `proxy.ts` (sin sesión → `/entrar?next=…`) + verificación de membresía en el servidor |
+| `/admin/**`                          | Equipo de la plataforma **con 2FA** (TOTP)                       | `proxy.ts` + `requirePlatformUser()` (sin rol → 404, sin 2FA → `/entrar/2fa`)         |
+| `/staff/**`                          | Dispositivo autorizado, turno con PIN o dueño/encargado          | `proxy.ts` (cookie del dispositivo o sesión)                                          |
+| Menú público                         | Cualquiera                                                       | —                                                                                     |
+
+- **Proxy** (`proxy.ts`, el antiguo `middleware`): refresca la sesión de Supabase y decide con `lib/auth/route-rules.ts` (función pura, con pruebas). Los permisos finos se validan siempre en el servidor.
+- **Modo mantenimiento**: `platform_settings.maintenance_mode = {"enabled": true, "message": "…"}`. Todo responde 503 con el mensaje, salvo `/admin`, `/entrar`, `/auth` y `/api`. Se lee con caché de 30 s.
+
+**Configuración en Supabase** (_Authentication → URL Configuration_):
+
+- _Site URL_: la URL de producción.
+- _Redirect URLs_: `http://localhost:3000/auth/callback` y `https://*-alexgallardos-projects.vercel.app/auth/callback` (previews).
+- _Emails_: el SMTP por defecto de Supabase envía pocos correos por hora; para producción se configura Resend como SMTP (QRM-029).
+- _MFA_: TOTP habilitado (viene activo por defecto).
+
 ## Deploy (Vercel) y errores (Sentry)
 
 **Vercel** (plan Pro: el gratuito no permite uso comercial):
