@@ -24,4 +24,6 @@ export default withSentryConfig(nextConfig, {
     excludeReplayWorker: true,
   },
   telemetry: false,
+  // Sin tracing en el navegador (se carga diferido), así que no se instrumentan navegaciones.
+  suppressOnRouterTransitionStartWarning: true,
 });
