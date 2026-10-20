@@ -26,7 +26,8 @@
     "db:studio": "prisma studio",
     "db:sql": "tsx scripts/db-sql.ts",
     "db:verify": "tsx scripts/db-verify.ts",
-    "db:seed": "prisma db seed"
+    "db:seed": "prisma db seed",
+    "test:integration": "vitest run --config vitest.integration.config.mts"
   },
   "dependencies": {
     "@hookform/resolvers": "^6.0.0",

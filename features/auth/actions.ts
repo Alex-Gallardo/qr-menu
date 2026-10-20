@@ -3,6 +3,7 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import type { z } from "zod";
+import type { ActionResult } from "@/lib/action-result";
 import { safeNext } from "@/lib/auth/route-rules";
 import { requireUser } from "@/lib/auth/session";
 import { BRAND } from "@/lib/brand";
@@ -17,7 +18,7 @@ import {
   totpSchema,
 } from "./schemas";
 
-export type ActionResult = { ok: true; message?: string } | { ok: false; message: string };
+export type { ActionResult } from "@/lib/action-result";
 
 function invalid(error: z.ZodError): ActionResult {
   return { ok: false, message: error.issues[0]?.message ?? "Revisa los datos." };

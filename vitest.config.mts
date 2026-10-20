@@ -13,7 +13,7 @@ export default defineConfig({
   },
   test: {
     include: ["**/*.test.{ts,tsx}"],
-    exclude: ["node_modules", ".next", "generated", "tests/e2e/**"],
+    exclude: ["node_modules", ".next", "generated", "tests/e2e/**", "tests/integration/**"],
     environment: "node",
   },
 });
