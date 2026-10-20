@@ -23,6 +23,8 @@ export const RESERVED_SLUGS = [
   "onboarding",
   "ayuda",
   "soporte",
+  "mantenimiento",
+  "monitoring",
   "qr-menu",
   "qrmenu",
 ] as const;
