@@ -33,7 +33,7 @@ async function NewBranch({ params }: { params: Promise<{ businessId: string }> }
     db().branches.findFirst({
       where: { business_id: businessId },
       orderBy: [{ sort: "asc" }, { created_at: "asc" }],
-      select: { city: true },
+      select: { city: true, lat: true, lng: true },
     }),
   ]);
   const limit = checkLimit(ctx.entitlements.limits, "branches", used);
@@ -51,6 +51,11 @@ async function NewBranch({ params }: { params: Promise<{ businessId: string }> }
           publicPrefix={`${new URL(BRAND.url).host}/${ctx.business.slug}/`}
           canPreorder={canPreorder}
           listHref={panelHref(businessId, "sucursales")}
+          mapCenter={
+            firstBranch?.lat != null && firstBranch.lng != null
+              ? { lat: firstBranch.lat, lng: firstBranch.lng }
+              : undefined
+          }
         />
       ) : (
         <LimitCard
