@@ -6,3 +6,4 @@ node_modules
 pnpm-lock.yaml
 next-env.d.ts
 AGENTS.md
+generated

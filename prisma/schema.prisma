@@ -1,0 +1,11 @@
+// Esquema de datos de qr-menu. Las 37 tablas llegan en QRM-005.
+// La conexión se configura en prisma.config.ts (Prisma 7).
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
