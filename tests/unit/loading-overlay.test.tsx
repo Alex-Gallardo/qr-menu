@@ -3,7 +3,7 @@ import { act, cleanup, fireEvent, render, screen } from "@testing-library/react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { LoadingOverlay } from "@/components/feedback/loading-overlay";
 import { LoadingCancelledError } from "@/lib/loading/controller";
-import { withLoading } from "@/lib/loading/store";
+import { setLoadingProgress, useLoading, withLoading } from "@/lib/loading/store";
 
 const advance = (ms: number) => act(() => vi.advanceTimersByTimeAsync(ms));
 
@@ -50,5 +50,23 @@ describe("<LoadingOverlay />", () => {
     expect(screen.getByLabelText("Cargando", { selector: "dialog" }).hasAttribute("open")).toBe(
       false,
     );
+  });
+
+  it("muestra la barra de avance de una subida y la limpia al cerrar", async () => {
+    render(<LoadingOverlay />);
+    let resolve!: () => void;
+    void withLoading("Subiendo tu foto…", () => new Promise<void>((r) => (resolve = r)));
+    await advance(300);
+    expect(screen.queryByRole("progressbar", { hidden: true })).toBeNull();
+
+    act(() => setLoadingProgress(0.456));
+    const bar = screen.getByRole("progressbar", { hidden: true });
+    expect(bar.getAttribute("aria-valuenow")).toBe("46");
+    act(() => setLoadingProgress(2));
+    expect(bar.getAttribute("aria-valuenow")).toBe("100");
+
+    resolve();
+    await advance(600);
+    expect(useLoading.getState().progress).toBeNull();
   });
 });

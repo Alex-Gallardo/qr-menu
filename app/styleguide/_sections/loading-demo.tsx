@@ -6,7 +6,13 @@ import { SaveIndicator, type SaveState } from "@/components/feedback/save-indica
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { LoadingCancelledError } from "@/lib/loading/controller";
-import { configureLoader, useLoading, withLoading, type LoaderStyle } from "@/lib/loading/store";
+import {
+  configureLoader,
+  setLoadingProgress,
+  useLoading,
+  withLoading,
+  type LoaderStyle,
+} from "@/lib/loading/store";
 
 const wait = (ms: number, signal: AbortSignal) =>
   new Promise<void>((resolve, reject) => {
@@ -23,6 +29,21 @@ async function runDemo(ms: number, message: string) {
   try {
     await withLoading(message, (signal) => wait(ms, signal));
     return `Terminó en ${Math.round(performance.now() - started)} ms`;
+  } catch (e) {
+    return e instanceof LoadingCancelledError ? "Cancelada" : "Error";
+  }
+}
+
+/** Subida simulada: la barra avanza en 2.5 s. */
+async function runUploadDemo() {
+  try {
+    await withLoading("Subiendo tu foto…", async (signal) => {
+      for (let step = 0; step <= 20; step++) {
+        setLoadingProgress(step / 20);
+        await wait(125, signal);
+      }
+    });
+    return "Foto subida";
   } catch (e) {
     return e instanceof LoadingCancelledError ? "Cancelada" : "Error";
   }
@@ -64,6 +85,15 @@ export function LoadingDemo() {
               {d.label}
             </Button>
           ))}
+          <Button
+            variant="secondary"
+            onClick={async () => {
+              setResult("");
+              setResult(await runUploadDemo());
+            }}
+          >
+            Con progreso (subida)
+          </Button>
         </div>
         <p className="type-small text-muted-foreground" aria-live="polite">
           {result}
