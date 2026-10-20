@@ -4,6 +4,7 @@ import { Field, FormMessage } from "@/components/forms/field";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Section } from "./section";
+import { ToastDemo } from "./toast-demo";
 
 export function FormsSection() {
   return (
@@ -48,6 +49,10 @@ export function FeedbackSection() {
         >
           Agrega tus platillos una vez y úsalos en todos tus menús.
         </EmptyState>
+      </div>
+      <h3 className="type-h3 mt-8">Toasts y cuenta para transferencia</h3>
+      <div className="mt-4">
+        <ToastDemo />
       </div>
     </Section>
   );
