@@ -32,6 +32,21 @@
   --animate-latido: latido 1.2s ease-in-out infinite;
   --animate-rebote: rebote 0.9s ease-in-out infinite;
   --animate-giro: spin 1.1s linear infinite;
+  /* Menú público: tarjetas en cascada (la primera vez) y cambio de franja/menú */
+  --animate-aparecer: aparecer 250ms var(--ease-out-soft) both;
+  --animate-fundido: fundido 200ms ease-out both;
+
+  @keyframes aparecer {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+  }
+  @keyframes fundido {
+    from {
+      opacity: 0;
+    }
+  }
 
   @keyframes latido {
     0%,

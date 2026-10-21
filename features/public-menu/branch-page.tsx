@@ -64,6 +64,7 @@ export async function BranchMenu({
           description: business.description,
           logoUrl: business.logo_url,
           coverUrl: business.cover_url,
+          theme: business.theme,
         }}
         branch={{
           id: branch.id,

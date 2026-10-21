@@ -1,4 +1,5 @@
 import { effectivePriceCents } from "@/features/products/catalog";
+import { blurhashToDataUrl } from "@/lib/images/blurhash-url";
 import type {
   ResolverMenu,
   ResolverOverride,
@@ -61,6 +62,8 @@ export type PublicProduct = {
   description: string | null;
   imageUrl: string | null;
   blurhash: string | null;
+  /** Imagen diminuta (data URL) para el placeholder borroso de next/image. */
+  blurDataUrl: string | null;
   /** Precio en esta sucursal (sin precio especial de menú). */
   priceCents: number;
   compareAtCents: number | null;
@@ -121,6 +124,7 @@ export function buildBranchMenu(input: {
       description: p.description,
       imageUrl: p.image_url,
       blurhash: p.image_blurhash,
+      blurDataUrl: blurhashToDataUrl(p.image_blurhash),
       priceCents: effectivePriceCents({
         basePriceCents: p.price_cents,
         branchPriceCents: setting?.price_override_cents,

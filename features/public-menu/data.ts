@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { addDays, dateOnly, todayInGuatemala } from "@/lib/gt-time";
 import { tags } from "@/lib/cache-tags";
 import { buildBranchMenu, type BranchMenuPayload } from "./payload";
+import { normalizeTheme } from "./theme";
 
 /**
  * Lecturas del menú público, cacheadas con etiquetas. Cada Server Action del
@@ -32,6 +33,17 @@ export async function getPublicBusiness(slug: string) {
       facebook: true,
       tiktok: true,
       published: true,
+      theme: {
+        select: {
+          color_primary: true,
+          color_accent: true,
+          color_bg: true,
+          color_surface: true,
+          color_text: true,
+          radius: true,
+          show_powered_by: true,
+        },
+      },
       branches: {
         where: { hidden_by_license: false },
         orderBy: [{ sort: "asc" }, { created_at: "asc" }],
@@ -61,6 +73,7 @@ export async function getPublicBusiness(slug: string) {
   const entitlements = await getEntitlements(business.id);
   return {
     ...business,
+    theme: normalizeTheme(business.theme),
     /** Licencia suspendida o cancelada → "Menú no disponible temporalmente". */
     menuOnline: entitlements.menuOnline,
     /** Indexable solo si publicó y su licencia está en línea. */
