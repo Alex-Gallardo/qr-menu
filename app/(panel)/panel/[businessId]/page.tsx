@@ -6,6 +6,8 @@ import { ALL_BRANCHES } from "@/features/panel/branch-selection";
 import { PanelPage } from "@/features/panel/components/panel-page";
 import { getPanelContext } from "@/features/panel/context";
 import { panelHref } from "@/features/panel/nav";
+import { TodayMenuCard } from "@/features/schedule/components/today-menu-card";
+import { getResolverData } from "@/features/schedule/program-server";
 import { db } from "@/lib/db";
 import { formatQ } from "@/lib/money";
 
@@ -38,7 +40,7 @@ async function Home({ params }: { params: Promise<{ businessId: string }> }) {
       : (ctx.branches.find((b) => b.id === ctx.selectedBranch)?.name ?? "");
 
   const today = { business_id: businessId, branch_id: { in: branchIds } };
-  const [ordersToday, pending, salesToday, products] = await Promise.all([
+  const [ordersToday, pending, salesToday, products, resolver] = await Promise.all([
     db().orders.count({ where: { ...today, created_at: { gte: startOfTodayGt() } } }),
     db().orders.count({ where: { ...today, status: { in: ["new", "accepted", "preparing"] } } }),
     db().orders.aggregate({
@@ -46,6 +48,7 @@ async function Home({ params }: { params: Promise<{ businessId: string }> }) {
       _sum: { total_cents: true },
     }),
     db().products.count({ where: { business_id: businessId, deleted_at: null } }),
+    getResolverData(businessId),
   ]);
 
   const firstName = ctx.user.name?.split(" ")[0];
@@ -91,6 +94,13 @@ async function Home({ params }: { params: Promise<{ businessId: string }> }) {
           </div>
         ))}
       </section>
+
+      <TodayMenuCard
+        data={resolver}
+        branches={ctx.branches.filter((b) => branchIds.includes(b.id))}
+        now={new Date()}
+        scheduleHref={panelHref(businessId, "programacion")}
+      />
 
       <section aria-labelledby="atajos" className="grid gap-3">
         <h2 id="atajos" className="type-h3">

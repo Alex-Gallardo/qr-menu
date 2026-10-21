@@ -12,6 +12,9 @@ const nextConfig: NextConfig = {
   // (incluidas contraseñas). Desactivado.
   logging: { serverFunctions: false },
   images: {
+    // Portada a lo ancho de la columna de 480 px: 400/800/1200 según la densidad
+    // de la pantalla (guía). Las miniaturas usan imageSizes (96…384).
+    deviceSizes: [400, 800, 1200],
     // Fotos del bucket público "media" y las de ejemplo del seed.
     remotePatterns: [
       ...(supabaseHost

@@ -76,3 +76,44 @@ export function weekSummary(week: DayHours[]) {
     )
     .join(" · ");
 }
+
+export type OpenState = { open: boolean; label: string };
+
+/**
+ * Estado del local ahora (hora de Guatemala): "Abierto · cierra 22:00",
+ * "Cerrado · abre a las 07:00", "abre mañana…", "abre el lunes…". Un turno que
+ * cruza la medianoche (18:00–02:00) sigue abierto a la 01:00 del día siguiente.
+ */
+export function openState(
+  rows: readonly { weekday: number; opens: string; closes: string }[],
+  now: { weekday: number; minutes: number },
+): OpenState {
+  if (rows.length === 0) return { open: false, label: "Cerrado" };
+  const byDay = (d: number) => rows.find((r) => r.weekday === d);
+  const today = byDay(now.weekday);
+  const yesterday = byDay((now.weekday + 6) % 7);
+
+  // Cola de un turno de ayer que cruzó la medianoche.
+  if (yesterday && minutesOf(yesterday.closes) < minutesOf(yesterday.opens)) {
+    if (now.minutes < minutesOf(yesterday.closes)) {
+      return { open: true, label: `Abierto · cierra ${yesterday.closes}` };
+    }
+  }
+  if (today) {
+    const opens = minutesOf(today.opens);
+    const closes = minutesOf(today.closes);
+    const crosses = closes < opens;
+    if (now.minutes >= opens && (crosses || now.minutes < closes)) {
+      return { open: true, label: `Abierto · cierra ${today.closes}` };
+    }
+    if (now.minutes < opens) return { open: false, label: `Cerrado · abre a las ${today.opens}` };
+  }
+  for (let i = 1; i <= 7; i++) {
+    const day = (now.weekday + i) % 7;
+    const row = byDay(day);
+    if (!row) continue;
+    const when = i === 1 ? "mañana" : `el ${WEEKDAYS[day]!.toLowerCase()}`;
+    return { open: false, label: `Cerrado · abre ${when} a las ${row.opens}` };
+  }
+  return { open: false, label: "Cerrado" };
+}
