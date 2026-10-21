@@ -266,7 +266,7 @@ export function ProductCatalog({
                     <div className="grid min-w-0 flex-1 gap-0.5">
                       <Link
                         href={`${productsHref}/${product.id}`}
-                        className="type-body truncate font-semibold hover:underline"
+                        className="type-body line-clamp-2 font-semibold break-words hover:underline"
                       >
                         {product.name}
                       </Link>
@@ -283,6 +283,9 @@ export function ProductCatalog({
                             {PRODUCT_TAGS.find((x) => x.value === t)?.label ?? t}
                           </span>
                         ))}
+                        {product._count.option_groups > 0 ? (
+                          <span className="type-caption">Con opciones</span>
+                        ) : null}
                       </p>
                       <Status
                         everywhere={everywhere}

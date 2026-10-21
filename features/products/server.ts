@@ -4,6 +4,7 @@ import { assertWithinLimit } from "@/features/licensing/server";
 import { canSeeBranch, type Membership } from "@/lib/auth/access";
 import { audit, diffFields } from "@/lib/audit";
 import { db } from "@/lib/db";
+import type { Prisma } from "@/generated/prisma/client";
 import { AccessError, AppError } from "@/lib/errors";
 import { copyName, isDefaultSetting, moveInList } from "./catalog";
 import type { ProductFormOutput } from "./schemas";
@@ -78,7 +79,82 @@ export async function getProductForEdit(
         where: { branch_id: { in: visibleBranchIds } },
         select: { branch_id: true, is_available: true, price_override_cents: true },
       },
+      option_groups: OPTION_GROUPS_SELECT,
     },
+  });
+}
+
+const OPTION_GROUPS_SELECT = {
+  orderBy: [{ sort: "asc" }, { id: "asc" }],
+  select: {
+    id: true,
+    name: true,
+    min_select: true,
+    max_select: true,
+    options: {
+      orderBy: [{ sort: "asc" }, { id: "asc" }],
+      select: { id: true, name: true, price_delta_cents: true, is_available: true },
+    },
+  },
+} satisfies Prisma.products$option_groupsArgs;
+
+/** Resumen legible de las opciones para la auditoría ("Tamaño 1–1: Mediano, Grande"). */
+function summarizeGroups(
+  groups: { name: string; min_select: number; max_select: number; options: { name: string }[] }[],
+) {
+  return groups
+    .map(
+      (g) =>
+        `${g.name} ${g.min_select}–${g.max_select}: ${g.options.map((o) => o.name).join(", ")}`,
+    )
+    .join(" | ");
+}
+
+/**
+ * Deja los grupos del producto exactamente como vienen del formulario.
+ * Conserva los ids que ya eran de este producto (los carritos abiertos los
+ * usan); ids ajenos se tratan como nuevos. Todo en una transacción.
+ */
+async function syncOptionGroups(productId: string, groups: ProductFormOutput["groups"]) {
+  const existing = await db().product_option_groups.findMany({
+    where: { product_id: productId },
+    select: { id: true, options: { select: { id: true } } },
+  });
+  const ownGroups = new Map(existing.map((g) => [g.id, new Set(g.options.map((o) => o.id))]));
+  const keptGroupIds = groups.flatMap((g) => (g.id && ownGroups.has(g.id) ? [g.id] : []));
+
+  await db().$transaction(async (tx) => {
+    await tx.product_option_groups.deleteMany({
+      where: { product_id: productId, id: { notIn: keptGroupIds } },
+    });
+    for (const g of groups) {
+      const values = {
+        name: g.name,
+        min_select: g.min_select,
+        max_select: g.max_select,
+        sort: g.sort,
+      };
+      const ownOptions = g.id ? ownGroups.get(g.id) : undefined;
+      if (!g.id || !ownOptions) {
+        await tx.product_option_groups.create({
+          data: {
+            ...values,
+            product_id: productId,
+            options: { create: g.options.map((o) => ({ ...o, id: undefined })) },
+          },
+        });
+        continue;
+      }
+      await tx.product_option_groups.update({ where: { id: g.id }, data: values });
+      const keptOptionIds = g.options.flatMap((o) => (o.id && ownOptions.has(o.id) ? [o.id] : []));
+      await tx.product_options.deleteMany({
+        where: { group_id: g.id, id: { notIn: keptOptionIds } },
+      });
+      for (const { id, ...o } of g.options) {
+        if (id && ownOptions.has(id)) await tx.product_options.update({ where: { id }, data: o });
+        else await tx.product_options.create({ data: { ...o, group_id: g.id } });
+      }
+    }
   });
 }
 
@@ -178,6 +254,7 @@ export async function createProduct(input: ProductFormOutput, ctx: Ctx) {
     select: { id: true },
   });
   await writeBranchSettings(businessId, product.id, input.branches, ctx.member);
+  if (input.groups.length > 0) await syncOptionGroups(product.id, input.groups);
   await audit({
     actorId: ctx.actorId,
     actorKind: "user",
@@ -185,7 +262,11 @@ export async function createProduct(input: ProductFormOutput, ctx: Ctx) {
     action: "product.create",
     entity: "products",
     entityId: product.id,
-    diff: { name: data.name, price_cents: data.price_cents },
+    diff: {
+      name: data.name,
+      price_cents: data.price_cents,
+      ...(input.groups.length > 0 ? { options: summarizeGroups(input.groups) } : {}),
+    },
   });
   return product;
 }
@@ -195,14 +276,24 @@ export async function updateProduct(input: ProductFormOutput & { productId: stri
   const before = await getLiveProduct(businessId, productId);
   await assertCategory(businessId, data.category_id);
   await assertImage(businessId, data.image_url, before.image_url);
+  const groupsBefore = await db().product_option_groups.findMany({
+    where: { product_id: productId },
+    ...OPTION_GROUPS_SELECT,
+  });
 
   await db().products.update({ where: { id: productId }, data });
   await writeBranchSettings(businessId, productId, input.branches, ctx.member);
+  await syncOptionGroups(productId, input.groups);
   if (before.image_url !== data.image_url) await releaseImage(businessId, before.image_url);
 
   const changes = diffFields(
-    { ...before, tags: before.tags.join(",") },
-    { ...data, tags: data.tags.join(","), image_blurhash: undefined },
+    { ...before, tags: before.tags.join(","), options: summarizeGroups(groupsBefore) },
+    {
+      ...data,
+      tags: data.tags.join(","),
+      image_blurhash: undefined,
+      options: summarizeGroups(input.groups),
+    },
   );
   if (Object.keys(changes).length > 0) {
     await audit({
