@@ -1,10 +1,12 @@
 import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
+import { hasFeature } from "@/features/licensing/entitlements";
 import { getEntitlements } from "@/features/licensing/server";
 import { db } from "@/lib/db";
 import { addDays, dateOnly, todayInGuatemala } from "@/lib/gt-time";
 import { tags } from "@/lib/cache-tags";
 import { buildBranchMenu, type BranchMenuPayload } from "./payload";
+import { normalizeSplash } from "./splash";
 import { normalizeTheme } from "./theme";
 
 /**
@@ -42,6 +44,16 @@ export async function getPublicBusiness(slug: string) {
           color_text: true,
           radius: true,
           show_powered_by: true,
+          splash_style: true,
+          splash_bg_type: true,
+          splash_bg_value: true,
+          splash_logo_size: true,
+          splash_show_name: true,
+          splash_tagline: true,
+          splash_hold_ms: true,
+          splash_duration_ms: true,
+          splash_easing: true,
+          splash_frequency: true,
         },
       },
       branches: {
@@ -71,9 +83,12 @@ export async function getPublicBusiness(slug: string) {
   cacheTag(tags.business(business.id));
 
   const entitlements = await getEntitlements(business.id);
+  const theme = normalizeTheme(business.theme);
   return {
     ...business,
-    theme: normalizeTheme(business.theme),
+    theme,
+    /** Bienvenida (null = sin bienvenida). Sin "custom_splash" en el plan, la estándar. */
+    splash: normalizeSplash(business.theme, theme, hasFeature(entitlements, "custom_splash")),
     /** Licencia suspendida o cancelada → "Menú no disponible temporalmente". */
     menuOnline: entitlements.menuOnline,
     /** Indexable solo si publicó y su licencia está en línea. */

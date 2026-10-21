@@ -199,6 +199,16 @@ Marca cada punto. Prueba en el celular (o con DevTools a 390 px) y en escritorio
 - [ ] En **Antigua**, "Pasta con mariscos" (agotada) no tiene **+**; su hoja dice "Este se nos acabó aquí. ¿Te animas con…?" con un botón al platillo sugerido.
 - [ ] En el panel agota una opción (p. ej. "Queso extra" de Desayuno chapín) → en la hoja aparece deshabilitada con "Agotado". Devuélvela a como estaba.
 
+### Bienvenida (QRM-023): criterio "60 fps; tocar salta; respeta configuración"
+
+- [ ] En una ventana privada (o tras cerrar la pestaña) abre `/cafe-el-portal/antigua`: el panel con el color del negocio, la inicial y el nombre aparece desde el primer instante, se levanta (~1.8 s) y deja el menú, que llega con un movimiento corto.
+- [ ] Recarga: ya no aparece (frecuencia "una vez por sesión"). Abre **Zona 1**: tampoco (se cuenta por negocio, no por sucursal).
+- [ ] Nueva sesión: toca el panel mientras está → se va enseguida, sin saltos.
+- [ ] En el celular con "Reducir movimiento" activado (iOS: Accesibilidad → Movimiento; Android: Quitar animaciones) es solo un fundido.
+- [ ] En `/styleguide#bienvenida` prueba los 4 estilos, las 3 curvas, los 3 fondos, los 3 tamaños de logo y la duración (1.2–3.0 s) con **Reproducir**. "Sin bienvenida" muestra el menú directo.
+- [ ] Rendimiento: en Chrome DevTools → Performance (CPU 4× más lenta), graba la carga del menú: la bienvenida solo anima `transform` y `opacity` (sin "Layout" ni "Paint" largos).
+- [ ] La configuración se edita en Apariencia → Bienvenida (QRM-033). Sin la función "bienvenida personalizada" del plan se usa la estándar.
+
 ### Encargado (permisos)
 
 - [ ] Sal y entra como **encargado** → el selector solo muestra **Antigua** (sin "Todas").

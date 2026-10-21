@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { BRAND } from "@/lib/brand";
 import { PublicMenuView } from "./components/public-menu-view";
+import { Splash } from "./components/splash";
 import { getBranchMenu, type PublicBranch, type PublicBusiness } from "./data";
 import { restaurantJsonLd, serializeJsonLd } from "./json-ld";
 
@@ -57,25 +58,32 @@ export async function BranchMenu({
           __html: serializeJsonLd(restaurantJsonLd(business, branch, payload, url)),
         }}
       />
-      <PublicMenuView
-        business={{
-          slug: business.slug,
-          name: business.name,
-          description: business.description,
-          logoUrl: business.logo_url,
-          coverUrl: business.cover_url,
-          theme: business.theme,
-        }}
-        branch={{
-          id: branch.id,
-          slug: branch.slug,
-          name: branch.name,
-          isActive: branch.is_active,
-          hours: branch.hours,
-        }}
-        payload={payload}
-        selectorHref={business.branches.length > 1 ? `/${business.slug}` : null}
-      />
+      <Splash
+        config={business.splash}
+        storageKey={business.id}
+        name={business.name}
+        logoUrl={business.logo_url}
+      >
+        <PublicMenuView
+          business={{
+            slug: business.slug,
+            name: business.name,
+            description: business.description,
+            logoUrl: business.logo_url,
+            coverUrl: business.cover_url,
+            theme: business.theme,
+          }}
+          branch={{
+            id: branch.id,
+            slug: branch.slug,
+            name: branch.name,
+            isActive: branch.is_active,
+            hours: branch.hours,
+          }}
+          payload={payload}
+          selectorHref={business.branches.length > 1 ? `/${business.slug}` : null}
+        />
+      </Splash>
     </>
   );
 }
