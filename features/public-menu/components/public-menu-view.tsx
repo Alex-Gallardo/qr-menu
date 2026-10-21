@@ -1,12 +1,15 @@
 "use client";
 
-import { CalendarOffIcon, ClockIcon, PauseCircleIcon } from "lucide-react";
+import { CalendarOffIcon, ClockIcon, MoonIcon, PauseCircleIcon } from "lucide-react";
 import { useEffect, useState, type ComponentType } from "react";
 import { flushSync } from "react-dom";
 import { toast } from "sonner";
 import { minutesOf, openState } from "@/features/branches/hours";
 import { priceCart } from "@/features/cart/cart";
+import { tableKey, useCustomer } from "@/features/cart/customer";
 import { useCart } from "@/features/cart/store";
+import { tableFromParam, type CheckoutBranch } from "@/features/orders/checkout";
+import { orderTiming, type PreorderMode } from "@/features/orders/preorder";
 import { hasRequiredGroups } from "@/features/products/options";
 import { resolveActiveMenu } from "@/features/schedule/resolve-active-menu";
 import { guatemalaNow, gtInstant } from "@/lib/gt-time";
@@ -32,7 +35,7 @@ import {
   SectionTabs,
   SlotChips,
 } from "../templates/clasico/components";
-import type { OrderSheetProps } from "../templates/clasico/order-sheet";
+import type { BankAccount, OrderSheetProps } from "../templates/clasico/order-sheet";
 import type { ProductSheetLine, ProductSheetProps } from "../templates/clasico/product-sheet";
 import type { MenuTheme } from "../theme";
 import { useBranchCart } from "../use-branch-cart";
@@ -46,6 +49,15 @@ let orderModule: Promise<typeof import("../templates/clasico/order-sheet")> | nu
 const loadOrder = () => (orderModule ??= import("../templates/clasico/order-sheet"));
 
 const PAUSED = "Esta sucursal no recibe pedidos por ahora.";
+
+/** Mesa del QR guardada en la pestaña (sessionStorage puede no estar disponible). */
+function readTable(branchId: string) {
+  try {
+    return sessionStorage.getItem(tableKey(branchId));
+  } catch {
+    return null;
+  }
+}
 
 type Props = {
   business: {
@@ -63,6 +75,14 @@ type Props = {
     name: string;
     isActive: boolean;
     hours: { weekday: number; opens: string; closes: string }[];
+    /** Reglas para pedir: tipos, pagos, envío y pedidos programados. */
+    order: CheckoutBranch & {
+      preorderMode: PreorderMode;
+      preorderMinLeadMin: number;
+      preorderMaxDays: number;
+      preordersEnabled: boolean;
+    };
+    bankAccounts: BankAccount[];
   };
   payload: BranchMenuPayload;
   /** Link al selector si el negocio tiene varias sucursales. */
@@ -82,6 +102,16 @@ export function PublicMenuView({ business, branch, payload, selectorHref }: Prop
   const slots = payload.resolver.slots.filter((s) => s.is_active);
 
   useEffect(() => rememberBranch(business.slug, branch.slug), [business.slug, branch.slug]);
+  useEffect(() => {
+    // Llegó por el QR de una mesa (?mesa=4): se recuerda en esta pestaña.
+    const table = tableFromParam(new URLSearchParams(window.location.search).get("mesa"));
+    try {
+      if (table) sessionStorage.setItem(tableKey(branch.id), table);
+    } catch {
+      // Sin sessionStorage: la mesa se escribe a mano.
+    }
+    void useCustomer.persist.rehydrate();
+  }, [branch.id]);
 
   // Menú que toca ahora (o el de la franja que el cliente eligió).
   const active = now ? resolveActiveMenu(input, now) : null;
@@ -100,6 +130,30 @@ export function PublicMenuView({ business, branch, payload, selectorHref }: Prop
   const hours = now ? openState(branch.hours, guatemalaNow(now)) : null;
   const currentSlotId =
     active?.status === "open" || active?.status === "default" ? (active.slot?.id ?? null) : null;
+
+  // ¿Se puede pedir ahora? ¿Programar? (horario, fechas especiales "Cerrado" y modo de la sucursal)
+  const closedDates = payload.resolver.overrides
+    .filter(
+      (o) =>
+        o.menu_id === null &&
+        o.time_slot_id === null &&
+        (o.branch_id === null || o.branch_id === branch.id),
+    )
+    .map((o) => o.date);
+  const timing = now
+    ? orderTiming(
+        {
+          hours: branch.hours,
+          closedDates,
+          mode: branch.order.preorderMode,
+          minLeadMin: branch.order.preorderMinLeadMin,
+          maxDays: branch.order.preorderMaxDays,
+          preordersEnabled: branch.order.preordersEnabled,
+        },
+        now,
+      )
+    : null;
+  const customer = useCustomer();
 
   // Cascada de entrada solo la primera vez; al cambiar de menú, fundido.
   const [firstMenuId] = useState(() => menu?.id ?? null);
@@ -236,6 +290,12 @@ export function PublicMenuView({ business, branch, payload, selectorHref }: Prop
         onSelect={(id) => setPickedSlot(id === currentSlotId ? null : id)}
       />
 
+      {branch.isActive && timing?.notice && shown?.status !== "closed" ? (
+        <MenuNotice icon={<MoonIcon />} tone="info">
+          {timing.notice}
+        </MenuNotice>
+      ) : null}
+
       {shown?.status === "closed" ? (
         <MenuNotice icon={<CalendarOffIcon />} tone="closed">
           {shown.message}
@@ -316,15 +376,38 @@ export function PublicMenuView({ business, branch, payload, selectorHref }: Prop
         />
       ) : null}
 
-      {orderOpen && Order ? (
+      {orderOpen && Order && timing ? (
         <Order
           branchName={branch.name}
           lines={cart.lines}
           count={cart.count}
-          totalCents={cart.totalCents}
+          subtotalCents={cart.totalCents}
+          checkout={{
+            branch: branch.order,
+            timing,
+            bankAccounts: branch.bankAccounts,
+            table: readTable(branch.id),
+            blockedReason: branch.isActive ? timing.blocked : PAUSED,
+          }}
+          customer={customer}
           onQuantity={(key, quantity) => useCart.getState().setQuantity(business.id, key, quantity)}
           onClear={clearCart}
           onClose={closeOrderSheet}
+          onSubmit={(input) => {
+            useCustomer.getState().remember({
+              name: input.name.trim(),
+              phone: input.phone.trim(),
+              email: input.email.trim(),
+              address: input.address.trim(),
+              addressReference: input.addressReference.trim(),
+              lastOrderType: input.orderType,
+              lastPayment: input.payment,
+            });
+            // QRM-027 crea el pedido en el servidor y QRM-028 abre WhatsApp con el mensaje.
+            toast.success("¡Todo listo! Guardamos tus datos para la próxima.", {
+              description: "El envío por WhatsApp se activa en el siguiente paso.",
+            });
+          }}
         />
       ) : null}
     </MenuShell>

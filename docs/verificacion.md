@@ -219,6 +219,18 @@ Marca cada punto. Prueba en el celular (o con DevTools a 390 px) y en escritorio
 - [ ] En el panel agota en Antigua algo que está en el carrito → en "Tu pedido" aparece "Se nos acabó aquí." con **Quitar**, y no cuenta en el total. Devuélvelo a como estaba.
 - [ ] El carrito vence a las 12 horas. Ver o borrar lo guardado: DevTools → Application → Local Storage → `qrm:carrito`.
 
+### Hoja de pedido (QRM-025): criterio "Mesa precargada desde QR; horarios programables según reglas"
+
+- [ ] Abre `/cafe-el-portal/zona-1?mesa=4` (como si escanearas el QR de la Mesa 4), toca **+** en un platillo y **Ver pedido**: la hoja ya dice "Zona 1 · Comer aquí · Mesa 4".
+- [ ] Toca **Pedir por WhatsApp** sin llenar nada: marca "Escribe tu nombre." y "Elige cómo vas a pagar." y lleva al primero.
+- [ ] Elige **Transferencia**: aparecen las cuentas (de la sucursal y del negocio) con **Copiar**.
+- [ ] Escribe tu nombre y pide: aviso "¡Todo listo!". Recarga y abre la hoja: tu nombre, el tipo y el pago ya vienen puestos. (El envío por WhatsApp llega en QRM-027/028.)
+- [ ] **A domicilio**: pide dirección y teléfono, muestra el envío y, si el pedido no llega al mínimo, "Te faltan Q… para el pedido a domicilio mínimo.".
+- [ ] **¿Para cuándo?** con la sucursal abierta: "Lo antes posible" o "Programar" con día y hora cada 15 min, desde ahora + la anticipación mínima de la sucursal (Sucursales → pedidos fuera de horario).
+- [ ] Con la sucursal cerrada y "Para cuando abra": arriba del menú "Ahorita estamos cerrados, pero puedes dejar tu pedido para mañana desde las 7:00." y la hoja ya trae el primer horario. Con "No permitir": "Ahorita estamos cerrados. Abrimos…" y el botón de pedir desactivado. Sin la función "pedidos programados" en el plan se comporta como "No permitir".
+- [ ] Una fecha especial **Cerrado** (Programación) no aparece entre los días para programar.
+- [ ] Borrar los datos guardados: DevTools → Application → Local Storage → `qrm:comensal`.
+
 ### Encargado (permisos)
 
 - [ ] Sal y entra como **encargado** → el selector solo muestra **Antigua** (sin "Todas").
