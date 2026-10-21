@@ -161,6 +161,13 @@ Marca cada punto. Prueba en el celular (o con DevTools a 390 px) y en escritorio
 - [ ] **Fechas especiales**: **Cerrado hoy** (el botón cambia a "Hoy ya está cerrado"), **Agregar fecha especial** (fecha, todo el día o una franja, Cerrado o un menú) y eliminar → **Deshacer**.
 - [ ] Deja la programación como estaba (o corre `pnpm db:seed` al final).
 
+### Menú del día (QRM-019): criterio "Pasan medianoche, feriados, empates, sucursal vs. general"
+
+- [ ] **Inicio** con el selector en **Todas**: la tarjeta **Menú del día** muestra cada sucursal. Fuera de franja dice el próximo ("El almuerzo empieza a las 11:30"); dentro, "Ahora · Almuerzo hasta las 15:30" y "Sigue: … a las 17:30".
+- [ ] Al almuerzo de lunes a viernes, **Zona 1** muestra Almuerzo ejecutivo y **Antigua** Cena y carta (su regla gana).
+- [ ] En **Programación → Zona 1** toca **Cerrado hoy** → en Inicio, Zona 1 dice "Cerrado: Cerrado hoy" y Antigua sigue normal. Elimina la fecha especial al terminar.
+- [ ] Las 31 pruebas de `tests/unit/resolve-active-menu.test.ts` cubren medianoche, feriados, empates y sucursal vs. general (`pnpm test`).
+
 ### Encargado (permisos)
 
 - [ ] Sal y entra como **encargado** → el selector solo muestra **Antigua** (sin "Todas").

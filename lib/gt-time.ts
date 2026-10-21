@@ -56,3 +56,15 @@ export function formatDateEs(isoDate: string, now: Date = new Date()) {
 
 /** Fecha de la base (@db.Date, medianoche UTC) → "YYYY-MM-DD". */
 export const dateOnly = (date: Date) => date.toISOString().slice(0, 10);
+
+/** "2026-12-24" + 1 → "2026-12-25" (cruza meses y años). */
+export function addDays(isoDate: string, days: number) {
+  const [y, m, d] = isoDate.split("-").map(Number);
+  return new Date(Date.UTC(y!, m! - 1, d! + days)).toISOString().slice(0, 10);
+}
+
+/** Instante (Date) de una fecha y hora local de Guatemala: ("2026-12-24", 17:30) → 23:30 UTC. */
+export function gtInstant(isoDate: string, minutes: number) {
+  const [y, m, d] = isoDate.split("-").map(Number);
+  return new Date(Date.UTC(y!, m! - 1, d!) + (minutes + 6 * 60) * 60_000);
+}
