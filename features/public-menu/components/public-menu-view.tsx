@@ -9,6 +9,7 @@ import { priceCart } from "@/features/cart/cart";
 import { tableKey, useCustomer } from "@/features/cart/customer";
 import { useCart } from "@/features/cart/store";
 import { tableFromParam, type CheckoutBranch } from "@/features/orders/checkout";
+import type { OtherBranch } from "@/features/orders/delivery";
 import { orderTiming, type PreorderMode } from "@/features/orders/preorder";
 import { hasRequiredGroups } from "@/features/products/options";
 import { resolveActiveMenu } from "@/features/schedule/resolve-active-menu";
@@ -83,6 +84,7 @@ type Props = {
       preordersEnabled: boolean;
     };
     bankAccounts: BankAccount[];
+    otherBranches: OtherBranch[];
   };
   payload: BranchMenuPayload;
   /** Link al selector si el negocio tiene varias sucursales. */
@@ -383,6 +385,9 @@ export function PublicMenuView({ business, branch, payload, selectorHref }: Prop
           count={cart.count}
           subtotalCents={cart.totalCents}
           checkout={{
+            businessName: business.name,
+            businessSlug: business.slug,
+            otherBranches: branch.otherBranches,
             branch: branch.order,
             timing,
             bankAccounts: branch.bankAccounts,
@@ -400,6 +405,8 @@ export function PublicMenuView({ business, branch, payload, selectorHref }: Prop
               email: input.email.trim(),
               address: input.address.trim(),
               addressReference: input.addressReference.trim(),
+              // Solo se recuerda el pin de una entrega a domicilio.
+              ...(input.orderType === "delivery" ? { location: input.location } : {}),
               lastOrderType: input.orderType,
               lastPayment: input.payment,
             });

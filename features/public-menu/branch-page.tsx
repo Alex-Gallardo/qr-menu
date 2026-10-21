@@ -39,6 +39,9 @@ export function branchMetadata(business: PublicBusiness, branch: PublicBranch): 
   };
 }
 
+const coordsOf = (b: { lat: number | null; lng: number | null }) =>
+  b.lat !== null && b.lng !== null ? { lat: b.lat, lng: b.lng } : null;
+
 export async function BranchMenu({
   business,
   branch,
@@ -100,12 +103,25 @@ export async function BranchMenu({
               deliveryFeeCents: branch.delivery_fee_cents,
               minOrderCents: branch.min_order_cents,
               hasBankAccounts: bankAccounts.length > 0,
+              requiresLocation: branch.delivery_requires_location,
+              location: coordsOf(branch),
+              radiusKm: branch.delivery_radius_km,
               preorderMode: branch.preorder_mode,
               preorderMinLeadMin: branch.preorder_min_lead_min,
               preorderMaxDays: branch.preorder_max_days,
               preordersEnabled: business.preorders,
             },
             bankAccounts,
+            // Para sugerir "Pedir a Antigua" si esta sucursal no llega.
+            otherBranches: business.branches
+              .filter((b) => b.id !== branch.id && b.is_active)
+              .map((b) => ({
+                slug: b.slug,
+                name: b.name,
+                location: coordsOf(b),
+                radiusKm: b.delivery_radius_km,
+                acceptsDelivery: b.accepts_delivery,
+              })),
           }}
           payload={payload}
           selectorHref={business.branches.length > 1 ? `/${business.slug}` : null}

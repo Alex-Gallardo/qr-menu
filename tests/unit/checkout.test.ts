@@ -18,6 +18,9 @@ const branch = (over: Partial<CheckoutBranch> = {}): CheckoutBranch => ({
   deliveryFeeCents: 1500,
   minOrderCents: 5000,
   hasBankAccounts: true,
+  requiresLocation: true,
+  location: { lat: 14.6427, lng: -90.5133 },
+  radiusKm: 5,
   ...over,
 });
 
@@ -29,6 +32,7 @@ const input = (over: Partial<CheckoutInput> = {}): CheckoutInput => ({
   email: "",
   address: "",
   addressReference: "",
+  location: null,
   scheduledFor: null,
   payment: "cash",
   note: "",
@@ -108,14 +112,36 @@ describe("datos del pedido", () => {
     expect(p).toEqual({
       phone: "Déjanos un teléfono por si el repartidor no te encuentra.",
       address: "Escribe tu dirección.",
+      addressReference: "Escribe un punto de referencia.",
+      location: "Marca dónde te lo llevamos: usa tu ubicación o elige en el mapa.",
       total: "Te faltan Q15.00 para el pedido a domicilio mínimo.",
     });
+  });
+
+  it("a domicilio completo con el pin dentro del radio", () => {
+    expect(
+      checkoutProblems(
+        input({
+          orderType: "delivery",
+          address: "4a avenida 12-30, zona 1",
+          addressReference: "Portón negro",
+          location: { coords: { lat: 14.6227, lng: -90.5133 }, accuracyM: 20, source: "gps" },
+        }),
+        ctx(),
+      ),
+    ).toEqual({});
   });
 
   it("tipo o pago que la sucursal no ofrece", () => {
     expect(
       checkoutProblems(
-        input({ orderType: "delivery", payment: "transfer", address: "4a avenida 12-30" }),
+        input({
+          orderType: "delivery",
+          payment: "transfer",
+          address: "4a avenida 12-30",
+          addressReference: "Portón negro",
+          location: { coords: { lat: 14.6227, lng: -90.5133 }, accuracyM: 20, source: "gps" },
+        }),
         ctx({ branch: branch({ acceptsDelivery: false, hasBankAccounts: false }) }),
       ),
     ).toEqual({ orderType: "Elige cómo lo quieres.", payment: "Elige cómo vas a pagar." });

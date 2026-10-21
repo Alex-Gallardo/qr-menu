@@ -39,6 +39,9 @@ const DEMO_BRANCH = {
   deliveryFeeCents: 1500,
   minOrderCents: 5000,
   hasBankAccounts: true,
+  requiresLocation: true,
+  location: { lat: 14.6427, lng: -90.5133 },
+  radiusKm: 5,
 };
 const DEMO_ACCOUNTS = [
   {
@@ -271,6 +274,17 @@ export function PublicMenuDemo() {
                 count={cart.count}
                 subtotalCents={cart.totalCents}
                 checkout={{
+                  businessName: "Café El Portal",
+                  businessSlug: "cafe-el-portal",
+                  otherBranches: [
+                    {
+                      slug: "antigua",
+                      name: "Antigua",
+                      location: { lat: 14.5586, lng: -90.7295 },
+                      radiusKm: 30,
+                      acceptsDelivery: true,
+                    },
+                  ],
                   branch: DEMO_BRANCH,
                   // Hoy a las 10:00 (abierta) o a las 21:30 (cerrada, para cuando abra).
                   timing: orderTiming(
@@ -287,6 +301,7 @@ export function PublicMenuDemo() {
                   email: "",
                   address: "",
                   addressReference: "",
+                  location: null,
                   lastOrderType: null,
                   lastPayment: null,
                 }}
