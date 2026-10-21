@@ -14,6 +14,7 @@ import {
   SectionTabs,
   SlotChips,
 } from "@/features/public-menu/templates/clasico/components";
+import { ProductSheet } from "@/features/public-menu/templates/clasico/product-sheet";
 import { themeFromPreset } from "@/features/public-menu/theme";
 
 const photo = (id: string) => `https://images.unsplash.com/photo-${id}?w=1200&q=80&auto=format`;
@@ -51,6 +52,36 @@ const SECTIONS = [
             "Huevos al gusto, frijoles, plátanos fritos, queso fresco, crema y tortillas recién hechas.",
           imageUrl: photo("1533089860892-a7c6f0a88666"),
           tags: ["popular"],
+          prepMinutes: 15,
+          optionGroups: [
+            {
+              id: "huevos",
+              name: "Huevos",
+              min_select: 1,
+              max_select: 1,
+              options: [
+                {
+                  id: "estrellados",
+                  name: "Estrellados",
+                  price_delta_cents: 0,
+                  is_available: true,
+                },
+                { id: "revueltos", name: "Revueltos", price_delta_cents: 0, is_available: true },
+                { id: "rancheros", name: "Rancheros", price_delta_cents: 500, is_available: true },
+              ],
+            },
+            {
+              id: "extras",
+              name: "Extras",
+              min_select: 0,
+              max_select: 3,
+              options: [
+                { id: "aguacate", name: "Aguacate", price_delta_cents: 600, is_available: true },
+                { id: "queso", name: "Queso extra", price_delta_cents: 500, is_available: true },
+                { id: "chorizo", name: "Chorizo", price_delta_cents: 1000, is_available: false },
+              ],
+            },
+          ],
         }),
       },
       {
@@ -100,6 +131,10 @@ const SECTIONS = [
 export function PublicMenuDemo() {
   const [paletteId, setPaletteId] = useState("tomate");
   const [slot, setSlot] = useState("almuerzo");
+  const [sheetId, setSheetId] = useState<string | null>(null);
+  const [added, setAdded] = useState<string | null>(null);
+  const all = SECTIONS.flatMap((s) => s.items);
+  const sheetItem = all.find((i) => i.product.id === sheetId);
 
   return (
     <div className="grid gap-6">
@@ -162,12 +197,32 @@ export function PublicMenuDemo() {
                       product={item.product}
                       priceCents={item.priceCents}
                       featured={item.featured}
+                      onOpen={() => setSheetId(item.product.id)}
+                      onQuickAdd={() => setAdded(`1 × ${item.product.name}`)}
                     />
                   ))}
                 </MenuSection>
               ))}
             </div>
             <MenuFooter showPoweredBy />
+            {sheetItem ? (
+              <ProductSheet
+                product={sheetItem.product}
+                priceCents={sheetItem.priceCents}
+                blockedReason={null}
+                suggestion={
+                  sheetItem.product.available ? null : { id: "sopa", name: "Sopa del día" }
+                }
+                onAdd={(line) => {
+                  setAdded(
+                    `${line.quantity} × ${sheetItem.product.name} · ${line.optionNames.join(", ") || "sin opciones"}`,
+                  );
+                  setSheetId(null);
+                }}
+                onSuggest={setSheetId}
+                onClose={() => setSheetId(null)}
+              />
+            ) : null}
           </MenuShell>
         </div>
 
@@ -187,6 +242,15 @@ export function PublicMenuDemo() {
             Tarjeta Clásico: texto a la izquierda y foto 4:3 a la derecha que reserva su espacio
             (CLS 0) con el blurhash mientras carga. Variantes: destacado ★, etiquetas, precio
             tachado, agotado (foto en gris) y sin foto.
+          </p>
+          <p className="type-small text-muted-foreground">
+            Toca una tarjeta para abrir la <strong>hoja de producto</strong> (prueba el Desayuno
+            chapín: huevos obligatorios y extras hasta 3, con el total que se actualiza) o el
+            agotado para ver la sugerencia. El “+” agrega directo cuando no hay opciones
+            obligatorias.
+          </p>
+          <p role="status" className="type-small min-h-5 font-semibold">
+            {added ? `Agregado: ${added}` : null}
           </p>
         </div>
       </div>

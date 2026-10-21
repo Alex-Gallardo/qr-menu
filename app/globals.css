@@ -35,6 +35,8 @@
   /* Menú público: tarjetas en cascada (la primera vez) y cambio de franja/menú */
   --animate-aparecer: aparecer 250ms var(--ease-out-soft) both;
   --animate-fundido: fundido 200ms ease-out both;
+  /* Hoja de producto que sube desde abajo (aprox. resorte stiffness 380 / damping 32) */
+  --animate-subir: subir 320ms var(--ease-out-soft) both;
 
   @keyframes aparecer {
     from {
@@ -45,6 +47,11 @@
   @keyframes fundido {
     from {
       opacity: 0;
+    }
+  }
+  @keyframes subir {
+    from {
+      transform: translateY(100%);
     }
   }
 
@@ -191,6 +198,25 @@
   --m-font-heading: var(--biz-font-heading, var(--font-display));
   --m-font-body: var(--biz-font-body, var(--font-sans));
   --m-splash-bg: var(--biz-splash-bg, var(--m-primary));
+}
+
+/* Hoja de producto: el menú de atrás no se desplaza y la foto de la tarjeta
+   se expande a la de la hoja (View Transition, donde el navegador la soporta). */
+html:has(dialog.product-sheet[open]) {
+  overflow: hidden;
+}
+/* Con la foto expandiéndose, la hoja no sube: aparece con el fundido de la transición. */
+html[data-foto-transicion] dialog.product-sheet {
+  animation: none;
+}
+::view-transition-group(foto-producto) {
+  animation-duration: 320ms;
+  animation-timing-function: var(--ease-out-soft);
+}
+::view-transition-old(foto-producto),
+::view-transition-new(foto-producto) {
+  height: 100%;
+  object-fit: cover;
 }
 
 /* ───────────── Escala tipográfica (móvil → escritorio en md) ───────────── */

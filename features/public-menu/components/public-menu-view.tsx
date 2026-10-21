@@ -1,11 +1,17 @@
 "use client";
 
 import { CalendarOffIcon, ClockIcon, PauseCircleIcon } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ComponentType } from "react";
+import { flushSync } from "react-dom";
+import { toast } from "sonner";
 import { minutesOf, openState } from "@/features/branches/hours";
+import { useCart } from "@/features/cart/store";
+import { hasRequiredGroups } from "@/features/products/options";
 import { resolveActiveMenu } from "@/features/schedule/resolve-active-menu";
 import { guatemalaNow, gtInstant } from "@/lib/gt-time";
-import type { BranchMenuPayload, PublicMenu } from "../payload";
+import type { BranchMenuPayload, PublicMenu, PublicProduct } from "../payload";
+import { expandPhoto } from "../photo-transition";
+import { closeProductSheet, openProductSheet, useOpenProductId } from "../sheet-url";
 import {
   MenuFooter,
   MenuHeader,
@@ -16,9 +22,16 @@ import {
   SectionTabs,
   SlotChips,
 } from "../templates/clasico/components";
+import type { ProductSheetLine, ProductSheetProps } from "../templates/clasico/product-sheet";
 import type { MenuTheme } from "../theme";
 import { useNowMinute } from "../use-now";
 import { rememberBranch } from "./remember-branch";
+
+// La hoja se descarga bajo demanda (y en segundo plano tras cargar el menú).
+let sheetModule: Promise<typeof import("../templates/clasico/product-sheet")> | null = null;
+const loadSheet = () => (sheetModule ??= import("../templates/clasico/product-sheet"));
+
+const PAUSED = "Esta sucursal no recibe pedidos por ahora.";
 
 type Props = {
   business: {
@@ -76,6 +89,71 @@ export function PublicMenuView({ business, branch, payload, selectorHref }: Prop
   // Cascada de entrada solo la primera vez; al cambiar de menú, fundido.
   const [firstMenuId] = useState(() => menu?.id ?? null);
   const cascade = menu?.id === firstMenuId;
+
+  // Hoja de producto (?producto=id) y carrito.
+  const openId = useOpenProductId();
+  const [Sheet, setSheet] = useState<ComponentType<ProductSheetProps> | null>(null);
+  const addToCart = useCart((s) => s.add);
+
+  useEffect(() => {
+    const id = window.setTimeout(() => void loadSheet(), 2000);
+    return () => window.clearTimeout(id);
+  }, []);
+  useEffect(() => {
+    // Llegó con el link de un producto: se carga la hoja y se abre.
+    if (openId && !Sheet) void loadSheet().then((m) => setSheet(() => m.ProductSheet));
+  }, [openId, Sheet]);
+
+  const items = (menu?.sections ?? []).flatMap((s) => s.items);
+  const priceIn = (productId: string) =>
+    (
+      items.find((i) => i.productId === productId) ??
+      payload.menus
+        .flatMap((m) => m.sections.flatMap((s) => s.items))
+        .find((i) => i.productId === productId)
+    )?.priceCents ??
+    payload.products[productId]?.priceCents ??
+    0;
+
+  async function openSheet(productId: string, photo: HTMLElement | null) {
+    const { ProductSheet } = await loadSheet();
+    expandPhoto(photo, () =>
+      flushSync(() => {
+        setSheet(() => ProductSheet);
+        openProductSheet(productId);
+      }),
+    );
+  }
+
+  function addLine(product: PublicProduct, line: ProductSheetLine) {
+    addToCart({ ...line, name: product.name, imageUrl: product.imageUrl });
+    toast.success(`Agregado: ${line.quantity} × ${product.name}`);
+  }
+
+  function quickAdd(product: PublicProduct, photo: HTMLElement | null) {
+    if (hasRequiredGroups(product.optionGroups)) return void openSheet(product.id, photo);
+    addLine(product, {
+      productId: product.id,
+      optionIds: [],
+      optionNames: [],
+      note: "",
+      quantity: 1,
+      unitCents: priceIn(product.id),
+    });
+  }
+
+  const sheetProduct = openId ? payload.products[openId] : undefined;
+  // Si se acabó, otro de su misma sección (o del menú) que sí haya.
+  const suggestion = (() => {
+    if (!sheetProduct || sheetProduct.available) return null;
+    const section = menu?.sections.find((s) =>
+      s.items.some((i) => i.productId === sheetProduct.id),
+    );
+    const pick = [...(section?.items ?? []), ...items]
+      .map((i) => payload.products[i.productId])
+      .find((p) => p && p.available && p.id !== sheetProduct.id);
+    return pick ? { id: pick.id, name: pick.name } : null;
+  })();
 
   return (
     <MenuShell theme={business.theme}>
@@ -140,6 +218,8 @@ export function PublicMenuView({ business, branch, payload, selectorHref }: Prop
                       featured={item.featured}
                       priority={position < 2}
                       appearIndex={cascade ? position : undefined}
+                      onOpen={(photo) => void openSheet(product.id, photo)}
+                      onQuickAdd={branch.isActive ? (photo) => quickAdd(product, photo) : undefined}
                     />
                   );
                 })}
@@ -154,6 +234,21 @@ export function PublicMenuView({ business, branch, payload, selectorHref }: Prop
       ) : null}
 
       <MenuFooter showPoweredBy={business.theme.showPoweredBy} />
+
+      {sheetProduct && Sheet ? (
+        <Sheet
+          product={sheetProduct}
+          priceCents={priceIn(sheetProduct.id)}
+          blockedReason={branch.isActive ? null : PAUSED}
+          suggestion={suggestion}
+          onAdd={(line) => {
+            addLine(sheetProduct, line);
+            closeProductSheet();
+          }}
+          onSuggest={(id) => openProductSheet(id)}
+          onClose={closeProductSheet}
+        />
+      ) : null}
     </MenuShell>
   );
 }
