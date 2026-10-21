@@ -38,9 +38,22 @@ Hay dos proyectos de Supabase: **dev** (desarrollo y previews) y **prod** (produ
 pnpm db:migrate    # aplica las migraciones de Prisma (37 tablas)
 pnpm db:sql        # aplica el SQL de Supabase (funciones, triggers, RLS, Storage, Realtime)
 pnpm db:verify     # comprueba tablas, RLS, políticas, triggers, bucket y Realtime
+pnpm db:seed       # planes, ajustes, negocio demo y usuarios de prueba
 ```
 
-En producción: `pnpm db:deploy` (= `prisma migrate deploy` + `db:sql`).
+En producción: `pnpm db:deploy` (= `prisma migrate deploy` + `db:sql`) y `SEED_SCOPE=demo pnpm db:seed`.
+
+### Datos semilla
+
+`pnpm db:seed` es idempotente: actualiza planes y ajustes (sin pisar los que ya editó el super admin) y vuelve a crear el negocio demo.
+
+| Alcance (`SEED_SCOPE`) | Crea                                                                                                                                                                                                                                                                                           | ¿Producción?              |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------- |
+| `base`                 | 3 planes (Gratis Q0, Pro Q149, Negocio Q299) y `platform_settings` (slugs reservados, días de prueba y gracia, fuentes, paletas, bienvenida)                                                                                                                                                   | Sí                        |
+| `demo`                 | `base` + **Café El Portal** (`/cafe-el-portal`): 2 sucursales (Zona 1 y Antigua), licencia de prueba Negocio, 3 franjas, 3 menús con programación, 25 productos con foto, "Pasta con mariscos" agotada solo en Antigua, 2 cuentas bancarias, 8 QR y 30 pedidos (5 a domicilio con coordenadas) | Sí (es la demo de ventas) |
+| `dev` (por defecto)    | `demo` + usuarios de prueba (admin de plataforma, dueño, encargado solo de Antigua) y 1 staff con PIN por sucursal                                                                                                                                                                             | **No** (el seed se niega) |
+
+Los usuarios de prueba usan `SEED_USERS_PASSWORD` de `.env.local`; si no existe, el seed la genera y la guarda ahí. Pon tu número en `SEED_DEMO_WHATSAPP` para recibir los pedidos del demo; por defecto es un número inválido para no escribirle a un desconocido.
 
 `lib/env.ts` valida las variables con Zod en el primer uso y muestra cuáles faltan, sin imprimir sus valores. El cliente Prisma se genera en `generated/` (ignorado por git) al instalar dependencias.
 
@@ -53,6 +66,53 @@ En producción: `pnpm db:deploy` (= `prisma migrate deploy` + `db:sql`).
 | Funciones con `auth.uid()`, triggers sobre `auth.users`, RLS, Storage y Realtime | `prisma/sql/*.sql` (idempotentes, en orden)   | Dependen de Supabase; la base _shadow_ de Prisma no tiene el esquema `auth` |
 
 **Regla de RLS:** RLS está activo en **todas** las tablas. Prisma se conecta como dueño y no pasa por RLS (la protección en servidor es `requireAccess`). Solo se abren políticas para lo que el navegador toca directo con la llave pública: pedidos (Realtime) y archivos (Storage). Una tabla nueva sin política queda cerrada por defecto: al agregar tablas, corre `pnpm db:sql` para activar su RLS.
+
+## Autenticación y acceso
+
+| Ruta                                 | Quién entra                                                      | Cómo se protege                                                                       |
+| ------------------------------------ | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `/entrar`, `/registro`, `/recuperar` | Cualquiera (con sesión, `/entrar` y `/registro` llevan al panel) | —                                                                                     |
+| `/panel/**`, `/onboarding`           | Usuario con email                                                | `proxy.ts` (sin sesión → `/entrar?next=…`) + verificación de membresía en el servidor |
+| `/admin/**`                          | Equipo de la plataforma **con 2FA** (TOTP)                       | `proxy.ts` + `requirePlatformUser()` (sin rol → 404, sin 2FA → `/entrar/2fa`)         |
+| `/staff/**`                          | Dispositivo autorizado, turno con PIN o dueño/encargado          | `proxy.ts` (cookie del dispositivo o sesión)                                          |
+| Menú público                         | Cualquiera                                                       | —                                                                                     |
+
+- **Proxy** (`proxy.ts`, el antiguo `middleware`): refresca la sesión de Supabase y decide con `lib/auth/route-rules.ts` (función pura, con pruebas). Los permisos finos se validan siempre en el servidor.
+- **Modo mantenimiento**: `platform_settings.maintenance_mode = {"enabled": true, "message": "…"}`. Todo responde 503 con el mensaje, salvo `/admin`, `/entrar`, `/auth` y `/api`. Se lee con caché de 30 s.
+
+**Configuración en Supabase** (_Authentication → URL Configuration_):
+
+- _Site URL_: la URL de producción.
+- _Redirect URLs_: `http://localhost:3000/auth/callback` y `https://*-alexgallardos-projects.vercel.app/auth/callback` (previews).
+- _Emails_: el SMTP por defecto de Supabase envía pocos correos por hora; para producción se configura Resend como SMTP (QRM-029).
+- _MFA_: TOTP habilitado (viene activo por defecto).
+
+### Permisos y licencias en el servidor
+
+Nada se habilita solo en el frontend. Toda Server Action sigue este orden:
+
+```ts
+"use server";
+export async function createBranch(input: unknown): Promise<ActionResult> {
+  const parsed = branchSchema.safeParse(input); // 1. Zod
+  if (!parsed.success) return { ok: false, message: "Revisa los datos." };
+  try {
+    await requireAccess(businessId, { roles: ["owner"], write: true }); // 2. sesión, rol, sucursal, licencia
+    await assertWithinLimit(businessId, "branches"); // 3. límite del plan
+    // 4. escribir con Prisma → 5. audit_logs → 6. revalidateTag
+    return { ok: true };
+  } catch (error) {
+    return actionError(error); // AccessError / LimitExceededError → mensaje amable
+  }
+}
+```
+
+| Pieza                                                            | Archivo                                                                 | Qué hace                                                                                                                                                     |
+| ---------------------------------------------------------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `getEntitlements(businessId)`                                    | `features/licensing/server.ts`                                          | Plan + ajustes del super admin + estado efectivo (prueba, activa, gracia, gratis, suspendida, cancelada). Aplica vencimientos aunque el cron no haya corrido |
+| `assertWithinLimit(businessId, recurso)`                         | `features/licensing/server.ts`                                          | Sucursales, productos, menús, franjas, QR, encargados, staff y MB. Mensaje: "Tu plan incluye 1 sucursal. Pasa a Negocio para agregar más."                   |
+| `requireAccess(businessId, { roles, branchId, feature, write })` | `lib/auth/require-access.ts`                                            | Sesión → membresía → sucursal del negocio → rol → licencia → función                                                                                         |
+| Lógica pura                                                      | `features/licensing/entitlements.ts`, `limits.ts`, `lib/auth/access.ts` | Sin base de datos: con pruebas unitarias                                                                                                                     |
 
 ## Deploy (Vercel) y errores (Sentry)
 
@@ -74,21 +134,23 @@ En producción: `pnpm db:deploy` (= `prisma migrate deploy` + `db:sql`).
 
 ## Scripts
 
-| Script            | Qué hace                              |
-| ----------------- | ------------------------------------- |
-| `pnpm dev`        | Servidor de desarrollo                |
-| `pnpm build`      | Build de producción                   |
-| `pnpm lint`       | ESLint (sin warnings permitidos)      |
-| `pnpm typecheck`  | Genera tipos de rutas y corre `tsc`   |
-| `pnpm format`     | Formatea con Prettier                 |
-| `pnpm test`       | Pruebas unitarias con Vitest          |
-| `pnpm check`      | Lint + typecheck + formato + tests    |
-| `pnpm db:migrate` | Crea y aplica migraciones (dev)       |
-| `pnpm db:sql`     | Aplica el SQL de Supabase (RLS, etc.) |
-| `pnpm db:verify`  | Verifica tablas, RLS y políticas      |
-| `pnpm db:deploy`  | Migraciones + SQL en producción       |
-| `pnpm db:status`  | Estado de las migraciones             |
-| `pnpm db:studio`  | Explorador visual de la base de datos |
+| Script                  | Qué hace                                              |
+| ----------------------- | ----------------------------------------------------- |
+| `pnpm dev`              | Servidor de desarrollo                                |
+| `pnpm build`            | Build de producción                                   |
+| `pnpm lint`             | ESLint (sin warnings permitidos)                      |
+| `pnpm typecheck`        | Genera tipos de rutas y corre `tsc`                   |
+| `pnpm format`           | Formatea con Prettier                                 |
+| `pnpm test`             | Pruebas unitarias con Vitest                          |
+| `pnpm test:integration` | Pruebas contra Supabase dev (requiere `pnpm db:seed`) |
+| `pnpm check`            | Lint + typecheck + formato + tests                    |
+| `pnpm db:migrate`       | Crea y aplica migraciones (dev)                       |
+| `pnpm db:sql`           | Aplica el SQL de Supabase (RLS, etc.)                 |
+| `pnpm db:verify`        | Verifica tablas, RLS y políticas                      |
+| `pnpm db:deploy`        | Migraciones + SQL en producción                       |
+| `pnpm db:seed`          | Datos semilla (planes, demo, usuarios)                |
+| `pnpm db:status`        | Estado de las migraciones                             |
+| `pnpm db:studio`        | Explorador visual de la base de datos                 |
 
 ## Flujo de trabajo con Git
 

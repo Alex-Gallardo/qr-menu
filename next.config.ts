@@ -1,9 +1,31 @@
 import { withSentryConfig } from "@sentry/nextjs/config";
 import type { NextConfig } from "next";
 
+const supabaseHost = process.env.NEXT_PUBLIC_SUPABASE_URL
+  ? new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).hostname
+  : null;
+
 const nextConfig: NextConfig = {
   cacheComponents: true,
   partialPrefetching: true,
+  // En desarrollo Next imprime los argumentos de cada Server Action en la terminal
+  // (incluidas contraseñas). Desactivado.
+  logging: { serverFunctions: false },
+  images: {
+    // Fotos del bucket público "media" y las de ejemplo del seed.
+    remotePatterns: [
+      ...(supabaseHost
+        ? [
+            {
+              protocol: "https" as const,
+              hostname: supabaseHost,
+              pathname: "/storage/v1/object/public/**",
+            },
+          ]
+        : []),
+      { protocol: "https", hostname: "images.unsplash.com" },
+    ],
+  },
 };
 
 export default withSentryConfig(nextConfig, {
