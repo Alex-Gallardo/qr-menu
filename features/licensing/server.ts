@@ -6,7 +6,7 @@ import { computeEntitlements, type Entitlements, type LicenseStatus } from "./en
 import { checkLimit } from "./limits";
 import type { LimitedResource } from "./plan-catalog";
 
-const FREE_PLAN_ID = "gratis";
+export const FREE_PLAN_ID = "gratis";
 
 /** Permisos efectivos del negocio (plan + ajustes + estado). Una lectura por request. */
 export const getEntitlements = cache(async (businessId: string): Promise<Entitlements> => {

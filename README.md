@@ -21,7 +21,7 @@ cp .env.example .env.local
 pnpm dev
 ```
 
-Abre <http://localhost:3000>.
+Abre <http://localhost:3000>. Para probar todo lo construido (usuarios de prueba, rutas y lista de verificación) sigue [docs/verificacion.md](docs/verificacion.md).
 
 ## Supabase y base de datos
 
@@ -124,6 +124,7 @@ export async function createBranch(input: unknown): Promise<ActionResult> {
    - **Production** → valores del proyecto Supabase **prod**.
    - **Preview** y **Development** → valores del proyecto Supabase **dev**.
 4. Las funciones corren en `iad1` (`vercel.json`), la misma región que Supabase `us-east-1`.
+5. Revisa el entorno en `https://<dominio>/api/health`: dice qué variable o paso falta (solo sí/no, nunca valores). Al cambiar una `NEXT_PUBLIC_*` hay que volver a desplegar, porque se incrusta al compilar.
 
 **Sentry** (plan gratuito):
 
