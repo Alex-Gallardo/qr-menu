@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { Logo } from "@/components/brand/logo";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 export function AuthCard({
   title,
@@ -20,7 +21,20 @@ export function AuthCard({
         <div className="rounded-xl border border-border bg-card p-6 shadow-2 sm:p-8">
           <h1 className="type-h2">{title}</h1>
           {subtitle ? <p className="type-small mt-1 text-muted-foreground">{subtitle}</p> : null}
-          <div className="mt-6">{children}</div>
+          <div className="mt-6">
+            {isSupabaseConfigured() ? (
+              children
+            ) : (
+              // Entorno sin Supabase (p. ej. producción aún sin configurar): sin formulario que falle.
+              <p
+                role="status"
+                className="type-small rounded-md bg-maiz/20 px-4 py-3 text-foreground"
+              >
+                El acceso todavía no está configurado en este entorno. Si eres del equipo, revisa
+                /api/health.
+              </p>
+            )}
+          </div>
         </div>
       </div>
     </main>
