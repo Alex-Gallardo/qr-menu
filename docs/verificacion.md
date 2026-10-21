@@ -55,6 +55,8 @@ El negocio demo es **Café El Portal** (link `cafe-el-portal`), con sucursales *
 | `/panel/{negocio}/productos`            | Catálogo, búsqueda y disponibilidad                         | Dueño o encargado                                       |
 | `/panel/{negocio}/productos/nuevo`      | Nuevo producto                                              | Dueño o encargado                                       |
 | `/panel/{negocio}/productos/categorias` | Categorías                                                  | Dueño o encargado                                       |
+| `/panel/{negocio}/menus`                | Menús: crear, duplicar, predeterminado, pausar              | Dueño o encargado                                       |
+| `/panel/{negocio}/menus/{menú}`         | Editor del menú (se guarda solo)                            | Dueño o encargado                                       |
 | `/panel/{negocio}/programacion`         | Franjas horarias (y, más adelante, la programación semanal) | Dueño edita; encargado solo ve                          |
 | `/panel/{negocio}/sucursales`           | Sucursales (horario, entregas, mapa)                        | Dueño (encargado: solo las suyas)                       |
 | `/panel/{negocio}/ajustes/negocio`      | Logo, portada, nombre, link y redes                         | Solo dueño                                              |
@@ -63,7 +65,7 @@ El negocio demo es **Café El Portal** (link `cafe-el-portal`), con sucursales *
 | `/admin`                                | Super admin (provisional)                                   | Equipo de la plataforma con 2FA                         |
 | `/api/health`                           | Estado de la configuración                                  | Todos (solo sí/no)                                      |
 
-`{negocio}` es el id del negocio. No hace falta copiarlo: entra a `/panel` y te lleva solo. Pedidos, Menús, QR, Reseñas, Analíticas, Equipo, Apariencia y Notificaciones aparecen en la navegación, pero son de fases siguientes y muestran "Muy pronto".
+`{negocio}` es el id del negocio. No hace falta copiarlo: entra a `/panel` y te lleva solo. Pedidos, QR, Reseñas, Analíticas, Equipo, Apariencia y Notificaciones aparecen en la navegación, pero son de fases siguientes y muestran "Muy pronto".
 
 ## 4. Lista de verificación
 
@@ -137,6 +139,17 @@ Marca cada punto. Prueba en el celular (o con DevTools a 390 px) y en escritorio
 - [ ] **Eliminar** Cena → toast con **Deshacer** → vuelve con su programación.
 - [ ] Como encargado: ve las franjas, pero sin botones para editarlas.
 - [ ] Deja las franjas como estaban (o corre `pnpm db:seed` al final).
+
+### Menús (QRM-017): criterio "Menú de 4 secciones en < 3 min"
+
+- [ ] **Menús**: escribe un nombre y toca **Crear menú** → abre el editor.
+- [ ] Toca **+ Entradas**, **+ Platos fuertes**, **+ Bebidas** y **+ Postres**: cada una abre el catálogo; marca productos y toca **Agregar N productos**.
+- [ ] Arriba dice "Guardando…" → "Guardado". Recarga la página: todo sigue ahí.
+- [ ] Escribe un **precio especial** en un producto (vacío = precio del catálogo) y toca la **estrella** para destacarlo.
+- [ ] Ordena: **arrastra** la manija ⠿ de una sección o producto (con el dedo o el mouse), o usa **⋯ → Subir / Bajar**. Con teclado: Tab hasta la manija, Espacio, flechas y Espacio.
+- [ ] **⋯ → Mover a** lleva un producto a otra sección. **⋯ → Eliminar sección** → **Deshacer**.
+- [ ] En la lista: **Duplicar** (queda "en pausa"), **Hacer predeterminado** (el interruptor del predeterminado no se puede apagar) y **Eliminar** → **Deshacer**.
+- [ ] Deja los menús como estaban: Cena y carta como predeterminado y borra tus menús de prueba.
 
 ### Encargado (permisos)
 
