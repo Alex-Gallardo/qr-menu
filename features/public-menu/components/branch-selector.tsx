@@ -82,7 +82,7 @@ export function BranchSelector({
         </Button>
       </div>
       {message ? (
-        <p role="status" className="type-small text-muted-foreground">
+        <p role="status" className="type-small text-[var(--menu-muted)]">
           {message}
         </p>
       ) : null}
@@ -96,9 +96,9 @@ export function BranchSelector({
               <Link
                 href={`/${businessSlug}/${b.slug}`}
                 onClick={() => rememberBranch(businessSlug, b.slug)}
-                className="group flex items-center gap-4 rounded-xl border border-border bg-card p-4 shadow-1 transition-shadow hover:shadow-2 active:scale-[0.99]"
+                className="group flex items-center gap-4 rounded-xl border border-[var(--menu-line)] bg-[var(--menu-surface)] p-4 shadow-1 transition-shadow hover:shadow-2 active:scale-[0.99]"
               >
-                <span className="grid size-12 shrink-0 place-items-center rounded-lg bg-nube text-primary">
+                <span className="grid size-12 shrink-0 place-items-center rounded-lg bg-[var(--menu-soft)] text-[var(--menu-primary)]">
                   <StoreIcon aria-hidden className="size-6" />
                 </span>
                 <span className="grid min-w-0 flex-1 gap-0.5">
@@ -115,23 +115,23 @@ export function BranchSelector({
                     ) : null}
                   </span>
                   {zone ? (
-                    <span className="type-small truncate text-muted-foreground">{zone}</span>
+                    <span className="type-small truncate text-[var(--menu-muted)]">{zone}</span>
                   ) : null}
                   <span className="type-small flex flex-wrap gap-x-3">
                     {!b.isActive ? (
-                      <span className="font-semibold text-muted-foreground">En pausa</span>
+                      <span className="font-semibold text-[var(--menu-muted)]">En pausa</span>
                     ) : state ? (
                       <span
                         className={cn(
                           "font-semibold",
-                          state.open ? "text-success" : "text-muted-foreground",
+                          state.open ? "text-success" : "text-[var(--menu-muted)]",
                         )}
                       >
                         {state.label}
                       </span>
                     ) : null}
                     {km !== null ? (
-                      <span className="inline-flex items-center gap-1 text-muted-foreground tabular-nums">
+                      <span className="inline-flex items-center gap-1 text-[var(--menu-muted)] tabular-nums">
                         <MapPinIcon aria-hidden className="size-3.5" />
                         {km < 1 ? `${Math.round(km * 1000)} m` : `${km.toFixed(1)} km`}
                       </span>
@@ -140,7 +140,7 @@ export function BranchSelector({
                 </span>
                 <ChevronRightIcon
                   aria-hidden
-                  className="size-5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5"
+                  className="size-5 shrink-0 text-[var(--menu-muted)] transition-transform group-hover:translate-x-0.5"
                 />
               </Link>
             </li>

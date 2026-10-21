@@ -5,6 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { BranchMenu, branchMetadata } from "@/features/public-menu/branch-page";
 import { BranchSelector } from "@/features/public-menu/components/branch-selector";
 import { MenuUnavailable } from "@/features/public-menu/components/menu-unavailable";
+import { MenuShell } from "@/features/public-menu/templates/clasico/components";
 import { getPublicBusiness } from "@/features/public-menu/data";
 import { organizationJsonLd, serializeJsonLd } from "@/features/public-menu/json-ld";
 import { BRAND } from "@/lib/brand";
@@ -61,45 +62,49 @@ async function Business({ params }: { params: Promise<{ negocio: string }> }) {
   }));
 
   return (
-    <main className="mx-auto grid min-h-dvh w-full max-w-[480px] content-start gap-6 px-4 py-8">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: serializeJsonLd(organizationJsonLd(business, branches, url)),
-        }}
-      />
-      <header className="grid justify-items-center gap-3 text-center">
-        <span className="grid size-20 place-items-center overflow-hidden rounded-full bg-card shadow-2">
-          {business.logo_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={business.logo_url}
-              alt={`Logo de ${business.name}`}
-              className="size-full object-cover"
-            />
-          ) : (
-            <span className="type-h2 text-primary">{business.name.slice(0, 1)}</span>
-          )}
-        </span>
-        <h1 className="type-h1">{business.name}</h1>
-        {business.description ? (
-          <p className="type-body text-muted-foreground">{business.description}</p>
-        ) : null}
-      </header>
-      <BranchSelector
-        businessSlug={business.slug}
-        branches={business.branches.map((b) => ({
-          slug: b.slug,
-          name: b.name,
-          address: b.address,
-          city: b.city,
-          lat: b.lat,
-          lng: b.lng,
-          isActive: b.is_active,
-          hours: b.hours,
-        }))}
-      />
-    </main>
+    <MenuShell theme={business.theme}>
+      <main className="grid content-start gap-6 px-4 py-8">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: serializeJsonLd(organizationJsonLd(business, branches, url)),
+          }}
+        />
+        <header className="grid justify-items-center gap-3 text-center">
+          <span className="grid size-20 place-items-center overflow-hidden rounded-full bg-[var(--menu-surface)] shadow-2">
+            {business.logo_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={business.logo_url}
+                alt={`Logo de ${business.name}`}
+                className="size-full object-cover"
+              />
+            ) : (
+              <span className="type-h2 text-[var(--menu-primary)]">
+                {business.name.slice(0, 1)}
+              </span>
+            )}
+          </span>
+          <h1 className="type-h1">{business.name}</h1>
+          {business.description ? (
+            <p className="type-body text-[var(--menu-muted)]">{business.description}</p>
+          ) : null}
+        </header>
+        <BranchSelector
+          businessSlug={business.slug}
+          branches={business.branches.map((b) => ({
+            slug: b.slug,
+            name: b.name,
+            address: b.address,
+            city: b.city,
+            lat: b.lat,
+            lng: b.lng,
+            isActive: b.is_active,
+            hours: b.hours,
+          }))}
+        />
+      </main>
+    </MenuShell>
   );
 }
 
