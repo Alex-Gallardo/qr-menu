@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeftRightIcon, ImageIcon, StarIcon } from "lucide-react";
+import { ArrowLeftRightIcon, ImageIcon, PlusIcon, StarIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
@@ -235,7 +235,9 @@ export function MenuSection({
 
 /**
  * Tarjeta Clásico: texto a la izquierda, foto 4:3 a la derecha. La foto
- * reserva su espacio (CLS 0) y muestra el blurhash mientras carga.
+ * reserva su espacio (CLS 0) y muestra el blurhash mientras carga. Tocarla
+ * abre la hoja de producto; el "+" agrega directo si no hay opciones
+ * obligatorias (si las hay, también abre la hoja).
  */
 export function ProductCard({
   product,
@@ -243,6 +245,8 @@ export function ProductCard({
   featured,
   priority = false,
   appearIndex,
+  onOpen,
+  onQuickAdd,
 }: {
   product: PublicProduct;
   priceCents: number;
@@ -251,12 +255,17 @@ export function ProductCard({
   priority?: boolean;
   /** Posición para la cascada de entrada (solo la primera vez); undefined = sin animación. */
   appearIndex?: number;
+  /** Abre la hoja; recibe la foto para expandirla. Sin esto la tarjeta es solo de lectura. */
+  onOpen?: (photo: HTMLElement | null) => void;
+  /** Botón "+" (no se muestra si está agotado o no se puede pedir). */
+  onQuickAdd?: (photo: HTMLElement | null) => void;
 }) {
   const soldOut = !product.available;
+  const photoRef = useRef<HTMLDivElement>(null);
   return (
     <li
       className={cn(
-        "flex gap-3 rounded-[var(--menu-radius)] border border-[var(--menu-line)] bg-[var(--menu-surface)] p-3 shadow-1",
+        "relative rounded-[var(--menu-radius)] border border-[var(--menu-line)] bg-[var(--menu-surface)] shadow-1",
         appearIndex !== undefined && "animate-aparecer",
       )}
       style={
@@ -265,62 +274,90 @@ export function ProductCard({
           : undefined
       }
     >
-      <div className={cn("grid min-w-0 flex-1 content-start gap-1", soldOut && "opacity-60")}>
-        <h3 className="type-body font-semibold">
-          {featured ? (
-            <StarIcon
-              aria-label="Destacado"
-              className="mr-1 inline size-4 -translate-y-px fill-[var(--menu-accent)] text-[var(--menu-accent)]"
+      <div className="flex gap-3 p-3">
+        <div className={cn("grid min-w-0 flex-1 content-start gap-1", soldOut && "opacity-60")}>
+          <h3 className="type-body font-semibold">
+            {featured ? (
+              <StarIcon
+                aria-label="Destacado"
+                className="mr-1 inline size-4 -translate-y-px fill-[var(--menu-accent)] text-[var(--menu-accent)]"
+              />
+            ) : null}
+            {onOpen ? (
+              // Toda la tarjeta es el botón (::after la cubre); el "+" queda encima.
+              <button
+                type="button"
+                aria-haspopup="dialog"
+                onClick={() => onOpen(photoRef.current)}
+                className="text-left outline-none after:absolute after:inset-0 after:rounded-[var(--menu-radius)] focus-visible:after:ring-3 focus-visible:after:ring-[var(--menu-primary)]/40"
+              >
+                {product.name}
+              </button>
+            ) : (
+              product.name
+            )}
+          </h3>
+          {product.description ? (
+            <p className="type-small line-clamp-2 text-[var(--menu-muted)]">
+              {product.description}
+            </p>
+          ) : null}
+          <p className="mt-auto flex flex-wrap items-center gap-x-2 gap-y-1 pt-1">
+            <span className="type-price text-[var(--menu-text)]">{formatQ(priceCents)}</span>
+            {product.compareAtCents && product.compareAtCents > priceCents ? (
+              <s className="type-small text-[var(--menu-muted)] tabular-nums">
+                {formatQ(product.compareAtCents)}
+              </s>
+            ) : null}
+            {soldOut ? (
+              <span className="type-caption rounded-full bg-[var(--menu-text)] px-2 py-0.5 font-semibold text-[var(--menu-surface)]">
+                Agotado
+              </span>
+            ) : null}
+            {product.tags.map((t) => (
+              <span
+                key={t}
+                className="type-caption rounded-full bg-[var(--menu-accent)] px-2 py-0.5 font-semibold text-[var(--menu-on-accent)]"
+              >
+                {PRODUCT_TAGS.find((x) => x.value === t)?.label ?? t}
+              </span>
+            ))}
+          </p>
+        </div>
+        <div
+          ref={photoRef}
+          className={cn(
+            "relative grid aspect-[4/3] w-28 shrink-0 place-items-center self-start overflow-hidden rounded-[calc(var(--menu-radius)*0.75)] bg-[var(--menu-soft)] text-[var(--menu-muted)]",
+            soldOut && "grayscale",
+          )}
+        >
+          {product.imageUrl ? (
+            <Image
+              src={product.imageUrl}
+              alt={product.name}
+              fill
+              sizes="112px"
+              priority={priority}
+              placeholder={product.blurDataUrl ? "blur" : "empty"}
+              blurDataURL={product.blurDataUrl ?? undefined}
+              className="object-cover"
             />
-          ) : null}
-          {product.name}
-        </h3>
-        {product.description ? (
-          <p className="type-small line-clamp-2 text-[var(--menu-muted)]">{product.description}</p>
-        ) : null}
-        <p className="mt-auto flex flex-wrap items-center gap-x-2 gap-y-1 pt-1">
-          <span className="type-price text-[var(--menu-text)]">{formatQ(priceCents)}</span>
-          {product.compareAtCents && product.compareAtCents > priceCents ? (
-            <s className="type-small text-[var(--menu-muted)] tabular-nums">
-              {formatQ(product.compareAtCents)}
-            </s>
-          ) : null}
-          {soldOut ? (
-            <span className="type-caption rounded-full bg-[var(--menu-text)] px-2 py-0.5 font-semibold text-[var(--menu-surface)]">
-              Agotado
-            </span>
-          ) : null}
-          {product.tags.map((t) => (
-            <span
-              key={t}
-              className="type-caption rounded-full bg-[var(--menu-accent)] px-2 py-0.5 font-semibold text-[var(--menu-on-accent)]"
-            >
-              {PRODUCT_TAGS.find((x) => x.value === t)?.label ?? t}
-            </span>
-          ))}
-        </p>
+          ) : (
+            <ImageIcon aria-hidden className="size-5" />
+          )}
+        </div>
       </div>
-      <div
-        className={cn(
-          "relative grid aspect-[4/3] w-28 shrink-0 place-items-center self-start overflow-hidden rounded-[calc(var(--menu-radius)*0.75)] bg-[var(--menu-soft)] text-[var(--menu-muted)]",
-          soldOut && "grayscale",
-        )}
-      >
-        {product.imageUrl ? (
-          <Image
-            src={product.imageUrl}
-            alt={product.name}
-            fill
-            sizes="112px"
-            priority={priority}
-            placeholder={product.blurDataUrl ? "blur" : "empty"}
-            blurDataURL={product.blurDataUrl ?? undefined}
-            className="object-cover"
-          />
-        ) : (
-          <ImageIcon aria-hidden className="size-5" />
-        )}
-      </div>
+      {onQuickAdd && !soldOut ? (
+        // Esquina inferior derecha de la foto (p-3 + 84 px de alto − 44 px del botón + 6 px).
+        <button
+          type="button"
+          onClick={() => onQuickAdd(photoRef.current)}
+          aria-label={`Agregar ${product.name}`}
+          className="absolute top-[58px] right-1.5 z-10 grid size-11 place-items-center rounded-full border-2 border-[var(--menu-surface)] bg-[var(--menu-primary)] text-[var(--menu-on-primary)] shadow-2 transition-transform duration-(--duration-fast) active:scale-90"
+        >
+          <PlusIcon aria-hidden className="size-5" />
+        </button>
+      ) : null}
     </li>
   );
 }

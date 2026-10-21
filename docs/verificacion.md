@@ -181,6 +181,24 @@ Marca cada punto. Prueba en el celular (o con DevTools a 390 px) y en escritorio
 - [ ] **Cambio en < 5 s**: en el panel cambia el precio de un producto y guarda; recarga el menú público: ya aparece el precio nuevo. Devuélvelo a como estaba.
 - [ ] Un link que no existe (`/no-existe/x`) muestra la página de no encontrado.
 
+### Plantilla Clásico (QRM-021): criterio "Idéntico al styleguide; CLS 0"
+
+- [ ] Abre `/styleguide#publico` y el menú real de una sucursal en un celular (o con el ancho en 390 px): mismo encabezado, chips, pestañas y tarjetas.
+- [ ] En el styleguide cambia entre las 8 paletas: todo el texto se lee bien sobre cada color.
+- [ ] Al bajar, las pestañas de secciones quedan fijas arriba y se marca la sección en pantalla; tocar una lleva a ella.
+- [ ] Las fotos muestran un borroso mientras cargan y no empujan el contenido (nada "salta" al cargar).
+
+### Hoja de producto (QRM-022): criterio "Precio correcto con precio de sucursal"
+
+- [ ] En **Antigua**, franja **Desayunos**, toca "Desayuno chapín": se abre la hoja (en Chrome y Safari la foto de la tarjeta se expande) con foto grande, descripción, "Listo en unos 15 min" y el botón **Agregar · Q48.00**.
+- [ ] Huevos y Frijoles (obligatorios) ya vienen con la primera opción. Elige **Aguacate** → **Agregar · Q54.00**; sube la cantidad a 2 → **Q108.00**.
+- [ ] Toca **Agregar**: se cierra la hoja y aparece "Agregado: 2 × Desayuno chapín". (La barra del carrito llega en QRM-024.)
+- [ ] En **Zona 1** el mismo platillo empieza en **Agregar · Q45.00** (sin precio de sucursal).
+- [ ] Con la hoja abierta, el botón **atrás** del celular la cierra sin salir del menú. El link con `?producto=…` abre la hoja directo.
+- [ ] El **+** de "Parrillada para compartir" agrega directo (sin opciones obligatorias); el de "Americano" abre la hoja para elegir el tamaño.
+- [ ] En **Antigua**, "Pasta con mariscos" (agotada) no tiene **+**; su hoja dice "Este se nos acabó aquí. ¿Te animas con…?" con un botón al platillo sugerido.
+- [ ] En el panel agota una opción (p. ej. "Queso extra" de Desayuno chapín) → en la hoja aparece deshabilitada con "Agotado". Devuélvela a como estaba.
+
 ### Encargado (permisos)
 
 - [ ] Sal y entra como **encargado** → el selector solo muestra **Antigua** (sin "Todas").
