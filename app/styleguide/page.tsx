@@ -9,6 +9,7 @@ import { ColorSection } from "./_sections/color";
 import { FeedbackSection, FormsSection } from "./_sections/forms-feedback";
 import { LoadingSection } from "./_sections/loading";
 import { PublicMenuSection } from "./_sections/public-menu";
+import { SplashSection } from "./_sections/splash";
 import { SurfacesSection } from "./_sections/surfaces";
 import { TypographySection } from "./_sections/typography";
 
@@ -27,6 +28,7 @@ const NAV = [
   { id: "carga", label: "Carga" },
   { id: "feedback", label: "Feedback" },
   { id: "publico", label: "Menú público" },
+  { id: "bienvenida", label: "Bienvenida" },
 ] as const;
 
 /**
@@ -86,6 +88,7 @@ function Styleguide() {
         <LoadingSection />
         <FeedbackSection />
         <PublicMenuSection />
+        <SplashSection />
       </main>
     </div>
   );
