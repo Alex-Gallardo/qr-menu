@@ -5,8 +5,9 @@ import { Button } from "@/components/ui/button";
 /**
  * Límite amable: explica qué incluye el plan y cómo crecer, con un botón para
  * escribirle a ventas por WhatsApp (o ver el plan si no hay número configurado).
+ * Sin licenseHref (encargado) no hay botón de plan: el dueño es quien lo mejora.
  */
-export function LimitCard({ message, licenseHref }: { message: string; licenseHref: string }) {
+export function LimitCard({ message, licenseHref }: { message: string; licenseHref?: string }) {
   const sales = process.env.NEXT_PUBLIC_SALES_WHATSAPP?.replace(/\D/g, "");
   const text = encodeURIComponent(`Hola, quiero mejorar mi plan. ${message}`);
 
@@ -23,11 +24,11 @@ export function LimitCard({ message, licenseHref }: { message: string; licenseHr
             Escribirnos
           </a>
         </Button>
-      ) : (
+      ) : licenseHref ? (
         <Button asChild variant="secondary" size="sm">
           <Link href={licenseHref}>Ver mi plan</Link>
         </Button>
-      )}
+      ) : null}
     </div>
   );
 }
