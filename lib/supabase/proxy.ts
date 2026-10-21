@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { supabasePublicConfig } from "./config";
 
 export type SessionClaims = {
   sub: string;
@@ -16,30 +17,49 @@ export type SessionClaims = {
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(cookiesToSet) {
-          for (const { name, value } of cookiesToSet) request.cookies.set(name, value);
-          response = NextResponse.next({ request });
-          for (const { name, value, options } of cookiesToSet) {
-            response.cookies.set(name, value, options);
-          }
-        },
+  // Sin Supabase configurado (entorno nuevo de Vercel), el sitio público debe
+  // seguir funcionando: se continúa sin sesión y las rutas privadas piden entrar.
+  const config = supabasePublicConfig();
+  if (!config) {
+    warnOnce();
+    return { claims: null, response: () => response };
+  }
+
+  const supabase = createServerClient(config.url, config.anonKey, {
+    cookies: {
+      getAll() {
+        return request.cookies.getAll();
+      },
+      setAll(cookiesToSet) {
+        for (const { name, value } of cookiesToSet) request.cookies.set(name, value);
+        response = NextResponse.next({ request });
+        for (const { name, value, options } of cookiesToSet) {
+          response.cookies.set(name, value, options);
+        }
       },
     },
-  );
+  });
 
   // getClaims verifica la firma del JWT; no confiar en getSession() en el servidor.
-  const { data } = await supabase.auth.getClaims();
-  const claims = (data?.claims ?? null) as SessionClaims | null;
+  // Si Supabase no responde, se trata como sin sesión (nunca se abre una ruta privada).
+  let claims: SessionClaims | null = null;
+  try {
+    const { data } = await supabase.auth.getClaims();
+    claims = (data?.claims ?? null) as SessionClaims | null;
+  } catch (error) {
+    console.error("[proxy] No se pudo verificar la sesión con Supabase:", error);
+  }
 
   return { claims, response: () => response };
+}
+
+let warned = false;
+function warnOnce() {
+  if (warned) return;
+  warned = true;
+  console.warn(
+    "[proxy] Faltan NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY: el acceso al panel está desactivado. Revisa /api/health.",
+  );
 }
 
 /** Copia las cookies de sesión refrescadas a otra respuesta (redirect o rewrite). */
