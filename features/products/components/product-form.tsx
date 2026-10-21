@@ -13,6 +13,7 @@ import type { ActionResult } from "@/lib/action-result";
 import { formatQ, parseQ } from "@/lib/money";
 import { saveProduct } from "../actions";
 import { PRODUCT_TAGS } from "../catalog";
+import { OptionGroupsEditor } from "./option-groups-editor";
 import { productFormSchema, type ProductFormInput, type ProductFormOutput } from "../schemas";
 
 type FormControl = Control<ProductFormInput, unknown, ProductFormOutput>;
@@ -198,6 +199,10 @@ export function ProductForm({
             {...form.register("prep_minutes")}
           />
         </Field>
+      </Card>
+
+      <Card title="Opciones">
+        <OptionGroupsEditor control={control} register={form.register} errors={errors.groups} />
       </Card>
 
       <Card title="Disponibilidad por sucursal">

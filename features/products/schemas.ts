@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { parseQ } from "@/lib/money";
 import { TAG_VALUES } from "./catalog";
+import { groupRuleProblem, MAX_DELTA_CENTS, MAX_GROUPS, MAX_OPTIONS, parseDelta } from "./options";
 
 const MAX_PRICE_CENTS = 10_000_00; // Q10,000
 
@@ -16,6 +17,43 @@ const branchSetting = z.object({
   is_available: z.boolean(),
   /** Vacío = usa el precio del catálogo. */
   price: z.string(),
+});
+
+const optionField = z.object({
+  /** Sin id = opción nueva. Se conserva al editar para no romper carritos abiertos. */
+  optionId: z.uuid().optional(),
+  name: z
+    .string()
+    .trim()
+    .min(1, "Escribe el nombre de la opción.")
+    .max(60, "Usa como máximo 60 caracteres."),
+  /** Lo que suma (o resta) al precio: "5", "-2.50"; vacío = sin costo. */
+  price: z.string(),
+  is_available: z.boolean(),
+});
+
+const groupField = z.object({
+  groupId: z.uuid().optional(),
+  name: z
+    .string()
+    .trim()
+    .min(2, "Escribe el nombre del grupo, por ejemplo Tamaño.")
+    .max(40, "Usa como máximo 40 caracteres."),
+  required: z.boolean(),
+  /** Solo cuenta si es obligatorio. */
+  min: z.string(),
+  max: z.string(),
+  options: z
+    .array(optionField)
+    .max(MAX_OPTIONS, `Usa como máximo ${MAX_OPTIONS} opciones por grupo.`),
+});
+
+const whole = (text: string) => (/^\d{1,2}$/.test(text.trim()) ? Number(text) : NaN);
+
+/** Regla del grupo como la guarda la base: opcional = mínimo 0. */
+const toRule = (g: { required: boolean; min: string; max: string }) => ({
+  min_select: g.required ? whole(g.min) : 0,
+  max_select: whole(g.max),
 });
 
 /** Ficha del producto (valores como los escribe el usuario). */
@@ -38,6 +76,10 @@ export const productFormSchema = z
     image_blurhash: z.string().max(100).nullable(),
     is_available: z.boolean(),
     branches: z.array(branchSetting).max(100),
+    groups: z
+      .array(groupField)
+      .max(MAX_GROUPS, `Usa como máximo ${MAX_GROUPS} grupos de opciones.`)
+      .default([]),
   })
   .superRefine((v, ctx) => {
     const issue = (path: (string | number)[], message: string) =>
@@ -68,6 +110,37 @@ export const productFormSchema = z
       else if (own > MAX_PRICE_CENTS)
         issue(["branches", i, "price"], "Ese precio parece demasiado alto.");
     });
+
+    const groupNames = new Set<string>();
+    v.groups.forEach((g, i) => {
+      const key = g.name.trim().toLowerCase();
+      if (key && groupNames.has(key))
+        issue(["groups", i, "name"], "Ya tienes un grupo con ese nombre.");
+      groupNames.add(key);
+
+      const rule = toRule(g);
+      if (g.required && !(rule.min_select >= 1))
+        issue(["groups", i, "min"], "Escribe cuántas debe elegir como mínimo (1 o más).");
+      else if (!(rule.max_select >= 1))
+        issue(["groups", i, "max"], "Escribe cuántas puede elegir (1 o más).");
+      else {
+        const problem = groupRuleProblem(rule, g.options.length);
+        if (problem) issue(["groups", i, g.options.length === 0 ? "options" : "max"], problem);
+      }
+
+      const optionNames = new Set<string>();
+      g.options.forEach((o, j) => {
+        const name = o.name.trim().toLowerCase();
+        if (name && optionNames.has(name))
+          issue(["groups", i, "options", j, "name"], "Esa opción ya está en el grupo.");
+        optionNames.add(name);
+        const delta = parseDelta(o.price);
+        if (delta === null)
+          issue(["groups", i, "options", j, "price"], "Escribe un monto como 5, o -5 para restar.");
+        else if (Math.abs(delta) > MAX_DELTA_CENTS)
+          issue(["groups", i, "options", j, "price"], "Ese monto parece demasiado alto.");
+      });
+    });
   })
   .transform((v) => ({
     businessId: v.businessId,
@@ -89,7 +162,22 @@ export const productFormSchema = z
       is_available: b.is_available,
       price_override_cents: b.price.trim() ? parseQ(b.price) : null,
     })),
+    groups: v.groups.map((g, sort) => ({
+      id: g.groupId,
+      name: g.name,
+      ...toRule(g),
+      sort,
+      options: g.options.map((o, optionSort) => ({
+        id: o.optionId,
+        name: o.name,
+        price_delta_cents: parseDelta(o.price)!,
+        is_available: o.is_available,
+        sort: optionSort,
+      })),
+    })),
   }));
+
+export type OptionGroupsOutput = ProductFormOutput["groups"];
 
 export type ProductFormInput = z.input<typeof productFormSchema>;
 export type ProductFormOutput = z.output<typeof productFormSchema>;

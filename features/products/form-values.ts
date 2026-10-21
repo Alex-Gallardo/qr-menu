@@ -1,5 +1,6 @@
 import { centsToInput } from "@/lib/money";
 import type { ProductTag } from "./catalog";
+import { deltaToInput, type GroupRule } from "./options";
 import type { ProductFormInput } from "./schemas";
 
 type ProductForForm = {
@@ -19,6 +20,11 @@ type ProductForForm = {
     is_available: boolean;
     price_override_cents: number | null;
   }[];
+  option_groups?: (GroupRule & {
+    id: string;
+    name: string;
+    options: { id: string; name: string; price_delta_cents: number; is_available: boolean }[];
+  })[];
 };
 
 /** Producto de la base → valores del formulario (una fila por sucursal visible). */
@@ -47,6 +53,19 @@ export function toProductFormInput(
       branchId,
       is_available: setting(branchId)?.is_available ?? true,
       price: centsToInput(setting(branchId)?.price_override_cents),
+    })),
+    groups: (product?.option_groups ?? []).map((g) => ({
+      groupId: g.id,
+      name: g.name,
+      required: g.min_select > 0,
+      min: String(Math.max(1, g.min_select)),
+      max: String(g.max_select),
+      options: g.options.map((o) => ({
+        optionId: o.id,
+        name: o.name,
+        price: deltaToInput(o.price_delta_cents),
+        is_available: o.is_available,
+      })),
     })),
   };
 }
