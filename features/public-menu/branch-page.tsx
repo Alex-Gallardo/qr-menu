@@ -48,6 +48,18 @@ export async function BranchMenu({
 }) {
   const payload = await getBranchMenu(business.id, branch.id);
   const url = new URL(`/${business.slug}/${branch.slug}`, BRAND.url).toString();
+  // Cuentas de esta sucursal primero, luego las de todo el negocio.
+  const bankAccounts = business.bank_accounts
+    .filter((a) => a.branch_id === null || a.branch_id === branch.id)
+    .sort((a, b) => Number(a.branch_id === null) - Number(b.branch_id === null))
+    .map((a) => ({
+      id: a.id,
+      bankName: a.bank_name,
+      accountType: a.account_type,
+      accountNumber: a.account_number,
+      holderName: a.holder_name,
+      instructions: a.instructions,
+    }));
 
   return (
     <>
@@ -80,6 +92,20 @@ export async function BranchMenu({
             name: branch.name,
             isActive: branch.is_active,
             hours: branch.hours,
+            order: {
+              acceptsDineIn: branch.accepts_dine_in,
+              acceptsTakeout: branch.accepts_takeout,
+              acceptsDelivery: branch.accepts_delivery,
+              acceptsTransfer: branch.accepts_transfer,
+              deliveryFeeCents: branch.delivery_fee_cents,
+              minOrderCents: branch.min_order_cents,
+              hasBankAccounts: bankAccounts.length > 0,
+              preorderMode: branch.preorder_mode,
+              preorderMinLeadMin: branch.preorder_min_lead_min,
+              preorderMaxDays: branch.preorder_max_days,
+              preordersEnabled: business.preorders,
+            },
+            bankAccounts,
           }}
           payload={payload}
           selectorHref={business.branches.length > 1 ? `/${business.slug}` : null}

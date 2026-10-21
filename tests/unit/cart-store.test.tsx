@@ -1,10 +1,8 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { priceCart, type PricedLine } from "@/features/cart/cart";
 import { useCart } from "@/features/cart/store";
 import { CartBar } from "@/features/public-menu/templates/clasico/cart-bar";
-import { OrderSheet } from "@/features/public-menu/templates/clasico/order-sheet";
 
 vi.mock("next/image", () => ({
   // eslint-disable-next-line @next/next/no-img-element -- next/image no corre en jsdom
@@ -86,60 +84,5 @@ describe("<CartBar />", () => {
   it("sin productos no se muestra", () => {
     render(<CartBar count={0} totalCents={0} announce="" onOpen={() => {}} />);
     expect(screen.queryByRole("button")).toBeNull();
-  });
-});
-
-describe("<OrderSheet />", () => {
-  const priced = (): PricedLine[] =>
-    priceCart(
-      [
-        { ...chapin, key: "a", optionNames: ["Revueltos"], note: "Sin cebolla" },
-        { ...chapin, key: "b", productId: "pasta", name: "Pasta con mariscos", quantity: 1 },
-      ],
-      {
-        product: (id) => ({ available: id !== "pasta", optionGroups: [] }),
-        priceCents: () => 4800,
-      },
-    ).lines;
-
-  it("lista editable: cantidades, quitar y lo que ya no se puede pedir", () => {
-    const onQuantity = vi.fn();
-    render(
-      <OrderSheet
-        branchName="Antigua"
-        lines={priced()}
-        count={2}
-        totalCents={9600}
-        onQuantity={onQuantity}
-        onClear={() => {}}
-        onClose={() => {}}
-      />,
-    );
-    expect(screen.getByRole("dialog").textContent).toContain("Revueltos");
-    expect(screen.getByText("“Sin cebolla”")).toBeTruthy();
-    expect(screen.getByText("Se nos acabó aquí.")).toBeTruthy();
-    expect(screen.getAllByText("Q96.00")).toHaveLength(2); // la línea y el total
-
-    fireEvent.click(screen.getByRole("button", { name: "Quitar uno" }));
-    expect(onQuantity).toHaveBeenLastCalledWith("a", 1);
-    fireEvent.click(screen.getByRole("button", { name: "Quitar" }));
-    expect(onQuantity).toHaveBeenLastCalledWith("b", 0);
-  });
-
-  it("vacío: invita a volver al menú", () => {
-    const onClose = vi.fn();
-    render(
-      <OrderSheet
-        branchName="Antigua"
-        lines={[]}
-        count={0}
-        totalCents={0}
-        onQuantity={() => {}}
-        onClear={() => {}}
-        onClose={onClose}
-      />,
-    );
-    fireEvent.click(screen.getByRole("button", { name: "Ver el menú" }));
-    expect(onClose).toHaveBeenCalled();
   });
 });

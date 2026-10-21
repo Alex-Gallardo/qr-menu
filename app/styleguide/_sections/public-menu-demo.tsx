@@ -2,8 +2,10 @@
 
 import { CalendarOffIcon, ClockIcon } from "lucide-react";
 import { useState } from "react";
+import { gtInstant, todayInGuatemala } from "@/lib/gt-time";
 import { addLine, priceCart, setLineQuantity, type CartLine } from "@/features/cart/cart";
 import { PALETTE_PRESETS } from "@/features/appearance/palettes";
+import { orderTiming, type TimingRules } from "@/features/orders/preorder";
 import type { PublicProduct } from "@/features/public-menu/payload";
 import {
   MenuFooter,
@@ -19,6 +21,35 @@ import { CartBar } from "@/features/public-menu/templates/clasico/cart-bar";
 import { OrderSheet } from "@/features/public-menu/templates/clasico/order-sheet";
 import { ProductSheet } from "@/features/public-menu/templates/clasico/product-sheet";
 import { themeFromPreset } from "@/features/public-menu/theme";
+
+// Sucursal de ejemplo para la hoja de pedido: abre de 7:00 a 21:00, programa con 30 min.
+const DEMO_RULES: TimingRules = {
+  hours: [0, 1, 2, 3, 4, 5, 6].map((weekday) => ({ weekday, opens: "07:00", closes: "21:00" })),
+  closedDates: [],
+  mode: "next_open",
+  minLeadMin: 30,
+  maxDays: 2,
+  preordersEnabled: true,
+};
+const DEMO_BRANCH = {
+  acceptsDineIn: true,
+  acceptsTakeout: true,
+  acceptsDelivery: true,
+  acceptsTransfer: true,
+  deliveryFeeCents: 1500,
+  minOrderCents: 5000,
+  hasBankAccounts: true,
+};
+const DEMO_ACCOUNTS = [
+  {
+    id: "bi",
+    bankName: "Banco Industrial",
+    accountType: "Monetaria",
+    accountNumber: "000-000000-0",
+    holderName: "Café El Portal, S.A.",
+    instructions: "Envía la foto de tu boleta por WhatsApp.",
+  },
+];
 
 const photo = (id: string) => `https://images.unsplash.com/photo-${id}?w=1200&q=80&auto=format`;
 
@@ -137,6 +168,7 @@ export function PublicMenuDemo() {
   const [sheetId, setSheetId] = useState<string | null>(null);
   const [lines, setLines] = useState<CartLine[]>([]);
   const [orderOpen, setOrderOpen] = useState(false);
+  const [branchOpen, setBranchOpen] = useState(true);
   const all = SECTIONS.flatMap((s) => s.items);
   const sheetItem = all.find((i) => i.product.id === sheetId);
   const cart = priceCart(lines, {
@@ -237,7 +269,28 @@ export function PublicMenuDemo() {
                 branchName="Antigua"
                 lines={cart.lines}
                 count={cart.count}
-                totalCents={cart.totalCents}
+                subtotalCents={cart.totalCents}
+                checkout={{
+                  branch: DEMO_BRANCH,
+                  // Hoy a las 10:00 (abierta) o a las 21:30 (cerrada, para cuando abra).
+                  timing: orderTiming(
+                    DEMO_RULES,
+                    gtInstant(todayInGuatemala(), branchOpen ? 600 : 1290),
+                  ),
+                  bankAccounts: DEMO_ACCOUNTS,
+                  table: branchOpen ? "Mesa 4" : null,
+                  blockedReason: null,
+                }}
+                customer={{
+                  name: "",
+                  phone: "",
+                  email: "",
+                  address: "",
+                  addressReference: "",
+                  lastOrderType: null,
+                  lastPayment: null,
+                }}
+                onSubmit={() => setOrderOpen(false)}
                 onQuantity={(key, q) => setLines((l) => setLineQuantity(l, key, q))}
                 onClear={() => {
                   setLines([]);
@@ -290,9 +343,26 @@ export function PublicMenuDemo() {
           </p>
           <p className="type-small text-muted-foreground">
             Al agregar aparece la <strong>barra del carrito</strong> con resorte y el contador
-            rebota; “Ver pedido” abre <strong>Tu pedido</strong> con cantidades editables. En el
-            menú real el carrito se guarda en el dispositivo por sucursal.
+            rebota; “Ver pedido” abre la <strong>hoja de pedido</strong>: cantidades, cómo lo quiere
+            (con la mesa del QR), ¿para cuándo?, datos, pago con cuentas para transferencia y “Pedir
+            por WhatsApp”. En el menú real el carrito y los datos se guardan en el dispositivo.
           </p>
+          <div role="group" aria-label="Sucursal de ejemplo" className="flex flex-wrap gap-2">
+            {[
+              { open: true, label: "Abierta · Mesa 4" },
+              { open: false, label: "Cerrada · para cuando abra" },
+            ].map((o) => (
+              <button
+                key={o.label}
+                type="button"
+                aria-pressed={branchOpen === o.open}
+                onClick={() => setBranchOpen(o.open)}
+                className="type-small h-10 rounded-full border border-border bg-card px-3 font-semibold aria-pressed:ring-3 aria-pressed:ring-ring/40"
+              >
+                {o.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
     </div>
