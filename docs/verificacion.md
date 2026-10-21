@@ -42,28 +42,28 @@ El negocio demo es **Café El Portal** (link `cafe-el-portal`), con sucursales *
 
 ## 3. Mapa de rutas
 
-| Ruta                                    | Qué es                                                      | Quién entra                                             |
-| --------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------- |
-| `/`                                     | Portada                                                     | Todos                                                   |
-| `/styleguide`                           | Sistema de diseño (botones, colores, cargas…)               | Todos en local y previews; en producción solo el equipo |
-| `/entrar`                               | Entrar con contraseña o enlace por correo                   | Sin sesión                                              |
-| `/registro`                             | Crear cuenta de dueño                                       | Sin sesión                                              |
-| `/recuperar`                            | Recuperar contraseña                                        | Sin sesión                                              |
-| `/onboarding`                           | Crear el primer negocio (cuenta nueva)                      | Con sesión                                              |
-| `/panel`                                | Te lleva al panel de tu negocio                             | Dueño o encargado                                       |
-| `/panel/{negocio}`                      | **Inicio** del panel                                        | Dueño o encargado                                       |
-| `/panel/{negocio}/productos`            | Catálogo, búsqueda y disponibilidad                         | Dueño o encargado                                       |
-| `/panel/{negocio}/productos/nuevo`      | Nuevo producto                                              | Dueño o encargado                                       |
-| `/panel/{negocio}/productos/categorias` | Categorías                                                  | Dueño o encargado                                       |
-| `/panel/{negocio}/menus`                | Menús: crear, duplicar, predeterminado, pausar              | Dueño o encargado                                       |
-| `/panel/{negocio}/menus/{menú}`         | Editor del menú (se guarda solo)                            | Dueño o encargado                                       |
-| `/panel/{negocio}/programacion`         | Franjas horarias (y, más adelante, la programación semanal) | Dueño edita; encargado solo ve                          |
-| `/panel/{negocio}/sucursales`           | Sucursales (horario, entregas, mapa)                        | Dueño (encargado: solo las suyas)                       |
-| `/panel/{negocio}/ajustes/negocio`      | Logo, portada, nombre, link y redes                         | Solo dueño                                              |
-| `/panel/{negocio}/ajustes/pagos`        | Cuentas para transferencia                                  | Solo dueño                                              |
-| `/panel/{negocio}/ajustes/licencia`     | Mi plan                                                     | Solo dueño                                              |
-| `/admin`                                | Super admin (provisional)                                   | Equipo de la plataforma con 2FA                         |
-| `/api/health`                           | Estado de la configuración                                  | Todos (solo sí/no)                                      |
+| Ruta                                    | Qué es                                               | Quién entra                                              |
+| --------------------------------------- | ---------------------------------------------------- | -------------------------------------------------------- |
+| `/`                                     | Portada                                              | Todos                                                    |
+| `/styleguide`                           | Sistema de diseño (botones, colores, cargas…)        | Todos en local y previews; en producción solo el equipo  |
+| `/entrar`                               | Entrar con contraseña o enlace por correo            | Sin sesión                                               |
+| `/registro`                             | Crear cuenta de dueño                                | Sin sesión                                               |
+| `/recuperar`                            | Recuperar contraseña                                 | Sin sesión                                               |
+| `/onboarding`                           | Crear el primer negocio (cuenta nueva)               | Con sesión                                               |
+| `/panel`                                | Te lleva al panel de tu negocio                      | Dueño o encargado                                        |
+| `/panel/{negocio}`                      | **Inicio** del panel                                 | Dueño o encargado                                        |
+| `/panel/{negocio}/productos`            | Catálogo, búsqueda y disponibilidad                  | Dueño o encargado                                        |
+| `/panel/{negocio}/productos/nuevo`      | Nuevo producto                                       | Dueño o encargado                                        |
+| `/panel/{negocio}/productos/categorias` | Categorías                                           | Dueño o encargado                                        |
+| `/panel/{negocio}/menus`                | Menús: crear, duplicar, predeterminado, pausar       | Dueño o encargado                                        |
+| `/panel/{negocio}/menus/{menú}`         | Editor del menú (se guarda solo)                     | Dueño o encargado                                        |
+| `/panel/{negocio}/programacion`         | Franjas, semana (días × franjas) y fechas especiales | Franjas y "Todas": dueño. Sucursal: dueño o su encargado |
+| `/panel/{negocio}/sucursales`           | Sucursales (horario, entregas, mapa)                 | Dueño (encargado: solo las suyas)                        |
+| `/panel/{negocio}/ajustes/negocio`      | Logo, portada, nombre, link y redes                  | Solo dueño                                               |
+| `/panel/{negocio}/ajustes/pagos`        | Cuentas para transferencia                           | Solo dueño                                               |
+| `/panel/{negocio}/ajustes/licencia`     | Mi plan                                              | Solo dueño                                               |
+| `/admin`                                | Super admin (provisional)                            | Equipo de la plataforma con 2FA                          |
+| `/api/health`                           | Estado de la configuración                           | Todos (solo sí/no)                                       |
 
 `{negocio}` es el id del negocio. No hace falta copiarlo: entra a `/panel` y te lleva solo. Pedidos, QR, Reseñas, Analíticas, Equipo, Apariencia y Notificaciones aparecen en la navegación, pero son de fases siguientes y muestran "Muy pronto".
 
@@ -146,10 +146,20 @@ Marca cada punto. Prueba en el celular (o con DevTools a 390 px) y en escritorio
 - [ ] Toca **+ Entradas**, **+ Platos fuertes**, **+ Bebidas** y **+ Postres**: cada una abre el catálogo; marca productos y toca **Agregar N productos**.
 - [ ] Arriba dice "Guardando…" → "Guardado". Recarga la página: todo sigue ahí.
 - [ ] Escribe un **precio especial** en un producto (vacío = precio del catálogo) y toca la **estrella** para destacarlo.
-- [ ] Ordena: **arrastra** la manija ⠿ de una sección o producto (con el dedo o el mouse), o usa **⋯ → Subir / Bajar**. Con teclado: Tab hasta la manija, Espacio, flechas y Espacio.
+- [ ] Ordena con **⋯ → Subir / Bajar** (secciones y productos). ⚠️ Arrastrar con la manija ⠿ todavía **no funciona** (ver "Pendientes conocidos").
 - [ ] **⋯ → Mover a** lleva un producto a otra sección. **⋯ → Eliminar sección** → **Deshacer**.
 - [ ] En la lista: **Duplicar** (queda "en pausa"), **Hacer predeterminado** (el interruptor del predeterminado no se puede apagar) y **Eliminar** → **Deshacer**.
 - [ ] Deja los menús como estaban: Cena y carta como predeterminado y borra tus menús de prueba.
+
+### Programación (QRM-018): criterio "Regla de sucursal gana a la general"
+
+- [ ] **Más → Programación → Todas las sucursales**: la cuadrícula muestra Desayunos todos los días, Almuerzo ejecutivo L–V y Cena y carta en la cena.
+- [ ] Pestaña **Antigua**: el almuerzo L–V es **Cena y carta** en celdas sólidas (propio de Antigua) y el resto aparece punteado (viene de la general).
+- [ ] Pestaña **Zona 1**: el almuerzo del martes es **Almuerzo ejecutivo** punteado (hereda la general) → la regla de Antigua no afecta a Zona 1.
+- [ ] Toca una celda y elige otro menú → "Guardando… → Guardado". Vuelve a dejarla con **Igual que la general**.
+- [ ] **⋯** de una franja → "Toda la semana" o vaciarla.
+- [ ] **Fechas especiales**: **Cerrado hoy** (el botón cambia a "Hoy ya está cerrado"), **Agregar fecha especial** (fecha, todo el día o una franja, Cerrado o un menú) y eliminar → **Deshacer**.
+- [ ] Deja la programación como estaba (o corre `pnpm db:seed` al final).
 
 ### Encargado (permisos)
 
@@ -179,3 +189,13 @@ pnpm db:seed    # deja los datos de demo como estaban
 4. En **Supabase → Authentication → URL Configuration** de ese proyecto: _Site URL_ = el dominio, y en _Redirect URLs_ agrega `https://<dominio>/auth/callback`.
 
 Mientras falte Supabase, el sitio no se cae: la portada funciona, `/entrar` muestra "El acceso todavía no está configurado en este entorno" y las rutas privadas piden entrar.
+
+## 6. Pendientes conocidos
+
+Fallas detectadas en la revisión que se corrigen al final del MVP. No bloquean el uso: cada una tiene una alternativa.
+
+| #   | Dónde                    | Qué pasa                                                                                  | Alternativa mientras tanto                          | Detectado                       |
+| --- | ------------------------ | ----------------------------------------------------------------------------------------- | --------------------------------------------------- | ------------------------------- |
+| 1   | Menús → editor (QRM-017) | **Arrastrar** secciones y productos con la manija ⠿ (dedo, mouse o teclado) no los mueve. | **⋯ → Subir / Bajar** sí funciona y se guarda solo. | 2026-10-21, revisión de QRM-017 |
+
+Para corregir el #1: revisar la integración de `@dnd-kit` en `features/menus/components/menu-editor.tsx` (sensores, `DndContext` anidados de secciones e ítems y `touch-action` de las manijas) en un navegador real, porque el navegador de pruebas automáticas no permite arrastrar.
