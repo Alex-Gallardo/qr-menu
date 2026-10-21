@@ -90,14 +90,17 @@ describe("<ProductSheet />", () => {
 
     fireEvent.change(screen.getByRole("textbox"), { target: { value: "  Sin cebolla " } });
     fireEvent.click(addButton());
-    expect(props.onAdd).toHaveBeenCalledWith({
-      productId: "chapin",
-      optionIds: ["revueltos", "aguacate"],
-      optionNames: ["Revueltos", "Aguacate"],
-      note: "Sin cebolla",
-      quantity: 2,
-      unitCents: 5400,
-    });
+    expect(props.onAdd).toHaveBeenCalledWith(
+      {
+        productId: "chapin",
+        optionIds: ["revueltos", "aguacate"],
+        optionNames: ["Revueltos", "Aguacate"],
+        note: "Sin cebolla",
+        quantity: 2,
+        unitCents: 5400,
+      },
+      expect.anything(),
+    );
   });
 
   it("respeta el máximo del grupo y no deja elegir lo agotado", () => {

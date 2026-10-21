@@ -5,13 +5,23 @@ import { useEffect, useState, type ComponentType } from "react";
 import { flushSync } from "react-dom";
 import { toast } from "sonner";
 import { minutesOf, openState } from "@/features/branches/hours";
+import { priceCart } from "@/features/cart/cart";
 import { useCart } from "@/features/cart/store";
 import { hasRequiredGroups } from "@/features/products/options";
 import { resolveActiveMenu } from "@/features/schedule/resolve-active-menu";
 import { guatemalaNow, gtInstant } from "@/lib/gt-time";
 import type { BranchMenuPayload, PublicMenu, PublicProduct } from "../payload";
+import { flyToCart } from "../fly-to-cart";
 import { expandPhoto } from "../photo-transition";
-import { closeProductSheet, openProductSheet, useOpenProductId } from "../sheet-url";
+import {
+  closeOrderSheet,
+  closeProductSheet,
+  openOrderSheet,
+  openProductSheet,
+  useOpenProductId,
+  useOrderSheetOpen,
+} from "../sheet-url";
+import { CartBar } from "../templates/clasico/cart-bar";
 import {
   MenuFooter,
   MenuHeader,
@@ -22,19 +32,24 @@ import {
   SectionTabs,
   SlotChips,
 } from "../templates/clasico/components";
+import type { OrderSheetProps } from "../templates/clasico/order-sheet";
 import type { ProductSheetLine, ProductSheetProps } from "../templates/clasico/product-sheet";
 import type { MenuTheme } from "../theme";
+import { useBranchCart } from "../use-branch-cart";
 import { useNowMinute } from "../use-now";
 import { rememberBranch } from "./remember-branch";
 
-// La hoja se descarga bajo demanda (y en segundo plano tras cargar el menú).
+// Las hojas se descargan bajo demanda (y en segundo plano tras cargar el menú).
 let sheetModule: Promise<typeof import("../templates/clasico/product-sheet")> | null = null;
 const loadSheet = () => (sheetModule ??= import("../templates/clasico/product-sheet"));
+let orderModule: Promise<typeof import("../templates/clasico/order-sheet")> | null = null;
+const loadOrder = () => (orderModule ??= import("../templates/clasico/order-sheet"));
 
 const PAUSED = "Esta sucursal no recibe pedidos por ahora.";
 
 type Props = {
   business: {
+    id: string;
     slug: string;
     name: string;
     description: string | null;
@@ -93,16 +108,22 @@ export function PublicMenuView({ business, branch, payload, selectorHref }: Prop
   // Hoja de producto (?producto=id) y carrito.
   const openId = useOpenProductId();
   const [Sheet, setSheet] = useState<ComponentType<ProductSheetProps> | null>(null);
-  const addToCart = useCart((s) => s.add);
+  const orderOpen = useOrderSheetOpen();
+  const [Order, setOrder] = useState<ComponentType<OrderSheetProps> | null>(null);
+  const cartLines = useBranchCart(business, branch);
+  const [announce, setAnnounce] = useState("");
 
   useEffect(() => {
-    const id = window.setTimeout(() => void loadSheet(), 2000);
+    const id = window.setTimeout(() => void loadSheet().then(loadOrder), 2000);
     return () => window.clearTimeout(id);
   }, []);
   useEffect(() => {
     // Llegó con el link de un producto: se carga la hoja y se abre.
     if (openId && !Sheet) void loadSheet().then((m) => setSheet(() => m.ProductSheet));
   }, [openId, Sheet]);
+  useEffect(() => {
+    if (orderOpen && !Order) void loadOrder().then((m) => setOrder(() => m.OrderSheet));
+  }, [orderOpen, Order]);
 
   const items = (menu?.sections ?? []).flatMap((s) => s.items);
   const priceIn = (productId: string) =>
@@ -125,21 +146,56 @@ export function PublicMenuView({ business, branch, payload, selectorHref }: Prop
     );
   }
 
-  function addLine(product: PublicProduct, line: ProductSheetLine) {
-    addToCart({ ...line, name: product.name, imageUrl: product.imageUrl });
-    toast.success(`Agregado: ${line.quantity} × ${product.name}`);
+  // Lo del carrito con los precios y la disponibilidad de hoy en esta sucursal.
+  const cart = priceCart(cartLines, {
+    product: (id) => payload.products[id],
+    priceCents: (id) =>
+      payload.menus.some((m) => m.sections.some((s) => s.items.some((i) => i.productId === id)))
+        ? priceIn(id)
+        : undefined,
+  });
+
+  function addLine(product: PublicProduct, line: ProductSheetLine, photo: HTMLElement | null) {
+    useCart
+      .getState()
+      .add(business.id, { ...line, name: product.name, imageUrl: product.imageUrl });
+    flyToCart(photo);
+    setAnnounce(`Agregado: ${line.quantity} × ${product.name}.`);
   }
 
   function quickAdd(product: PublicProduct, photo: HTMLElement | null) {
     if (hasRequiredGroups(product.optionGroups)) return void openSheet(product.id, photo);
-    addLine(product, {
-      productId: product.id,
-      optionIds: [],
-      optionNames: [],
-      note: "",
-      quantity: 1,
-      unitCents: priceIn(product.id),
-    });
+    addLine(
+      product,
+      {
+        productId: product.id,
+        optionIds: [],
+        optionNames: [],
+        note: "",
+        quantity: 1,
+        unitCents: priceIn(product.id),
+      },
+      photo,
+    );
+  }
+
+  async function openOrder() {
+    const { OrderSheet } = await loadOrder();
+    setOrder(() => OrderSheet);
+    openOrderSheet();
+  }
+
+  function clearCart() {
+    const before = useCart.getState().carts[business.id];
+    useCart.getState().clear(business.id);
+    closeOrderSheet();
+    if (before?.lines.length)
+      toast("Vaciamos tu pedido", {
+        action: {
+          label: "Deshacer",
+          onClick: () => useCart.getState().restore(business.id, before),
+        },
+      });
   }
 
   const sheetProduct = openId ? payload.products[openId] : undefined;
@@ -234,6 +290,16 @@ export function PublicMenuView({ business, branch, payload, selectorHref }: Prop
       ) : null}
 
       <MenuFooter showPoweredBy={business.theme.showPoweredBy} />
+      {/* Espacio para que la barra del carrito no tape lo último del menú. */}
+      {cart.lines.length > 0 ? <div aria-hidden className="h-20" /> : null}
+
+      <CartBar
+        count={cart.count}
+        totalCents={cart.totalCents}
+        issues={cart.issues}
+        announce={announce}
+        onOpen={() => void openOrder()}
+      />
 
       {sheetProduct && Sheet ? (
         <Sheet
@@ -241,12 +307,24 @@ export function PublicMenuView({ business, branch, payload, selectorHref }: Prop
           priceCents={priceIn(sheetProduct.id)}
           blockedReason={branch.isActive ? null : PAUSED}
           suggestion={suggestion}
-          onAdd={(line) => {
-            addLine(sheetProduct, line);
+          onAdd={(line, photo) => {
+            addLine(sheetProduct, line, photo);
             closeProductSheet();
           }}
           onSuggest={(id) => openProductSheet(id)}
           onClose={closeProductSheet}
+        />
+      ) : null}
+
+      {orderOpen && Order ? (
+        <Order
+          branchName={branch.name}
+          lines={cart.lines}
+          count={cart.count}
+          totalCents={cart.totalCents}
+          onQuantity={(key, quantity) => useCart.getState().setQuantity(business.id, key, quantity)}
+          onClear={clearCart}
+          onClose={closeOrderSheet}
         />
       ) : null}
     </MenuShell>

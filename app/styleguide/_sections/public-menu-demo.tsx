@@ -2,6 +2,7 @@
 
 import { CalendarOffIcon, ClockIcon } from "lucide-react";
 import { useState } from "react";
+import { addLine, priceCart, setLineQuantity, type CartLine } from "@/features/cart/cart";
 import { PALETTE_PRESETS } from "@/features/appearance/palettes";
 import type { PublicProduct } from "@/features/public-menu/payload";
 import {
@@ -14,6 +15,8 @@ import {
   SectionTabs,
   SlotChips,
 } from "@/features/public-menu/templates/clasico/components";
+import { CartBar } from "@/features/public-menu/templates/clasico/cart-bar";
+import { OrderSheet } from "@/features/public-menu/templates/clasico/order-sheet";
 import { ProductSheet } from "@/features/public-menu/templates/clasico/product-sheet";
 import { themeFromPreset } from "@/features/public-menu/theme";
 
@@ -132,9 +135,16 @@ export function PublicMenuDemo() {
   const [paletteId, setPaletteId] = useState("tomate");
   const [slot, setSlot] = useState("almuerzo");
   const [sheetId, setSheetId] = useState<string | null>(null);
-  const [added, setAdded] = useState<string | null>(null);
+  const [lines, setLines] = useState<CartLine[]>([]);
+  const [orderOpen, setOrderOpen] = useState(false);
   const all = SECTIONS.flatMap((s) => s.items);
   const sheetItem = all.find((i) => i.product.id === sheetId);
+  const cart = priceCart(lines, {
+    product: (id) => all.find((i) => i.product.id === id)?.product,
+    priceCents: (id) => all.find((i) => i.product.id === id)?.priceCents,
+  });
+  const add = (product: PublicProduct, line: Omit<CartLine, "key" | "name" | "imageUrl">) =>
+    setLines((l) => addLine(l, { ...line, name: product.name, imageUrl: product.imageUrl }));
 
   return (
     <div className="grid gap-6">
@@ -198,13 +208,44 @@ export function PublicMenuDemo() {
                       priceCents={item.priceCents}
                       featured={item.featured}
                       onOpen={() => setSheetId(item.product.id)}
-                      onQuickAdd={() => setAdded(`1 × ${item.product.name}`)}
+                      onQuickAdd={() =>
+                        add(item.product, {
+                          productId: item.product.id,
+                          optionIds: [],
+                          optionNames: [],
+                          note: "",
+                          quantity: 1,
+                          unitCents: item.priceCents,
+                        })
+                      }
                     />
                   ))}
                 </MenuSection>
               ))}
             </div>
             <MenuFooter showPoweredBy />
+            <CartBar
+              position="sticky"
+              count={cart.count}
+              totalCents={cart.totalCents}
+              issues={cart.issues}
+              announce=""
+              onOpen={() => setOrderOpen(true)}
+            />
+            {orderOpen ? (
+              <OrderSheet
+                branchName="Antigua"
+                lines={cart.lines}
+                count={cart.count}
+                totalCents={cart.totalCents}
+                onQuantity={(key, q) => setLines((l) => setLineQuantity(l, key, q))}
+                onClear={() => {
+                  setLines([]);
+                  setOrderOpen(false);
+                }}
+                onClose={() => setOrderOpen(false)}
+              />
+            ) : null}
             {sheetItem ? (
               <ProductSheet
                 product={sheetItem.product}
@@ -214,9 +255,7 @@ export function PublicMenuDemo() {
                   sheetItem.product.available ? null : { id: "sopa", name: "Sopa del día" }
                 }
                 onAdd={(line) => {
-                  setAdded(
-                    `${line.quantity} × ${sheetItem.product.name} · ${line.optionNames.join(", ") || "sin opciones"}`,
-                  );
+                  add(sheetItem.product, line);
                   setSheetId(null);
                 }}
                 onSuggest={setSheetId}
@@ -249,8 +288,10 @@ export function PublicMenuDemo() {
             agotado para ver la sugerencia. El “+” agrega directo cuando no hay opciones
             obligatorias.
           </p>
-          <p role="status" className="type-small min-h-5 font-semibold">
-            {added ? `Agregado: ${added}` : null}
+          <p className="type-small text-muted-foreground">
+            Al agregar aparece la <strong>barra del carrito</strong> con resorte y el contador
+            rebota; “Ver pedido” abre <strong>Tu pedido</strong> con cantidades editables. En el
+            menú real el carrito se guarda en el dispositivo por sucursal.
           </p>
         </div>
       </div>
