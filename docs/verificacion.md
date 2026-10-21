@@ -1,4 +1,4 @@
-# Cómo verificar qr-menu (Fases 0, 1 y 2)
+# Cómo verificar qr-menu (Fases 0 a 3)
 
 Guía paso a paso para probar en local (rama `develop`) todo lo construido hasta v0.2.x, y para revisar que un entorno de Vercel esté bien configurado.
 
@@ -192,7 +192,7 @@ Marca cada punto. Prueba en el celular (o con DevTools a 390 px) y en escritorio
 
 - [ ] En **Antigua**, franja **Desayunos**, toca "Desayuno chapín": se abre la hoja (en Chrome y Safari la foto de la tarjeta se expande) con foto grande, descripción, "Listo en unos 15 min" y el botón **Agregar · Q48.00**.
 - [ ] Huevos y Frijoles (obligatorios) ya vienen con la primera opción. Elige **Aguacate** → **Agregar · Q54.00**; sube la cantidad a 2 → **Q108.00**.
-- [ ] Toca **Agregar**: se cierra la hoja y aparece "Agregado: 2 × Desayuno chapín". (La barra del carrito llega en QRM-024.)
+- [ ] Toca **Agregar**: se cierra la hoja, la foto vuela a la barra del carrito y aparece **2 productos · Q108.00**.
 - [ ] En **Zona 1** el mismo platillo empieza en **Agregar · Q45.00** (sin precio de sucursal).
 - [ ] Con la hoja abierta, el botón **atrás** del celular la cierra sin salir del menú. El link con `?producto=…` abre la hoja directo.
 - [ ] El **+** de "Parrillada para compartir" agrega directo (sin opciones obligatorias); el de "Americano" abre la hoja para elegir el tamaño.
@@ -208,6 +208,16 @@ Marca cada punto. Prueba en el celular (o con DevTools a 390 px) y en escritorio
 - [ ] En `/styleguide#bienvenida` prueba los 4 estilos, las 3 curvas, los 3 fondos, los 3 tamaños de logo y la duración (1.2–3.0 s) con **Reproducir**. "Sin bienvenida" muestra el menú directo.
 - [ ] Rendimiento: en Chrome DevTools → Performance (CPU 4× más lenta), graba la carga del menú: la bienvenida solo anima `transform` y `opacity` (sin "Layout" ni "Paint" largos).
 - [ ] La configuración se edita en Apariencia → Bienvenida (QRM-033). Sin la función "bienvenida personalizada" del plan se usa la estándar.
+
+### Carrito (QRM-024): criterio "Sobrevive a recargar; se vacía al cambiar de sucursal con aviso"
+
+- [ ] En **Antigua** toca el **+** de dos platillos: la barra "N productos · Q… · Ver pedido" sube con un pequeño rebote, la foto vuela a ella y el contador rebota con cada uno.
+- [ ] Recarga la página: la barra sigue con lo mismo.
+- [ ] **Ver pedido** abre "Tu pedido · Antigua": cambia cantidades (el total se actualiza), quita uno con el bote de basura. El botón **atrás** del celular cierra la hoja.
+- [ ] **Vaciar** → aviso "Vaciamos tu pedido" con **Deshacer**, que lo recupera.
+- [ ] Con productos en el carrito, entra a **Zona 1**: el carrito se vacía y aparece "Vaciamos tu pedido de Antigua" con **Volver a Antigua**, que te regresa con tu pedido.
+- [ ] En el panel agota en Antigua algo que está en el carrito → en "Tu pedido" aparece "Se nos acabó aquí." con **Quitar**, y no cuenta en el total. Devuélvelo a como estaba.
+- [ ] El carrito vence a las 12 horas. Ver o borrar lo guardado: DevTools → Application → Local Storage → `qrm:carrito`.
 
 ### Encargado (permisos)
 

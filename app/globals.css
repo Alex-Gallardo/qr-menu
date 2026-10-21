@@ -37,6 +37,9 @@
   --animate-fundido: fundido 200ms ease-out both;
   /* Hoja de producto que sube desde abajo (aprox. resorte stiffness 380 / damping 32) */
   --animate-subir: subir 320ms var(--ease-out-soft) both;
+  /* Barra del carrito: entra con resorte (--barra-ease) y el contador rebota (450 ms) */
+  --animate-barra: subir 600ms var(--barra-ease, var(--ease-out-soft)) both;
+  --animate-rebote-contador: rebote-contador 450ms var(--ease-out-soft);
 
   @keyframes aparecer {
     from {
@@ -52,6 +55,11 @@
   @keyframes subir {
     from {
       transform: translateY(100%);
+    }
+  }
+  @keyframes rebote-contador {
+    40% {
+      transform: scale(1.25);
     }
   }
 

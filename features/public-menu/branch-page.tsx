@@ -66,6 +66,7 @@ export async function BranchMenu({
       >
         <PublicMenuView
           business={{
+            id: business.id,
             slug: business.slug,
             name: business.name,
             description: business.description,

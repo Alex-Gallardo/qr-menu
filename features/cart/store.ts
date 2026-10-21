@@ -1,48 +1,75 @@
 "use client";
 
 import { create } from "zustand";
-import { clampQuantity } from "@/features/public-menu/cart-line";
+import { createJSONStorage, persist } from "zustand/middleware";
+import { addLine, enterBranch, isExpired, setLineQuantity, type Cart, type CartLine } from "./cart";
+
+export type { Cart, CartLine } from "./cart";
+
+type BranchRef = Pick<Cart, "branchId" | "branchSlug" | "branchName">;
+
+type CartState = {
+  /** Un carrito por negocio (id del negocio → carrito de una de sus sucursales). */
+  carts: Record<string, Cart>;
+  /** Al abrir una sucursal. Devuelve el carrito de otra sucursal que se vació, si había. */
+  enter: (businessId: string, branch: BranchRef) => Cart | null;
+  add: (businessId: string, line: Omit<CartLine, "key">) => void;
+  setQuantity: (businessId: string, key: string, quantity: number) => void;
+  clear: (businessId: string) => void;
+  /** "Volver a Antigua": recupera el carrito que se vació al cambiar de sucursal. */
+  restore: (businessId: string, cart: Cart) => void;
+};
 
 /**
- * Carrito del comensal. Por ahora vive en memoria; QRM-024 lo guarda en el
- * dispositivo por sucursal y agrega la barra "3 productos · Q116.00".
- * Los precios son solo para mostrar: el servidor los recalcula al pedir.
+ * Carrito guardado en el dispositivo (localStorage). Se hidrata a mano
+ * (`useCart.persist.rehydrate()`) después de montar el menú, para que el HTML
+ * del servidor y el primer render del celular coincidan.
  */
+export const useCart = create<CartState>()(
+  persist(
+    (set, get) => {
+      const update = (businessId: string, change: (lines: CartLine[]) => CartLine[]) =>
+        set((state) => {
+          const cart = state.carts[businessId];
+          if (!cart) return state;
+          return {
+            carts: {
+              ...state.carts,
+              [businessId]: { ...cart, lines: change(cart.lines), updatedAt: Date.now() },
+            },
+          };
+        });
 
-export type CartLine = {
-  /** Mismo producto, mismas opciones y misma nota = misma línea. */
-  key: string;
-  productId: string;
-  name: string;
-  imageUrl: string | null;
-  optionIds: string[];
-  optionNames: string[];
-  note: string;
-  quantity: number;
-  unitCents: number;
-};
-
-export const cartLineKey = (productId: string, optionIds: readonly string[], note: string) =>
-  [productId, [...optionIds].sort().join(","), note.trim().toLowerCase()].join("|");
-
-type CartStore = {
-  lines: CartLine[];
-  add: (line: Omit<CartLine, "key">) => void;
-};
-
-export const useCart = create<CartStore>((set) => ({
-  lines: [],
-  add: (line) =>
-    set((state) => {
-      const key = cartLineKey(line.productId, line.optionIds, line.note);
-      const existing = state.lines.find((l) => l.key === key);
-      if (!existing) return { lines: [...state.lines, { ...line, note: line.note.trim(), key }] };
       return {
-        lines: state.lines.map((l) =>
-          l.key === key ? { ...l, quantity: clampQuantity(l.quantity + line.quantity) } : l,
-        ),
+        carts: {},
+        enter: (businessId, branch) => {
+          const now = Date.now();
+          const { cart, replaced } = enterBranch(get().carts[businessId], branch, now);
+          // De paso se olvidan los carritos vencidos de otros negocios.
+          const others = Object.fromEntries(
+            Object.entries(get().carts).filter(
+              ([id, c]) => id !== businessId && !isExpired(c, now),
+            ),
+          );
+          set({ carts: { ...others, [businessId]: cart } });
+          return replaced;
+        },
+        add: (businessId, line) => update(businessId, (lines) => addLine(lines, line)),
+        setQuantity: (businessId, key, quantity) =>
+          update(businessId, (lines) => setLineQuantity(lines, key, quantity)),
+        clear: (businessId) => update(businessId, () => []),
+        restore: (businessId, cart) =>
+          set((state) => ({
+            carts: { ...state.carts, [businessId]: { ...cart, updatedAt: Date.now() } },
+          })),
       };
-    }),
-}));
-
-export const cartCount = (lines: readonly CartLine[]) => lines.reduce((n, l) => n + l.quantity, 0);
+    },
+    {
+      name: "qrm:carrito",
+      version: 1,
+      storage: createJSONStorage(() => localStorage),
+      partialize: (state) => ({ carts: state.carts }),
+      skipHydration: true,
+    },
+  ),
+);
