@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { dateOnly, formatDateEs, guatemalaNow, todayInGuatemala } from "@/lib/gt-time";
+import {
+  addDays,
+  dateOnly,
+  formatDateEs,
+  gtInstant,
+  guatemalaNow,
+  todayInGuatemala,
+} from "@/lib/gt-time";
 
 describe("hora de Guatemala", () => {
   it("a las 01:30 UTC todavía es el día anterior en Guatemala (UTC-6)", () => {
@@ -28,5 +35,18 @@ describe("hora de Guatemala", () => {
 
   it("fecha de la base a texto", () => {
     expect(dateOnly(new Date("2026-12-24T00:00:00Z"))).toBe("2026-12-24");
+  });
+
+  it("suma días cruzando meses y años", () => {
+    expect(addDays("2026-12-31", 1)).toBe("2027-01-01");
+    expect(addDays("2026-03-01", -1)).toBe("2026-02-28");
+  });
+
+  it("hora local de Guatemala → instante UTC", () => {
+    expect(gtInstant("2026-12-24", 17 * 60 + 30).toISOString()).toBe("2026-12-24T23:30:00.000Z");
+    expect(guatemalaNow(gtInstant("2026-12-24", 0))).toMatchObject({
+      date: "2026-12-24",
+      minutes: 0,
+    });
   });
 });

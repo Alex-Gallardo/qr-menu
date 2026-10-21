@@ -2,7 +2,7 @@ import "server-only";
 import { audit } from "@/lib/audit";
 import { db } from "@/lib/db";
 import { AppError } from "@/lib/errors";
-import { dateOnly, todayInGuatemala } from "@/lib/gt-time";
+import { addDays, dateOnly, todayInGuatemala } from "@/lib/gt-time";
 import { gridFromRules, isWeeklyRule, rulesFromGrid, type Grid } from "./grid";
 import type { OverrideOutput } from "./schemas";
 import { listSlots } from "./server";
@@ -213,3 +213,49 @@ export async function overrideBranch(businessId: string, overrideId: string) {
   if (!row) throw new AppError("not_found", "Esa fecha especial ya no existe.");
   return row.branch_id;
 }
+
+/**
+ * Todo lo que necesita resolveActiveMenu para las sucursales del negocio:
+ * franjas, menús, reglas y las fechas especiales de ayer a mañana (ayer por
+ * las franjas que cruzan la medianoche).
+ */
+export async function getResolverData(businessId: string) {
+  const today = todayInGuatemala();
+  const [slots, menus, rules, overrides] = await Promise.all([
+    listSlots(businessId),
+    db().menus.findMany({
+      where: { business_id: businessId },
+      select: { id: true, name: true, is_active: true, is_default: true, hidden_by_license: true },
+    }),
+    db().menu_schedules.findMany({
+      where: { menu: { business_id: businessId } },
+      select: {
+        menu_id: true,
+        time_slot_id: true,
+        branch_id: true,
+        weekdays: true,
+        priority: true,
+        starts_on: true,
+        ends_on: true,
+      },
+    }),
+    db().menu_overrides.findMany({
+      where: {
+        business_id: businessId,
+        date: {
+          gte: new Date(`${addDays(today, -1)}T00:00:00Z`),
+          lte: new Date(`${addDays(today, 1)}T00:00:00Z`),
+        },
+      },
+      select: { branch_id: true, date: true, time_slot_id: true, menu_id: true, note: true },
+    }),
+  ]);
+  return {
+    slots,
+    menus,
+    rules,
+    overrides: overrides.map((o) => ({ ...o, date: dateOnly(o.date) })),
+  };
+}
+
+export type ResolverData = Awaited<ReturnType<typeof getResolverData>>;
