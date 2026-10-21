@@ -11,12 +11,24 @@ import {
 } from "@/features/public-menu/templates/clasico/order-sheet";
 import { gtInstant } from "@/lib/gt-time";
 
+// El mapa (Leaflet) no corre en jsdom: un marcador basta para saber que se muestra.
+vi.mock("next/dynamic", () => ({
+  default: () =>
+    function MapaFalso() {
+      return <div data-testid="mapa" />;
+    },
+}));
+
 vi.mock("next/image", () => ({
   // eslint-disable-next-line @next/next/no-img-element -- next/image no corre en jsdom
   default: ({ alt, src }: { alt: string; src: string }) => <img alt={alt} src={src} />,
 }));
 
 afterEach(cleanup);
+
+const ZONA_1 = { lat: 14.6427, lng: -90.5133 };
+const MIXCO = { lat: 14.6331, lng: -90.6064 };
+const ANTIGUA = { lat: 14.5586, lng: -90.7295 };
 
 const branch: CheckoutBranch = {
   acceptsDineIn: true,
@@ -26,6 +38,9 @@ const branch: CheckoutBranch = {
   deliveryFeeCents: 1500,
   minOrderCents: 5000,
   hasBankAccounts: true,
+  requiresLocation: true,
+  location: ZONA_1,
+  radiusKm: 5,
 };
 const rules: TimingRules = {
   hours: [0, 1, 2, 3, 4, 5, 6].map((weekday) => ({ weekday, opens: "07:00", closes: "21:00" })),
@@ -44,6 +59,7 @@ const noOne: RememberedCustomer = {
   email: "",
   address: "",
   addressReference: "",
+  location: null,
   lastOrderType: null,
   lastPayment: null,
 };
@@ -86,7 +102,7 @@ function setup(over: Partial<OrderSheetProps> = {}, now = OPEN) {
     count: lines.count,
     subtotalCents: lines.totalCents,
     checkout: {
-      branch,
+      ...setup.defaults(),
       timing: orderTiming(rules, now),
       bankAccounts: [
         {
@@ -179,6 +195,48 @@ describe("<OrderSheet />", () => {
     expect(submitButton().textContent).toContain("Q50.00");
   });
 
+  it("a domicilio sin permiso de ubicación: ofrece el mapa, que empieza en la sucursal", async () => {
+    setup();
+    fireEvent.click(screen.getByLabelText("A domicilio"));
+    expect(
+      screen.getByText(
+        "Compartiremos tu ubicación solo con Café El Portal para entregar tu pedido.",
+      ),
+    ).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Usar mi ubicación actual" }));
+    // jsdom no es un contexto seguro: es como un navegador que no comparte la ubicación.
+    expect(
+      await screen.findByText(
+        "Este navegador no comparte la ubicación. Marca el lugar en el mapa.",
+      ),
+    ).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Elegir en el mapa" }));
+    expect(screen.getByTestId("mapa")).toBeTruthy();
+    expect(screen.getByText(/A 0 km de Zona 1/)).toBeTruthy();
+  });
+
+  it("dirección guardada fuera de cobertura: pasar a recoger o la sucursal que sí entrega", () => {
+    setup({
+      customer: {
+        ...noOne,
+        address: "Calzada San Juan, Mixco",
+        addressReference: "Frente al parque",
+        location: { coords: MIXCO, accuracyM: 20, source: "gps" },
+      },
+    });
+    fireEvent.click(screen.getByLabelText("A domicilio"));
+    fireEvent.click(screen.getByRole("button", { name: /Usar mi dirección guardada/ }));
+    expect(screen.getByLabelText(/^Dirección/)).toHaveProperty("value", "Calzada San Juan, Mixco");
+    expect(screen.getByRole("alert").textContent).toContain(
+      "Estás a 10.1 km y esta sucursal entrega hasta 5 km. ¿Prefieres pasar a recoger o pedir a la sucursal más cercana?",
+    );
+    expect(screen.getByRole("link", { name: "Pedir a Antigua" }).getAttribute("href")).toBe(
+      "/cafe-el-portal/antigua",
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Pasar a recoger" }));
+    expect(screen.getByLabelText("Para llevar")).toHaveProperty("checked", true);
+  });
+
   it("transferencia: cuenta con Copiar", () => {
     setup();
     fireEvent.click(screen.getByLabelText("Transferencia"));
@@ -217,6 +275,11 @@ describe("<OrderSheet />", () => {
 
 // Valores por defecto de `checkout` para sobrescribir solo una parte.
 setup.defaults = () => ({
+  businessName: "Café El Portal",
+  businessSlug: "cafe-el-portal",
+  otherBranches: [
+    { slug: "antigua", name: "Antigua", location: ANTIGUA, radiusKm: 30, acceptsDelivery: true },
+  ],
   branch,
   timing: orderTiming(rules, OPEN),
   bankAccounts: [],

@@ -3,6 +3,7 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import type { OrderType, PayMethod } from "@/features/orders/checkout";
+import type { DeliveryLocation } from "@/features/orders/delivery";
 
 /**
  * Datos del comensal recordados en su dispositivo (nunca en el servidor hasta
@@ -16,6 +17,8 @@ export type CustomerData = {
   email: string;
   address: string;
   addressReference: string;
+  /** Pin de la última entrega a domicilio ("Usar mi dirección guardada"). */
+  location: DeliveryLocation | null;
   lastOrderType: OrderType | null;
   lastPayment: PayMethod | null;
 };
@@ -26,6 +29,7 @@ const EMPTY: CustomerData = {
   email: "",
   address: "",
   addressReference: "",
+  location: null,
   lastOrderType: null,
   lastPayment: null,
 };
@@ -52,6 +56,7 @@ export const useCustomer = create<CustomerState>()(
         email: state.email,
         address: state.address,
         addressReference: state.addressReference,
+        location: state.location,
         lastOrderType: state.lastOrderType,
         lastPayment: state.lastPayment,
       }),

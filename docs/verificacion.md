@@ -231,6 +231,19 @@ Marca cada punto. Prueba en el celular (o con DevTools a 390 px) y en escritorio
 - [ ] Una fecha especial **Cerrado** (Programación) no aparece entre los días para programar.
 - [ ] Borrar los datos guardados: DevTools → Application → Local Storage → `qrm:comensal`.
 
+### Ubicación a domicilio (QRM-026): criterio "Funciona con permiso, sin permiso y en navegador de Instagram"
+
+Hazlo en el celular (la ubicación necesita HTTPS: usa el preview de Vercel o producción). En **Zona 1** agrega más de Q50 y en "Ver pedido" elige **A domicilio**:
+
+- [ ] Dice "Compartiremos tu ubicación solo con Café El Portal para entregar tu pedido."
+- [ ] **Con permiso**: "Usar mi ubicación actual" → modal "Buscando tu ubicación…" → mapa con el pin, "Precisión ±N m" (si es peor que 150 m pide arrastrar el pin) y "A X km de Zona 1".
+- [ ] **Sin permiso** (niégalo cuando el navegador pregunte): "Sin problema: marca el lugar en el mapa o escribe la dirección." → **Elegir en el mapa**: el pin empieza en la sucursal; arrástralo o toca el mapa.
+- [ ] **Instagram**: manda el link por un mensaje de Instagram y ábrelo ahí. Aparece "Estás en el navegador de Instagram…" con **Copiar link**; "Elegir en el mapa" funciona aunque la ubicación esté bloqueada.
+- [ ] **Fuera de cobertura** (pin a más de 5 km de Zona 1, por ejemplo en Mixco): "Estás a 10.1 km y esta sucursal entrega hasta 5 km. ¿Pasas a recoger?" con **Pasar a recoger** (cambia a Para llevar). Si otra sucursal sí llega, también ofrece **Pedir a …**.
+- [ ] La dirección y el **punto de referencia** son obligatorios. Pide; recarga; elige A domicilio otra vez: aparece **Usar mi dirección guardada**.
+- [ ] Si la sucursal no exige ubicación (Sucursales → entregas), aparece "Prefiero solo escribir la dirección".
+- [ ] En producción el mapa necesita la llave de MapTiler o Stadia (`NEXT_PUBLIC_MAP_TILE_URL`); sin ella usa las teselas de OpenStreetMap (solo para desarrollo).
+
 ### Encargado (permisos)
 
 - [ ] Sal y entra como **encargado** → el selector solo muestra **Antigua** (sin "Todas").

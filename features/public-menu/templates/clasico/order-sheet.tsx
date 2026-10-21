@@ -24,9 +24,11 @@ import {
   type OrderType,
   type PayMethod,
 } from "@/features/orders/checkout";
+import type { DeliveryLocation, OtherBranch } from "@/features/orders/delivery";
 import type { OrderTiming } from "@/features/orders/preorder";
 import { formatQ } from "@/lib/money";
 import { MAX_QUANTITY } from "../../cart-line";
+import { DeliveryLocationField } from "./delivery-location";
 
 export type BankAccount = {
   id: string;
@@ -38,7 +40,11 @@ export type BankAccount = {
 };
 
 export type CheckoutConfig = {
+  businessName: string;
+  businessSlug: string;
   branch: CheckoutBranch;
+  /** Otras sucursales del negocio (para sugerir la que sí entrega). */
+  otherBranches: OtherBranch[];
   timing: OrderTiming;
   bankAccounts: BankAccount[];
   /** "Mesa 4" si llegó por el QR de una mesa. */
@@ -53,6 +59,7 @@ export type RememberedCustomer = {
   email: string;
   address: string;
   addressReference: string;
+  location: DeliveryLocation | null;
   lastOrderType: OrderType | null;
   lastPayment: PayMethod | null;
 };
@@ -103,6 +110,7 @@ export function OrderSheet({
     email: customer.email,
     address: customer.address,
     addressReference: customer.addressReference,
+    location: null,
     // Cerrada (para cuando abra): el primer horario disponible.
     scheduledFor: timing.asap ? null : (timing.days[0]?.times[0]?.at ?? null),
     payment:
@@ -238,6 +246,34 @@ export function OrderSheet({
                   <h3 id="donde" className="type-h3">
                     ¿Dónde te lo llevamos?
                   </h3>
+                  <DeliveryLocationField
+                    businessName={checkout.businessName}
+                    businessSlug={checkout.businessSlug}
+                    branchName={branchName}
+                    branch={checkout.branch}
+                    otherBranches={checkout.otherBranches}
+                    value={form.location}
+                    saved={
+                      customer.location && customer.address
+                        ? {
+                            address: customer.address,
+                            reference: customer.addressReference,
+                            location: customer.location,
+                          }
+                        : null
+                    }
+                    problem={shown.location}
+                    onChange={(location) => set("location", location)}
+                    onUseSaved={(place) =>
+                      setForm((f) => ({
+                        ...f,
+                        address: place.address,
+                        addressReference: place.reference,
+                        location: place.location,
+                      }))
+                    }
+                    onTakeout={() => set("orderType", "takeout")}
+                  />
                   <Field label="Dirección" field="address" problem={shown.address}>
                     <input
                       aria-invalid={shown.address ? true : undefined}
@@ -248,8 +284,13 @@ export function OrderSheet({
                       className={FIELD}
                     />
                   </Field>
-                  <Field label="Punto de referencia" optional field="addressReference">
+                  <Field
+                    label="Punto de referencia"
+                    field="addressReference"
+                    problem={shown.addressReference}
+                  >
                     <input
+                      aria-invalid={shown.addressReference ? true : undefined}
                       value={form.addressReference}
                       onChange={(e) =>
                         set("addressReference", e.target.value.slice(0, MAX_ADDRESS))

@@ -1,4 +1,6 @@
+import type { Coords } from "@/features/location/lib/coords";
 import { toE164 } from "@/lib/phone";
+import { locationProblem, type DeliveryLocation } from "./delivery";
 import { formatQ } from "@/lib/money";
 
 /**
@@ -35,6 +37,12 @@ export type CheckoutBranch = {
   minOrderCents: number;
   /** Hay cuentas para transferencia (del negocio o de esta sucursal). */
   hasBankAccounts: boolean;
+  /** A domicilio exige el pin (GPS o mapa); si no, basta la dirección escrita. */
+  requiresLocation: boolean;
+  /** Dónde está la sucursal (para medir la cobertura). */
+  location: Coords | null;
+  /** Radio de entrega en km (null = sin límite). */
+  radiusKm: number | null;
 };
 
 export function orderTypes(branch: CheckoutBranch): OrderType[] {
@@ -98,6 +106,8 @@ export type CheckoutInput = {
   email: string;
   address: string;
   addressReference: string;
+  /** Pin de la entrega a domicilio (QRM-026). */
+  location: DeliveryLocation | null;
   /** null = lo antes posible; si no, el instante ISO elegido. */
   scheduledFor: string | null;
   payment: PayMethod | null;
@@ -140,6 +150,13 @@ export function checkoutProblems(
     const address = input.address.trim();
     if (address.length < 5) p.address = "Escribe tu dirección.";
     else if (address.length > MAX_ADDRESS) p.address = `Máximo ${MAX_ADDRESS} caracteres.`;
+    // En Guatemala la referencia es lo que de verdad ubica al repartidor.
+    const reference = input.addressReference.trim();
+    if (reference.length < 3) p.addressReference = "Escribe un punto de referencia.";
+    else if (reference.length > MAX_ADDRESS)
+      p.addressReference = `Máximo ${MAX_ADDRESS} caracteres.`;
+    const where = locationProblem(input.location, ctx.branch);
+    if (where) p.location = where;
     const totals = orderTotals(ctx.subtotalCents, "delivery", ctx.branch);
     if (totals.missingCents > 0)
       p.total = `Te faltan ${formatQ(totals.missingCents)} para el pedido a domicilio mínimo.`;
@@ -164,7 +181,9 @@ export const CHECKOUT_FIELD_ORDER: CheckoutField[] = [
   "total",
   "orderType",
   "table",
+  "location",
   "address",
+  "addressReference",
   "scheduledFor",
   "name",
   "phone",
