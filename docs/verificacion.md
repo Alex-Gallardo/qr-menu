@@ -1,4 +1,4 @@
-# Cómo verificar qr-menu (Fases 0 y 1)
+# Cómo verificar qr-menu (Fases 0, 1 y 2)
 
 Guía paso a paso para probar en local (rama `develop`) todo lo construido hasta v0.2.x, y para revisar que un entorno de Vercel esté bien configurado.
 
@@ -42,27 +42,28 @@ El negocio demo es **Café El Portal** (link `cafe-el-portal`), con sucursales *
 
 ## 3. Mapa de rutas
 
-| Ruta                                    | Qué es                                        | Quién entra                                             |
-| --------------------------------------- | --------------------------------------------- | ------------------------------------------------------- |
-| `/`                                     | Portada                                       | Todos                                                   |
-| `/styleguide`                           | Sistema de diseño (botones, colores, cargas…) | Todos en local y previews; en producción solo el equipo |
-| `/entrar`                               | Entrar con contraseña o enlace por correo     | Sin sesión                                              |
-| `/registro`                             | Crear cuenta de dueño                         | Sin sesión                                              |
-| `/recuperar`                            | Recuperar contraseña                          | Sin sesión                                              |
-| `/onboarding`                           | Crear el primer negocio (cuenta nueva)        | Con sesión                                              |
-| `/panel`                                | Te lleva al panel de tu negocio               | Dueño o encargado                                       |
-| `/panel/{negocio}`                      | **Inicio** del panel                          | Dueño o encargado                                       |
-| `/panel/{negocio}/productos`            | Catálogo, búsqueda y disponibilidad           | Dueño o encargado                                       |
-| `/panel/{negocio}/productos/nuevo`      | Nuevo producto                                | Dueño o encargado                                       |
-| `/panel/{negocio}/productos/categorias` | Categorías                                    | Dueño o encargado                                       |
-| `/panel/{negocio}/sucursales`           | Sucursales (horario, entregas, mapa)          | Dueño (encargado: solo las suyas)                       |
-| `/panel/{negocio}/ajustes/negocio`      | Logo, portada, nombre, link y redes           | Solo dueño                                              |
-| `/panel/{negocio}/ajustes/pagos`        | Cuentas para transferencia                    | Solo dueño                                              |
-| `/panel/{negocio}/ajustes/licencia`     | Mi plan                                       | Solo dueño                                              |
-| `/admin`                                | Super admin (provisional)                     | Equipo de la plataforma con 2FA                         |
-| `/api/health`                           | Estado de la configuración                    | Todos (solo sí/no)                                      |
+| Ruta                                    | Qué es                                                      | Quién entra                                             |
+| --------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------- |
+| `/`                                     | Portada                                                     | Todos                                                   |
+| `/styleguide`                           | Sistema de diseño (botones, colores, cargas…)               | Todos en local y previews; en producción solo el equipo |
+| `/entrar`                               | Entrar con contraseña o enlace por correo                   | Sin sesión                                              |
+| `/registro`                             | Crear cuenta de dueño                                       | Sin sesión                                              |
+| `/recuperar`                            | Recuperar contraseña                                        | Sin sesión                                              |
+| `/onboarding`                           | Crear el primer negocio (cuenta nueva)                      | Con sesión                                              |
+| `/panel`                                | Te lleva al panel de tu negocio                             | Dueño o encargado                                       |
+| `/panel/{negocio}`                      | **Inicio** del panel                                        | Dueño o encargado                                       |
+| `/panel/{negocio}/productos`            | Catálogo, búsqueda y disponibilidad                         | Dueño o encargado                                       |
+| `/panel/{negocio}/productos/nuevo`      | Nuevo producto                                              | Dueño o encargado                                       |
+| `/panel/{negocio}/productos/categorias` | Categorías                                                  | Dueño o encargado                                       |
+| `/panel/{negocio}/programacion`         | Franjas horarias (y, más adelante, la programación semanal) | Dueño edita; encargado solo ve                          |
+| `/panel/{negocio}/sucursales`           | Sucursales (horario, entregas, mapa)                        | Dueño (encargado: solo las suyas)                       |
+| `/panel/{negocio}/ajustes/negocio`      | Logo, portada, nombre, link y redes                         | Solo dueño                                              |
+| `/panel/{negocio}/ajustes/pagos`        | Cuentas para transferencia                                  | Solo dueño                                              |
+| `/panel/{negocio}/ajustes/licencia`     | Mi plan                                                     | Solo dueño                                              |
+| `/admin`                                | Super admin (provisional)                                   | Equipo de la plataforma con 2FA                         |
+| `/api/health`                           | Estado de la configuración                                  | Todos (solo sí/no)                                      |
 
-`{negocio}` es el id del negocio. No hace falta copiarlo: entra a `/panel` y te lleva solo. Pedidos, Menús, Programación, QR, Reseñas, Analíticas, Equipo, Apariencia y Notificaciones aparecen en la navegación, pero son de fases siguientes y muestran "Muy pronto".
+`{negocio}` es el id del negocio. No hace falta copiarlo: entra a `/panel` y te lleva solo. Pedidos, Menús, QR, Reseñas, Analíticas, Equipo, Apariencia y Notificaciones aparecen en la navegación, pero son de fases siguientes y muestran "Muy pronto".
 
 ## 4. Lista de verificación
 
@@ -125,6 +126,17 @@ Marca cada punto. Prueba en el celular (o con DevTools a 390 px) y en escritorio
 - [ ] Toca **Extras (hasta 3)** → dice "Opcional · hasta 3".
 - [ ] Pon **Máximo 5** en Extras con menos opciones → error "Solo hay N opciones…".
 - [ ] Guarda → en la lista el producto dice "Con opciones". Vuelve a abrirlo: todo quedó igual.
+
+### Franjas horarias (QRM-016): criterio "Desayuno, Almuerzo, Cena editables"
+
+- [ ] **Más → Programación**: la línea de 24 h muestra Desayunos, Almuerzo y Cena; cada una con su horario y duración.
+- [ ] **Editar** Desayunos (lápiz): cambia el nombre o la hora → se actualiza la línea de tiempo y la lista.
+- [ ] **Personalizada** 10:00–12:30 → error "Se cruza con Desayunos…" (no se permiten choques).
+- [ ] **Personalizada** 22:00–02:00 → "termina al día siguiente"; en la línea de tiempo aparece al final y al inicio del día.
+- [ ] Interruptor **Activa** → "En pausa" (no se muestra en el menú). Una franja pausada no bloquea a otras.
+- [ ] **Eliminar** Cena → toast con **Deshacer** → vuelve con su programación.
+- [ ] Como encargado: ve las franjas, pero sin botones para editarlas.
+- [ ] Deja las franjas como estaban (o corre `pnpm db:seed` al final).
 
 ### Encargado (permisos)
 
