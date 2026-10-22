@@ -27,6 +27,8 @@
     "db:sql": "tsx scripts/db-sql.ts",
     "db:verify": "tsx scripts/db-verify.ts",
     "db:seed": "prisma db seed",
+    "push:keys": "tsx scripts/push-setup.ts keys",
+    "push:cron": "tsx scripts/push-setup.ts cron",
     "test:integration": "vitest run --config vitest.integration.config.mts"
   },
   "dependencies": {

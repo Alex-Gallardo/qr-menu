@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { PageSkeleton } from "@/components/feedback/page-skeleton";
 import { OrderInbox } from "@/features/orders/components/order-inbox";
 import { listInboxOrders } from "@/features/orders/inbox";
+import { PushPrompt } from "@/features/notifications/components/push-prompt";
 import { StaffBar } from "@/features/staff/components/staff-bar";
 import { requireStaffShift } from "@/features/staff/context";
 
@@ -29,6 +30,7 @@ async function Inbox() {
       />
       <div className="mx-auto grid w-full max-w-5xl gap-4 px-4 py-6">
         <h1 className="type-h1">Pedidos</h1>
+        <PushPrompt mode="staff" />
         <OrderInbox
           businessId={shift.business_id}
           branchIds={[shift.branch_id]}

@@ -677,6 +677,10 @@ model orders {
   @@unique([branch_id, number])
   @@index([branch_id, status, created_at])
   @@index([business_id, created_at])
+  /// Cron de avisos: pedidos que siguen "nuevos" (escalamiento cada 3 min)
+  @@index([status, created_at])
+  /// Cron de avisos: programados que vienen (30 min antes)
+  @@index([scheduled_for])
   @@index([qr_code_id])
   @@index([menu_id])
 }

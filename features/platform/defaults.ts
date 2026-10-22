@@ -25,6 +25,8 @@ export const RESERVED_SLUGS = [
   "soporte",
   "mantenimiento",
   "monitoring",
+  "app-icon",
+  "apple-icon",
   "qr-menu",
   "qrmenu",
 ] as const;
