@@ -252,6 +252,17 @@ Hazlo en el celular (la ubicación necesita HTTPS: usa el preview de Vercel o pr
 - [ ] Con el panel agota algo que está en tu carrito y pide: "Revisa tu pedido: … (se nos acabó). Quítalo para continuar." Devuélvelo a como estaba.
 - [ ] Más de 5 pedidos en 10 minutos desde el mismo teléfono: "Ya enviaste varios pedidos seguidos. Intenta de nuevo en N minutos."
 
+### WhatsApp y confirmación (QRM-028): criterio "Funciona en Safari, Chrome e Instagram"
+
+Hazlo en el celular con producción o un preview (y luego borra el pedido de prueba, ver QRM-027). Pon tu propio número como WhatsApp de la sucursal en Sucursales si quieres recibir el mensaje.
+
+- [ ] Pide desde el menú: modal "Preparando tu pedido…" → se abre WhatsApp con el chat de la sucursal y el mensaje listo: "🧾 _Pedido #0021_ — Café El Portal · Zona 1", tu nombre, tipo y hora (o "🕒 … Programado para mañana 7:30"), productos con opciones, total, pago y, a domicilio, dirección, referencia y links de **Google Maps** y **Waze**. Los emojis se ven bien (no "�").
+- [ ] Regresa al navegador: estás en "¡Pedido #0021 recibido!" con el check y el confeti, el estado "Recibido", el resumen y, si pagas por transferencia, las cuentas con **Copiar**.
+- [ ] **Reenviar por WhatsApp** vuelve a abrir el chat; **Copiar pedido** copia el texto; **WhatsApp Web** abre la versión web (computadora sin la app).
+- [ ] Recarga la confirmación: ya no reabre WhatsApp sola.
+- [ ] Repite en **Safari (iPhone)**, **Chrome (Android)** y dentro de **Instagram** (manda el link por mensaje de Instagram y ábrelo ahí).
+- [ ] El link "Detalle" del mensaje abre la misma confirmación.
+
 ### Encargado (permisos)
 
 - [ ] Sal y entra como **encargado** → el selector solo muestra **Antigua** (sin "Todas").

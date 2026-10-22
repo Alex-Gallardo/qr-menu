@@ -1,9 +1,8 @@
 "use client";
 
-import { CopyIcon, ImageIcon, MinusIcon, PlusIcon, Trash2Icon, XIcon } from "lucide-react";
+import { ImageIcon, MinusIcon, PlusIcon, Trash2Icon, XIcon } from "lucide-react";
 import Image from "next/image";
 import { useLayoutEffect, useRef, useState, type ReactNode } from "react";
-import { toast } from "sonner";
 import { cn } from "cn";
 import { productsLabel, type PricedLine } from "@/features/cart/cart";
 import {
@@ -28,16 +27,10 @@ import type { DeliveryLocation, OtherBranch } from "@/features/orders/delivery";
 import type { OrderTiming } from "@/features/orders/preorder";
 import { formatQ } from "@/lib/money";
 import { MAX_QUANTITY } from "../../cart-line";
+import { BankAccounts, type BankAccount } from "./bank-accounts";
 import { DeliveryLocationField } from "./delivery-location";
 
-export type BankAccount = {
-  id: string;
-  bankName: string;
-  accountType: string;
-  accountNumber: string;
-  holderName: string;
-  instructions: string | null;
-};
+export type { BankAccount } from "./bank-accounts";
 
 export type CheckoutConfig = {
   businessName: string;
@@ -684,49 +677,6 @@ function WhenField({
         </div>
       ) : null}
     </Fieldset>
-  );
-}
-
-function BankAccounts({ accounts, totalCents }: { accounts: BankAccount[]; totalCents: number }) {
-  async function copy(text: string) {
-    try {
-      await navigator.clipboard.writeText(text);
-      toast.success("Número de cuenta copiado");
-    } catch {
-      toast("No se pudo copiar; mantén presionado el número para copiarlo.");
-    }
-  }
-  return (
-    <div className="grid gap-2">
-      <p className="type-small text-[var(--menu-muted)]">
-        Transfiere {formatQ(totalCents)} y manda la foto de tu boleta en el chat de WhatsApp.
-      </p>
-      {accounts.map((a) => (
-        <div
-          key={a.id}
-          className="grid gap-1 rounded-[calc(var(--menu-radius)*0.75)] border border-[var(--menu-line)] bg-[var(--menu-bg)] p-3"
-        >
-          <p className="type-small font-semibold">
-            {a.bankName} · {a.accountType}
-          </p>
-          <div className="flex items-center justify-between gap-2">
-            <span className="type-body font-semibold tabular-nums select-all">
-              {a.accountNumber}
-            </span>
-            <button
-              type="button"
-              onClick={() => void copy(a.accountNumber)}
-              className="type-small inline-flex h-10 items-center gap-1.5 rounded-full border border-[var(--menu-line)] px-3 font-semibold"
-            >
-              <CopyIcon aria-hidden className="size-4" />
-              Copiar
-            </button>
-          </div>
-          <p className="type-small text-[var(--menu-muted)]">A nombre de {a.holderName}</p>
-          {a.instructions ? <p className="type-small">{a.instructions}</p> : null}
-        </div>
-      ))}
-    </div>
   );
 }
 

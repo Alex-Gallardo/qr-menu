@@ -43,7 +43,9 @@ export async function createOrder(
     where: { id: input.branchId },
     select: {
       id: true,
+      slug: true,
       business_id: true,
+      business: { select: { slug: true } },
       name: true,
       lat: true,
       lng: true,
@@ -218,5 +220,10 @@ export async function createOrder(
     SELECT id, number, total_cents, scheduled_for FROM o`;
   const created = rows[0];
   if (!created) throw new AppError("branch_unavailable", "Esta sucursal ya no está disponible.");
-  return { ...created, number: Number(created.number) };
+  return {
+    ...created,
+    number: Number(created.number),
+    businessSlug: branch.business.slug,
+    branchSlug: branch.slug,
+  };
 }

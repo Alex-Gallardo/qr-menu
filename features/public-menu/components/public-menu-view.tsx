@@ -2,6 +2,7 @@
 
 import { CalendarOffIcon, ClockIcon, MoonIcon, PauseCircleIcon } from "lucide-react";
 import { useEffect, useState, type ComponentType } from "react";
+import { useRouter } from "next/navigation";
 import { flushSync } from "react-dom";
 import { toast } from "sonner";
 import { minutesOf, openState } from "@/features/branches/hours";
@@ -20,7 +21,6 @@ import { orderTiming, type PreorderMode } from "@/features/orders/preorder";
 import { isOnAnyMenu, unitPrice } from "@/features/orders/pricing";
 import { LoadingCancelledError } from "@/lib/loading/controller";
 import { withLoading } from "@/lib/loading/store";
-import { formatQ } from "@/lib/money";
 import { hasRequiredGroups } from "@/features/products/options";
 import { resolveActiveMenu } from "@/features/schedule/resolve-active-menu";
 import { guatemalaNow, gtInstant } from "@/lib/gt-time";
@@ -178,6 +178,8 @@ export function PublicMenuView({ business, branch, payload, selectorHref }: Prop
   const [Order, setOrder] = useState<ComponentType<OrderSheetProps> | null>(null);
   const cartLines = useBranchCart(business, branch);
   const [announce, setAnnounce] = useState("");
+  const [leaving, setLeaving] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     const id = window.setTimeout(() => void loadSheet().then(loadOrder), 2000);
@@ -237,6 +239,7 @@ export function PublicMenuView({ business, branch, payload, selectorHref }: Prop
 
   async function openOrder() {
     const { OrderSheet } = await loadOrder();
+    setLeaving(false);
     setOrder(() => OrderSheet);
     openOrderSheet();
   }
@@ -378,7 +381,7 @@ export function PublicMenuView({ business, branch, payload, selectorHref }: Prop
         />
       ) : null}
 
-      {orderOpen && Order && timing ? (
+      {orderOpen && Order && timing && !leaving ? (
         <Order
           branchName={branch.name}
           lines={cart.lines}
@@ -446,10 +449,11 @@ export function PublicMenuView({ business, branch, payload, selectorHref }: Prop
       lastPayment: input.payment,
     });
     useCart.getState().clear(business.id);
-    closeOrderSheet();
-    // QRM-028 abre WhatsApp con el mensaje y muestra la confirmación.
-    toast.success(result.message, {
-      description: `Total: ${formatQ(result.data.totalCents)}. Guardamos tus datos para la próxima.`,
-    });
+    // La hoja (un <dialog> modal) se desmonta antes de salir: si quedara abierta
+    // en la ruta oculta, dejaría inerte la página de confirmación.
+    flushSync(() => setLeaving(true));
+    // La confirmación reemplaza la entrada de la hoja: "atrás" vuelve al menú.
+    // Allí se abre WhatsApp con el mensaje (?enviar=1), y al regresar ya está ahí.
+    router.replace(`${result.data.confirmationPath}?enviar=1`);
   }
 }
