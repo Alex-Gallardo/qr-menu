@@ -228,7 +228,7 @@ describe("apps instalables", () => {
 });
 
 describe("protección del cron", () => {
-  const secret = "s3cr3t-de-prueba-larguito";
+  const secret = "x".repeat(24);
   it("solo pasa con «Bearer <CRON_SECRET>»", () => {
     expect(isCronAuthorized(`Bearer ${secret}`, secret)).toBe(true);
     expect(isCronAuthorized(`Bearer ${secret}x`, secret)).toBe(false);
