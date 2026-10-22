@@ -6,6 +6,7 @@ import { getAuthUser, getProfile } from "@/lib/auth/session";
 import { BrandSection } from "./_sections/brand";
 import { ButtonsSection } from "./_sections/buttons";
 import { ColorSection } from "./_sections/color";
+import { EmailSection } from "./_sections/email";
 import { FeedbackSection, FormsSection } from "./_sections/forms-feedback";
 import { LoadingSection } from "./_sections/loading";
 import { PublicMenuSection } from "./_sections/public-menu";
@@ -29,6 +30,7 @@ const NAV = [
   { id: "feedback", label: "Feedback" },
   { id: "publico", label: "Menú público" },
   { id: "bienvenida", label: "Bienvenida" },
+  { id: "correos", label: "Correos" },
 ] as const;
 
 /**
@@ -89,6 +91,7 @@ function Styleguide() {
         <FeedbackSection />
         <PublicMenuSection />
         <SplashSection />
+        <EmailSection />
       </main>
     </div>
   );

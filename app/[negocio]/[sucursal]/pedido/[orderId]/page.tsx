@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { getCustomerOrder } from "@/features/orders/queries";
+import { emailEnabled } from "@/lib/email";
 import { MenuFooter, MenuShell } from "@/features/public-menu/templates/clasico/components";
 import { OrderConfirmation } from "@/features/public-menu/templates/clasico/order-confirmation";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -52,6 +53,7 @@ async function Content({
         whatsappUrl={data.whatsappUrl}
         bankAccounts={data.bankAccounts}
         menuHref={`/${data.business.slug}/${data.branch.slug}`}
+        emailNotice={data.hasEmail && emailEnabled()}
       />
       <MenuFooter showPoweredBy={data.business.theme.showPoweredBy} />
     </MenuShell>

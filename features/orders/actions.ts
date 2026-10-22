@@ -1,7 +1,9 @@
 "use server";
 
 import { headers } from "next/headers";
+import { after } from "next/server";
 import { actionError, type ActionResult } from "@/lib/action-result";
+import { sendOrderConfirmation } from "./confirmation";
 import { markWhatsAppOpened, orderPath } from "./queries";
 import { createOrderSchema } from "./schemas";
 import { createOrder } from "./server";
@@ -27,6 +29,8 @@ export async function createOrderAction(
     return { ok: false, message: "Revisa los datos de tu pedido e inténtalo otra vez." };
   try {
     const order = await createOrder(parsed.data, { ip: await clientIp() });
+    // El correo (si dejó uno) sale después de responder: el comensal no espera.
+    if (parsed.data.email.trim()) after(() => sendOrderConfirmation(order.id));
     return {
       ok: true,
       message: `Pedido #${String(order.number).padStart(4, "0")} recibido.`,
