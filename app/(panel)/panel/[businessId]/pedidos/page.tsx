@@ -3,9 +3,11 @@ import { Suspense } from "react";
 import { PageSkeleton } from "@/components/feedback/page-skeleton";
 import { OrderInbox } from "@/features/orders/components/order-inbox";
 import { listInboxOrders } from "@/features/orders/inbox";
+import { PushPrompt } from "@/features/notifications/components/push-prompt";
 import { ALL_BRANCHES } from "@/features/panel/branch-selection";
 import { PanelPage } from "@/features/panel/components/panel-page";
 import { getPanelContext } from "@/features/panel/context";
+import { panelHref } from "@/features/panel/nav";
 
 export const metadata: Metadata = { title: "Pedidos" };
 
@@ -34,6 +36,7 @@ async function Inbox({ params }: { params: Promise<{ businessId: string }> }) {
       title="Pedidos"
       description={branchName ? `Bandeja de ${branchName}.` : "Bandeja de todas tus sucursales."}
     >
+      <PushPrompt mode="panel" settingsHref={panelHref(businessId, "ajustes/notificaciones")} />
       <OrderInbox
         businessId={businessId}
         branchIds={branchIds}

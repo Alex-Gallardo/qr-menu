@@ -42,33 +42,35 @@ El negocio demo es **Café El Portal** (link `cafe-el-portal`), con sucursales *
 
 ## 3. Mapa de rutas
 
-| Ruta                                    | Qué es                                                                   | Quién entra                                              |
-| --------------------------------------- | ------------------------------------------------------------------------ | -------------------------------------------------------- |
-| `/`                                     | Portada                                                                  | Todos                                                    |
-| `/styleguide`                           | Sistema de diseño (botones, colores, cargas…)                            | Todos en local y previews; en producción solo el equipo  |
-| `/entrar`                               | Entrar con contraseña o enlace por correo                                | Sin sesión                                               |
-| `/registro`                             | Crear cuenta de dueño                                                    | Sin sesión                                               |
-| `/recuperar`                            | Recuperar contraseña                                                     | Sin sesión                                               |
-| `/onboarding`                           | Crear el primer negocio (cuenta nueva)                                   | Con sesión                                               |
-| `/panel`                                | Te lleva al panel de tu negocio                                          | Dueño o encargado                                        |
-| `/panel/{negocio}`                      | **Inicio** del panel                                                     | Dueño o encargado                                        |
-| `/panel/{negocio}/productos`            | Catálogo, búsqueda y disponibilidad                                      | Dueño o encargado                                        |
-| `/panel/{negocio}/productos/nuevo`      | Nuevo producto                                                           | Dueño o encargado                                        |
-| `/panel/{negocio}/productos/categorias` | Categorías                                                               | Dueño o encargado                                        |
-| `/panel/{negocio}/menus`                | Menús: crear, duplicar, predeterminado, pausar                           | Dueño o encargado                                        |
-| `/panel/{negocio}/menus/{menú}`         | Editor del menú (se guarda solo)                                         | Dueño o encargado                                        |
-| `/panel/{negocio}/programacion`         | Franjas, semana (días × franjas) y fechas especiales                     | Franjas y "Todas": dueño. Sucursal: dueño o su encargado |
-| `/panel/{negocio}/sucursales`           | Sucursales (horario, entregas, mapa)                                     | Dueño (encargado: solo las suyas)                        |
-| `/panel/{negocio}/ajustes/negocio`      | Logo, portada, nombre, link y redes                                      | Solo dueño                                               |
-| `/panel/{negocio}/ajustes/pagos`        | Cuentas para transferencia                                               | Solo dueño                                               |
-| `/panel/{negocio}/ajustes/licencia`     | Mi plan                                                                  | Solo dueño                                               |
-| `/admin`                                | Super admin (provisional)                                                | Equipo de la plataforma con 2FA                          |
-| `/{negocio}`                            | Menú público: selector de sucursal (o el menú directo si tiene una sola) | Todos                                                    |
-| `/{negocio}/{sucursal}`                 | Menú público de la sucursal                                              | Todos                                                    |
-| `/demo`                                 | Lleva al negocio demo                                                    | Todos                                                    |
-| `/api/health`                           | Estado de la configuración                                               | Todos (solo sí/no)                                       |
+| Ruta                                      | Qué es                                                                   | Quién entra                                              |
+| ----------------------------------------- | ------------------------------------------------------------------------ | -------------------------------------------------------- |
+| `/`                                       | Portada                                                                  | Todos                                                    |
+| `/styleguide`                             | Sistema de diseño (botones, colores, cargas…)                            | Todos en local y previews; en producción solo el equipo  |
+| `/entrar`                                 | Entrar con contraseña o enlace por correo                                | Sin sesión                                               |
+| `/registro`                               | Crear cuenta de dueño                                                    | Sin sesión                                               |
+| `/recuperar`                              | Recuperar contraseña                                                     | Sin sesión                                               |
+| `/onboarding`                             | Crear el primer negocio (cuenta nueva)                                   | Con sesión                                               |
+| `/panel`                                  | Te lleva al panel de tu negocio                                          | Dueño o encargado                                        |
+| `/panel/{negocio}`                        | **Inicio** del panel                                                     | Dueño o encargado                                        |
+| `/panel/{negocio}/productos`              | Catálogo, búsqueda y disponibilidad                                      | Dueño o encargado                                        |
+| `/panel/{negocio}/productos/nuevo`        | Nuevo producto                                                           | Dueño o encargado                                        |
+| `/panel/{negocio}/productos/categorias`   | Categorías                                                               | Dueño o encargado                                        |
+| `/panel/{negocio}/menus`                  | Menús: crear, duplicar, predeterminado, pausar                           | Dueño o encargado                                        |
+| `/panel/{negocio}/menus/{menú}`           | Editor del menú (se guarda solo)                                         | Dueño o encargado                                        |
+| `/panel/{negocio}/programacion`           | Franjas, semana (días × franjas) y fechas especiales                     | Franjas y "Todas": dueño. Sucursal: dueño o su encargado |
+| `/panel/{negocio}/sucursales`             | Sucursales (horario, entregas, mapa)                                     | Dueño (encargado: solo las suyas)                        |
+| `/panel/{negocio}/ajustes/negocio`        | Logo, portada, nombre, link y redes                                      | Solo dueño                                               |
+| `/panel/{negocio}/ajustes/pagos`          | Cuentas para transferencia                                               | Solo dueño                                               |
+| `/panel/{negocio}/ajustes/licencia`       | Mi plan                                                                  | Solo dueño                                               |
+| `/panel/{negocio}/ajustes/notificaciones` | Avisos push en este dispositivo y sucursal que escucha                   | Dueño o encargado                                        |
+| `/admin`                                  | Super admin (provisional)                                                | Equipo de la plataforma con 2FA                          |
+| `/{negocio}`                              | Menú público: selector de sucursal (o el menú directo si tiene una sola) | Todos                                                    |
+| `/{negocio}/{sucursal}`                   | Menú público de la sucursal                                              | Todos                                                    |
+| `/demo`                                   | Lleva al negocio demo                                                    | Todos                                                    |
+| `/api/health`                             | Estado de la configuración                                               | Todos (solo sí/no)                                       |
+| `/api/cron/push`                          | Escalamiento de avisos y aviso de programados (cada minuto)              | Solo con `Authorization: Bearer <CRON_SECRET>`           |
 
-`{negocio}` es el id del negocio. No hace falta copiarlo: entra a `/panel` y te lleva solo. Pedidos, QR, Reseñas, Analíticas, Equipo, Apariencia y Notificaciones aparecen en la navegación, pero son de fases siguientes y muestran "Muy pronto".
+`{negocio}` es el id del negocio. No hace falta copiarlo: entra a `/panel` y te lleva solo. QR, Reseñas, Analíticas y Apariencia aparecen en la navegación, pero son de fases siguientes y muestran "Muy pronto".
 
 ## 4. Lista de verificación
 
@@ -304,6 +306,42 @@ Requiere **Anonymous Sign-Ins** activado en Supabase (Authentication → Sign In
 - [ ] Panel → Más → **Equipo**: aparece "Tablet de caja"; **Revocar** → la tablet vuelve a decir "Este dispositivo no está autorizado" y su turno termina.
 - [ ] El plan Gratis no incluye staff con PIN: al autorizar, aviso de la función.
 
+### App del panel/staff y avisos push (QRM-032): criterio "Push llega en Android e iPhone instalado; repite a los 3 min"
+
+Requiere las llaves de push en `.env.local` (`pnpm push:keys --write`) y, en Vercel, las mismas tres variables (ver §5). El push real solo se puede probar en un teléfono y con un dominio https (Vercel): en `localhost` funciona en Chrome de la PC.
+
+**En la PC (Chrome, localhost):**
+
+- [ ] Entra como dueño → **Más → Notificaciones** → **Activar avisos de pedidos** (con "Todas las sucursales") → Chrome pide permiso → "Avisos activados en este dispositivo".
+- [ ] **Enviar aviso de prueba** → llega "Avisos activados ✓" y se queda en pantalla hasta tocarlo; al tocarlo abre la bandeja.
+- [ ] En otra pestaña haz un pedido en Zona 1 → llega **"Nuevo pedido #00XX · QXX.00"** / "Nombre · Para llevar · Zona 1". Tocarlo abre el **detalle del pedido** en el panel.
+- [ ] No lo aceptes: si el cron está programado (`pnpm push:cron --status`), a los 3 min llega **"#00XX sigue esperando"**, otra vez a los 6 y a los 9, y ya no más. Aceptarlo detiene los avisos. (Sin cron en local, simúlalo: `curl -H "Authorization: Bearer <CRON_SECRET>" http://localhost:3000/api/cron/push` después de 3 minutos.)
+- [ ] Elige "Solo Antigua" → **Guardar sucursal** → un pedido de Zona 1 ya no avisa en este dispositivo; uno de Antigua sí.
+- [ ] Entra como **encargado** (Antigua): con "Todas mis sucursales" solo recibe los de Antigua.
+- [ ] **Desactivar** → ya no llegan avisos. La franja "Recibe un aviso con cada pedido" vuelve a aparecer en Pedidos.
+
+**En Android (Chrome, con el dominio de Vercel):**
+
+- [ ] Abre `/panel` → menú ⋮ → **Instalar app** (o "Agregar a pantalla principal"): queda el ícono de la app. Ábrela.
+- [ ] Notificaciones → Activar → permitir. Bloquea el teléfono y haz un pedido desde otro dispositivo: suena, vibra y aparece en la pantalla bloqueada. Tocarlo abre el pedido **dentro de la app**.
+
+**En iPhone (iOS 16.4 o más, Safari):**
+
+- [ ] En Safari, Notificaciones muestra la guía "Compartir → Agregar a inicio" (no el botón): en Safari no hay push.
+- [ ] Agrega a inicio y abre la app desde el ícono → ahora sí aparece **Activar avisos de pedidos** → permitir. Prueba con la app cerrada y el teléfono bloqueado.
+
+**Staff con PIN (tablet de caja):**
+
+- [ ] En la tablet autorizada, abre turno → en la bandeja aparece **"Recibe un aviso con cada pedido" → Activar avisos de pedidos** → llega la prueba. (Instala `/staff` como app para que el iPhone/iPad reciba avisos.)
+- [ ] Un pedido de Zona 1 avisa en la tablet de Zona 1 y tocarlo abre `/staff/pedidos/…`; uno de Antigua no.
+- [ ] Si otra persona abre turno en la misma tablet, los avisos siguen llegando (se asocian al turno nuevo). Al desactivar a esa persona en Equipo, su tablet deja de recibirlos hasta que otro active los avisos.
+
+**Programados:**
+
+- [ ] Haz un pedido programado para dentro de 1 h o más → avisa al crearse ("Pedido programado #00XX…") y otra vez **30 min antes** ("Programado #00XX en 30 min").
+
+**Al terminar:** borra los pedidos de prueba como en QRM-027 y deja `next_order_number` como estaba. Las suscripciones de tus dispositivos pueden quedarse (Notificaciones → Desactivar para quitarlas).
+
 ### Encargado (permisos)
 
 - [ ] Sal y entra como **encargado** → el selector solo muestra **Antigua** (sin "Todas").
@@ -328,8 +366,18 @@ pnpm db:seed    # deja los datos de demo como estaban
 | `database`              | `DATABASE_URL` (pooler, puerto 6543) y `DIRECT_URL` (puerto 5432).                                                                                                                     |
 | `plans`                 | La base está vacía: desde tu PC con las variables de ese entorno, `pnpm db:deploy && SEED_SCOPE=base pnpm db:seed`.                                                                    |
 
-3. Opcionales: `app_url` (`NEXT_PUBLIC_APP_URL`), `map_tiles` (llave de MapTiler o Stadia; OSM solo sirve para desarrollo) y `sentry` (`NEXT_PUBLIC_SENTRY_DSN`, **sin** marcar Sensitive).
-4. En **Supabase → Authentication → URL Configuration** de ese proyecto: _Site URL_ = el dominio, y en _Redirect URLs_ agrega `https://<dominio>/auth/callback`.
+3. Opcionales: `app_url` (`NEXT_PUBLIC_APP_URL`), `map_tiles` (llave de MapTiler o Stadia; OSM solo sirve para desarrollo), `sentry` (`NEXT_PUBLIC_SENTRY_DSN`, **sin** marcar Sensitive), `web_push` y `cron_secret` (avisos de pedidos, abajo).
+4. **Avisos push (QRM-032).** Copia de tu `.env.local` a Vercel (Production y Preview) las líneas `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` y `CRON_SECRET` (las dos últimas como Sensitive) y haz un **Redeploy**. Usa las **mismas** llaves VAPID en todos los entornos: la base es compartida y una suscripción solo acepta avisos firmados con la llave con que se creó. Opcional: `VAPID_SUBJECT` (por defecto, el dominio de la app).
+5. **Cron del escalamiento (cada minuto).** Vercel Hobby solo permite crons diarios (y un cron más frecuente en `vercel.json` hace fallar el deploy), así que corre en Supabase con pg_cron + pg_net. Una sola vez, desde tu PC, cuando producción ya tenga `/api/cron/push`:
+
+   ```bash
+   pnpm push:cron https://<dominio>/api/cron/push
+   pnpm push:cron --status   # debe mostrar status_code 200 cada minuto
+   ```
+
+   La URL y `CRON_SECRET` quedan cifrados en Supabase Vault. `pnpm push:cron --off` lo apaga. Con el plan Pro de Vercel se puede usar Vercel Cron en su lugar (`"crons": [{ "path": "/api/cron/push", "schedule": "* * * * *" }]` en `vercel.json`): manda el mismo encabezado.
+
+6. En **Supabase → Authentication → URL Configuration** de ese proyecto: _Site URL_ = el dominio, y en _Redirect URLs_ agrega `https://<dominio>/auth/callback`.
 
 Mientras falte Supabase, el sitio no se cae: la portada funciona, `/entrar` muestra "El acceso todavía no está configurado en este entorno" y las rutas privadas piden entrar.
 
@@ -347,6 +395,9 @@ Fallas detectadas en la revisión que se corrigen al final del MVP. No bloquean 
 | 6   | Menú público (QRM-022)   | ~~`Uncaught (in promise) InvalidStateError` al interrumpirse la transición de la foto.~~ **Resuelto** (2026-10-22): las promesas de la transición se atrapan.                                                                                                               | La hoja se abre igual.                                        | 2026-10-22, reporte de verificación |
 | 7   | Menú público (QRM-025)   | ~~Dos avisos que se contradicen con la sucursal cerrada.~~ **Resuelto** (2026-10-22): cerrada, solo se muestra su aviso. (La franja de desayuno del demo, 06:30, sigue antes de la apertura, 07:00.)                                                                        | Ajustar la franja del demo a 07:00.                           | 2026-10-22, reporte de verificación |
 | 8   | Demo                     | El WhatsApp de las sucursales del demo es `+502 0000-0000`: los pedidos de la demo no llegan a nadie.                                                                                                                                                                       | Poner un número real en Panel → Sucursales.                   | 2026-10-22, reporte de verificación |
+| 9   | Avisos push (QRM-032)    | Sin probar en teléfonos reales: Android con la app instalada, iPhone instalado (iOS 16.4+) y la tablet del staff. En local se probó el cifrado contra el RFC, los destinatarios y el escalamiento con un servicio de push simulado.                                         | Probar con el dominio de Vercel siguiendo §4 (QRM-032).       | 2026-10-22, QRM-032                 |
+| 10  | Avisos push (QRM-032)    | El escalamiento cada 3 min y el aviso de programados necesitan el cron de Supabase (`pnpm push:cron …`), que se programa cuando producción tenga `/api/cron/push`. Hasta entonces solo llega el primer aviso.                                                               | La bandeja abierta sigue sonando y parpadeando.               | 2026-10-22, QRM-032                 |
+| 11  | Avisos push (QRM-032)    | Si el navegador renueva la suscripción por su cuenta (`pushsubscriptionchange`, poco común), el dispositivo deja de recibir avisos hasta que se vuelvan a activar. La tablet del staff se re-asocia sola al abrir la bandeja; el panel no.                                  | Notificaciones → Activar otra vez.                            | 2026-10-22, QRM-032                 |
 
 El detalle de los puntos 4 a 8 y lo que se verificó está en [reporte-verificacion-2026-10-22.md](reporte-verificacion-2026-10-22.md).
 

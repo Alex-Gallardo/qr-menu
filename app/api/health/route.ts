@@ -109,6 +109,19 @@ export async function GET() {
       hint: "NEXT_PUBLIC_MAP_TILE_URL (MapTiler o Stadia). Sin ella se usa OSM, solo apto para desarrollo.",
     },
     {
+      name: "web_push",
+      ok:
+        present(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY) && present(process.env.VAPID_PRIVATE_KEY),
+      required: false,
+      hint: "NEXT_PUBLIC_VAPID_PUBLIC_KEY y VAPID_PRIVATE_KEY (pnpm push:keys) para los avisos de pedidos.",
+    },
+    {
+      name: "cron_secret",
+      ok: present(process.env.CRON_SECRET),
+      required: false,
+      hint: "CRON_SECRET para /api/cron/push (escalamiento y aviso de programados).",
+    },
+    {
       name: "sentry",
       ok: present(process.env.NEXT_PUBLIC_SENTRY_DSN),
       required: false,
