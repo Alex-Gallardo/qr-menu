@@ -53,12 +53,15 @@ export function OrderInbox({
   showBranch,
   branches,
   orders: serverOrders,
+  detailBase,
 }: {
   businessId: string;
   branchIds: string[];
   showBranch: boolean;
   branches: { id: string; name: string }[];
   orders: InboxOrder[];
+  /** Ruta del detalle: el panel o la bandeja del staff (/staff/pedidos). */
+  detailBase?: string;
 }) {
   const router = useRouter();
   const now = useNowMinute();
@@ -194,7 +197,7 @@ export function OrderInbox({
         <ul className="grid gap-3 md:grid-cols-2">
           {shown.map((order) => {
             const next = primaryAction(order.status, order.orderType);
-            const detail = `/panel/${businessId}/pedidos/${order.id}`;
+            const detail = `${detailBase ?? `/panel/${businessId}/pedidos`}/${order.id}`;
             return (
               <li
                 key={order.id}
