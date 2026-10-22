@@ -22,6 +22,12 @@ export type RouteContext = {
   isStaffSession: boolean;
   hasStaffDevice: boolean;
   maintenance: boolean;
+  /**
+   * POST de una Server Action. Nunca se redirige: un 307 a /entrar le llega al
+   * cliente como "An unexpected response was received from the server". La
+   * acción valida la sesión con requireAccess y responde con un mensaje claro.
+   */
+  isServerAction: boolean;
 };
 
 export type RouteDecision =
@@ -49,6 +55,8 @@ export function decideRoute(ctx: RouteContext): RouteDecision {
   if (ctx.maintenance && !matchesPrefix(pathname, MAINTENANCE_ALLOWED)) {
     return { type: "maintenance" };
   }
+
+  if (ctx.isServerAction) return { type: "next" };
 
   if (matchesPrefix(pathname, PROTECTED_PREFIXES) && !ctx.isUser) {
     return { type: "redirect", to: loginUrl(pathname, ctx.search) };

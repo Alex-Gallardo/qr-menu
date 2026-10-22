@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { cn } from "cn";
 import { Button } from "@/components/ui/button";
+import { runAction } from "@/lib/action-client";
 import { LoadingCancelledError } from "@/lib/loading/controller";
 import { withLoading } from "@/lib/loading/store";
 import { staffPinLoginAction } from "../actions";
@@ -44,7 +45,9 @@ export function PinPad({
     if (value.length < PIN_MIN || busy) return;
     setBusy(true);
     try {
-      const result = await withLoading("Abriendo tu turno…", () => staffPinLoginAction(value));
+      const result = await withLoading("Abriendo tu turno…", () =>
+        runAction(() => staffPinLoginAction(value)),
+      );
       if (result.ok) {
         router.replace("/staff/pedidos");
         return;

@@ -149,7 +149,7 @@ Marca cada punto. Prueba en el celular (o con DevTools a 390 px) y en escritorio
 - [ ] Toca **+ Entradas**, **+ Platos fuertes**, **+ Bebidas** y **+ Postres**: cada una abre el catálogo; marca productos y toca **Agregar N productos**.
 - [ ] Arriba dice "Guardando…" → "Guardado". Recarga la página: todo sigue ahí.
 - [ ] Escribe un **precio especial** en un producto (vacío = precio del catálogo) y toca la **estrella** para destacarlo.
-- [ ] Ordena con **⋯ → Subir / Bajar** (secciones y productos). ⚠️ Arrastrar con la manija ⠿ todavía **no funciona** (ver "Pendientes conocidos").
+- [ ] Ordena **arrastrando la manija ⠿** y con **⋯ → Subir / Bajar** (secciones y productos).
 - [ ] **⋯ → Mover a** lleva un producto a otra sección. **⋯ → Eliminar sección** → **Deshacer**.
 - [ ] En la lista: **Duplicar** (queda "en pausa"), **Hacer predeterminado** (el interruptor del predeterminado no se puede apagar) y **Eliminar** → **Deshacer**.
 - [ ] Deja los menús como estaban: Cena y carta como predeterminado y borra tus menús de prueba.
@@ -339,7 +339,7 @@ Fallas detectadas en la revisión que se corrigen al final del MVP. No bloquean 
 
 | #   | Dónde                    | Qué pasa                                                                                                                                                                                                                                                       | Alternativa mientras tanto                                    | Detectado                           |
 | --- | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- | ----------------------------------- |
-| 1   | Menús → editor (QRM-017) | **Arrastrar** secciones y productos con la manija ⠿ (dedo, mouse o teclado) no los mueve.                                                                                                                                                                      | **⋯ → Subir / Bajar** sí funciona y se guarda solo.           | 2026-10-21, revisión de QRM-017     |
+| 1   | Menús → editor (QRM-017) | ~~**Arrastrar** secciones y productos con la manija ⠿ no los mueve.~~ **Resuelto**: confirmado en un navegador real el 2026-10-22 (el navegador de pruebas automáticas no permite arrastrar).                                                                  | —                                                             | 2026-10-21, revisión de QRM-017     |
 | 2   | Menú público (QRM-020)   | El JS inicial pesa **~225 KB gzip** (presupuesto de la guía: ~130 KB). La página de inicio `/` ya pesa ~216 KB: el menú solo agrega ~9 KB. El peso viene de lo común a todas las páginas (Next 16 + React 19, layout raíz con Sentry, sonner, Radix y lucide). | Funciona bien; afecta el tiempo de carga en celulares lentos. | 2026-10-21, revisión de QRM-020     |
 | 3   | Producción (mapa)        | Falta `NEXT_PUBLIC_MAP_TILE_URL` (MapTiler o Stadia): se usan teselas de OpenStreetMap, no aptas para producción.                                                                                                                                              | El mapa funciona, pero OSM puede bloquearlo.                  | 2026-10-20                          |
 | 4   | Producción (seguridad)   | Solo se envía HSTS: faltan `X-Frame-Options`/`frame-ancestors` (el panel podría meterse en un iframe ajeno), `X-Content-Type-Options`, `Referrer-Policy` y `Permissions-Policy`.                                                                               | Ninguna: corregir antes del release de la Fase 3.             | 2026-10-22, reporte de verificación |
@@ -351,5 +351,3 @@ Fallas detectadas en la revisión que se corrigen al final del MVP. No bloquean 
 El detalle de los puntos 4 a 8 y lo que se verificó está en [reporte-verificacion-2026-10-22.md](reporte-verificacion-2026-10-22.md).
 
 Para corregir el #2: analizar el bundle (`next build` con análisis de chunks) y revisar qué entra en el layout raíz: confirmar que Sentry se cargue de verdad diferido (`lib/sentry.ts`) y llevar `LoadingOverlay`/`Toaster` solo a las rutas que los usan.
-
-Para corregir el #1: revisar la integración de `@dnd-kit` en `features/menus/components/menu-editor.tsx` (sensores, `DndContext` anidados de secciones e ítems y `touch-action` de las manijas) en un navegador real, porque el navegador de pruebas automáticas no permite arrastrar.

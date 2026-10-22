@@ -3,6 +3,8 @@ import {
   addDays,
   dateOnly,
   formatDateEs,
+  formatTimeGT,
+  formatWhenGT,
   gtInstant,
   guatemalaNow,
   todayInGuatemala,
@@ -48,5 +50,19 @@ describe("hora de Guatemala", () => {
       date: "2026-12-24",
       minutes: 0,
     });
+  });
+});
+
+describe("horas legibles (iguales en servidor y navegador)", () => {
+  const at = new Date("2026-10-21T17:51:00Z"); // 11:51 en Guatemala
+
+  it("usa espacios normales: Node pone U+00A0 en 'a. m.' y Chrome no", () => {
+    expect(formatTimeGT(at)).toBe("11:51 a. m.");
+    expect([...formatTimeGT(at)].filter((c) => /\s/.test(c) && c !== " ")).toEqual([]);
+  });
+
+  it("solo la hora si es hoy; con el día si no", () => {
+    expect(formatWhenGT(at, new Date("2026-10-21T23:00:00Z"))).toBe("11:51 a. m.");
+    expect(formatWhenGT(at, new Date("2026-10-22T15:00:00Z"))).toBe("21 oct, 11:51 a. m.");
   });
 });

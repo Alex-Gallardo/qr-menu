@@ -1,4 +1,5 @@
 import { createServerClient } from "@supabase/ssr";
+import { isAuthRetryableFetchError } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
 import { supabasePublicConfig } from "./config";
 
@@ -40,17 +41,33 @@ export async function updateSession(request: NextRequest) {
     },
   });
 
-  // getClaims verifica la firma del JWT; no confiar en getSession() en el servidor.
-  // Si Supabase no responde, se trata como sin sesión (nunca se abre una ruta privada).
-  let claims: SessionClaims | null = null;
-  try {
-    const { data } = await supabase.auth.getClaims();
-    claims = (data?.claims ?? null) as SessionClaims | null;
-  } catch (error) {
-    console.error("[proxy] No se pudo verificar la sesión con Supabase:", error);
-  }
+  return { claims: await readClaims(supabase), response: () => response };
+}
 
-  return { claims, response: () => response };
+/**
+ * getClaims verifica la firma del JWT; no confiar en getSession() en el servidor.
+ * Un fallo de red pasajero (llaves JWKS, refresco del token) se reintenta una
+ * vez: tratarlo como "sin sesión" saca al usuario a /entrar sin motivo. Si
+ * Supabase sigue sin responder, se trata como sin sesión (nunca se abre una
+ * ruta privada).
+ */
+async function readClaims(
+  supabase: ReturnType<typeof createServerClient>,
+): Promise<SessionClaims | null> {
+  let lastError: unknown = null;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const { data, error } = await supabase.auth.getClaims();
+      if (!error) return (data?.claims ?? null) as SessionClaims | null;
+      // Sin sesión, token vencido o revocado: respuesta normal, no se reintenta.
+      if (!isAuthRetryableFetchError(error)) return null;
+      lastError = error;
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  console.error("[proxy] No se pudo verificar la sesión con Supabase:", lastError);
+  return null;
 }
 
 let warned = false;
