@@ -136,3 +136,26 @@ La franja de desayuno del demo empieza a las 06:30, pero la sucursal abre a las 
 ## 5. Recomendación
 
 Un PR corto de correcciones antes de seguir con QRM-032: hallazgos **1** (encabezados), **4** (promesa de la transición), **5** (avisos) y **7** (vibración). Son cambios pequeños y con pruebas. Los hallazgos 2 y 3 (SEO) pueden ir con el ticket de la landing/SEO, y el 8 con el pendiente #2.
+
+---
+
+## 6. Actualización (22 de octubre, tarde)
+
+**Corrección a este reporte:** atribuí el error de React #418 a una pestaña con JavaScript de un build anterior. El PR #42 encontró que **sí había errores de hidratación reales**, y los corrigió:
+
+- Las horas: Node escribe "a. m." con espacio duro y Chrome con espacio normal.
+- Los `id` de `DndContext` en el editor de menús.
+
+El PR #42 también resolvió las acciones que fallaban con "respuesta inesperada" (el proxy redirigía Server Actions cuando `getClaims` fallaba por la red) y el pendiente #1 (arrastrar en el editor).
+
+**Resueltos en el PR de hallazgos (rama `fix/hallazgos-verificacion`):**
+
+| Hallazgo                               | Cambio                                                                                            |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| 1. Encabezados de seguridad            | `next.config.ts` + `lib/security-headers.ts` en todas las rutas                                   |
+| 2. `robots.txt` y `sitemap.xml`        | `app/robots.ts` (bloquea panel, staff, cuenta y confirmaciones) y `app/sitemap.ts` (caché de 1 h) |
+| 4. Promesa de la transición de la foto | `photo-transition.ts` atrapa `ready`/`finished` y limpia el nombre de la foto                     |
+| 5. Avisos que se contradicen           | Con la sucursal cerrada no se muestra el aviso de la próxima franja                               |
+| 7. Vibración sin toque previo          | Solo vibra si `navigator.userActivation.hasBeenActive`                                            |
+
+**Siguen pendientes:** 3 (soft 404, mitigado con `noindex`), 6 (WhatsApp del demo: decisión tuya), 8 (peso del JS) y 9 (llave del mapa).

@@ -306,7 +306,9 @@ export function PublicMenuView({ business, branch, payload, selectorHref }: Prop
         <MenuNotice icon={<CalendarOffIcon />} tone="closed">
           {shown.message}
         </MenuNotice>
-      ) : shown?.status === "upcoming" && !pickedSlot ? (
+      ) : shown?.status === "upcoming" && !pickedSlot && !(branch.isActive && timing?.notice) ? (
+        // Con la sucursal cerrada basta su aviso ("puedes dejar tu pedido para
+        // las 7:00"): el de la próxima franja podría contradecirlo.
         <MenuNotice icon={<ClockIcon />} tone="info">
           {shown.message}. Mientras tanto, mira lo que viene.
         </MenuNotice>

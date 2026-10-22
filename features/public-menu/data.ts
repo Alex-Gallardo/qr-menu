@@ -258,3 +258,28 @@ export async function queryBranchMenu(
     overrides: overrides.map((o) => ({ ...o, date: dateOnly(o.date) })),
   });
 }
+
+/** Negocios indexables (publicados y con la licencia en línea) para sitemap.xml. */
+export async function listIndexableBusinesses() {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("sitemap");
+  const businesses = await db().businesses.findMany({
+    where: { published: true },
+    orderBy: { created_at: "asc" },
+    select: {
+      id: true,
+      slug: true,
+      updated_at: true,
+      branches: {
+        where: { hidden_by_license: false },
+        orderBy: [{ sort: "asc" }, { created_at: "asc" }],
+        select: { slug: true },
+      },
+    },
+  });
+  const online = await Promise.all(businesses.map((b) => getEntitlements(b.id)));
+  return businesses
+    .filter((_, i) => online[i]!.menuOnline)
+    .map((b) => ({ slug: b.slug, updatedAt: b.updated_at, branches: b.branches }));
+}

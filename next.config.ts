@@ -1,5 +1,6 @@
 import { withSentryConfig } from "@sentry/nextjs/config";
 import type { NextConfig } from "next";
+import { SECURITY_HEADERS } from "./lib/security-headers";
 
 const supabaseHost = process.env.NEXT_PUBLIC_SUPABASE_URL
   ? new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).hostname
@@ -11,6 +12,10 @@ const nextConfig: NextConfig = {
   // En desarrollo Next imprime los argumentos de cada Server Action en la terminal
   // (incluidas contraseñas). Desactivado.
   logging: { serverFunctions: false },
+  // Encabezados de seguridad en todas las rutas (lib/security-headers.ts).
+  async headers() {
+    return [{ source: "/:path*", headers: [...SECURITY_HEADERS] }];
+  },
   images: {
     // Portada a lo ancho de la columna de 480 px: 400/800/1200 según la densidad
     // de la pantalla (guía). Las miniaturas usan imageSizes (96…384).

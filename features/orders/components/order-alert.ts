@@ -51,9 +51,11 @@ export function playChime() {
   return true;
 }
 
+/** Solo después de un toque en la página: antes, el navegador la bloquea (y lo reclama en consola). */
 export function vibrate() {
-  if (typeof navigator !== "undefined" && "vibrate" in navigator)
-    navigator.vibrate([200, 100, 200]);
+  if (typeof navigator === "undefined" || !("vibrate" in navigator)) return;
+  if (navigator.userActivation && !navigator.userActivation.hasBeenActive) return;
+  navigator.vibrate([200, 100, 200]);
 }
 
 /** Parpadea el título ("(2) Pedidos nuevos") mientras haya pedidos sin aceptar. */
