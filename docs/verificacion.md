@@ -280,6 +280,16 @@ Requiere la cuenta de Resend (ver "Activar el correo" abajo). Sin `RESEND_API_KE
 2. Resend → API Keys: crea una llave con permiso "Sending access".
 3. En Vercel (Production y Preview) y en `.env.local`: `RESEND_API_KEY=…` y `EMAIL_FROM=pedidos@tu-dominio`. Redeploy.
 
+### Bandeja de pedidos (QRM-030): criterio "Pedido aparece en < 2 s; otra sucursal no lo recibe"
+
+- [ ] Entra como **dueño** → Pedidos ("Todas"): arriba dice **En vivo**. Toca **Activar sonido** (los navegadores solo dejan sonar después de un toque).
+- [ ] En otro teléfono haz un pedido en Zona 1: la tarjeta aparece sola en menos de 2 s, suena, vibra, aparece "Nuevo pedido #00XX · Q…" y el título de la pestaña parpadea "(1) Pedido nuevo" hasta que alguien lo acepta.
+- [ ] En la tarjeta: **Aceptar** → **Empezar a preparar** → **Listo** → **Entregado** (o **Servido** si es para comer aquí). El comensal ve el estado nuevo en su confirmación (se actualiza sola cada 15 s).
+- [ ] Filtros: Activos, Programados (con hora a futuro), Entregados, Cancelados; y por tipo.
+- [ ] Toca la tarjeta → detalle: cliente con **Llamar** y **Responder por WhatsApp**, productos con opciones y notas, totales, historial; a domicilio, el **mapa** con el pin y **Abrir en Google Maps**, **Abrir en Waze** y **Copiar coordenadas**. **Cancelar** pide confirmación.
+- [ ] Entra como **encargado** (solo Antigua): un pedido de **Zona 1** no aparece ni suena; uno de **Antigua** sí. Abrir a mano el link del detalle de un pedido de Zona 1 → "Esta sección no está disponible".
+- [ ] Borra los pedidos de prueba y devuelve `next_order_number` (ver QRM-027).
+
 ### Encargado (permisos)
 
 - [ ] Sal y entra como **encargado** → el selector solo muestra **Antigua** (sin "Todas").
