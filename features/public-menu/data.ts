@@ -131,7 +131,17 @@ export async function getBranchMenu(
   "use cache";
   cacheLife("hours");
   cacheTag(tags.business(businessId), tags.branch(branchId));
+  return queryBranchMenu(businessId, branchId);
+}
 
+/**
+ * La misma lectura sin caché: createOrder valida contra la disponibilidad y
+ * los precios de este momento, no contra la página cacheada.
+ */
+export async function queryBranchMenu(
+  businessId: string,
+  branchId: string,
+): Promise<BranchMenuPayload> {
   const today = todayInGuatemala();
   const [products, menus, slots, rules, overrides] = await Promise.all([
     db().products.findMany({
