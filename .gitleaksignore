@@ -1,0 +1,5 @@
+# Falsos positivos revisados a mano (no son secretos reales). Formato: commit:archivo:regla:línea
+# QRM-032: vector de prueba público del RFC 8291 (Apéndice A) y un CRON_SECRET inventado para una prueba.
+73e0cca6be21d459ffaddcc5de74bf9a0f8d7760:tests/unit/push-notifications.test.ts:generic-api-key:231
+73e0cca6be21d459ffaddcc5de74bf9a0f8d7760:tests/unit/web-push.test.ts:generic-api-key:19
+73e0cca6be21d459ffaddcc5de74bf9a0f8d7760:tests/integration/push.test.ts:generic-api-key:25

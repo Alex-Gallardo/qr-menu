@@ -677,6 +677,10 @@ model orders {
   @@unique([branch_id, number])
   @@index([branch_id, status, created_at])
   @@index([business_id, created_at])
+  /// Cron de avisos: pedidos que siguen "nuevos" (escalamiento cada 3 min)
+  @@index([status, created_at])
+  /// Cron de avisos: programados que vienen (30 min antes)
+  @@index([scheduled_for])
   @@index([qr_code_id])
   @@index([menu_id])
 }
@@ -917,4 +921,15 @@ model audit_logs {
   created_at  DateTime @default(now()) @db.Timestamptz(6)
 
   @@index([business_id, created_at])
+}
+
+/// Límite de solicitudes por ventana fija (pedidos, y más adelante PIN y subidas).
+/// La llave nunca guarda datos personales: la IP va como hash.
+model rate_limits {
+  /// "order:session:{id}", "order:ip:{sha256}"
+  key          String   @id
+  window_start DateTime @db.Timestamptz(6)
+  count        Int      @default(0)
+
+  @@index([window_start])
 }

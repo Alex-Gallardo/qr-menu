@@ -7,8 +7,9 @@ import { useForm, useWatch } from "react-hook-form";
 import { Field, FormMessage } from "@/components/forms/field";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { runAction } from "@/lib/action-client";
 import type { ActionResult } from "@/lib/action-result";
-import { checkSlugAvailability, updateBusinessSettings, type SlugCheck } from "../actions";
+import { checkSlugAvailability, updateBusinessSettings } from "../actions";
 import { businessSettingsSchema, type BusinessSettingsInput } from "../schemas";
 import { slugify } from "../slug";
 
@@ -33,7 +34,7 @@ export function BusinessSettingsForm({ businessId, appHost, initial }: Props) {
   const onSubmit = form.handleSubmit((values) =>
     startSave(async () => {
       setResult(null);
-      const res = await updateBusinessSettings(values);
+      const res = await runAction(() => updateBusinessSettings(values));
       setResult(res);
       if (res.ok) {
         setSavedSlug(values.slug.trim().toLowerCase());
@@ -214,7 +215,9 @@ function useSlugCheck(businessId: string, slug: string, savedSlug: string) {
     const timer = setTimeout(() => {
       setState({ state: "checking", message: "Revisando…" });
       startCheck(async () => {
-        const res: SlugCheck = await checkSlugAvailability({ businessId, slug: value });
+        const res = await runAction(() => checkSlugAvailability({ businessId, slug: value }));
+        // Si la revisión falla, no se adivina: al guardar se vuelve a validar.
+        if (!("available" in res)) return setState({ state: "idle", message: "" });
         setState({ state: res.available ? "ok" : "taken", message: res.message });
       });
     }, 400);

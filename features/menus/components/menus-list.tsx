@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
+import { runAction } from "@/lib/action-client";
 import {
   createMenuAction,
   duplicateMenuAction,
@@ -61,7 +62,7 @@ export function MenusList({
 
   const run = (fn: () => Promise<{ ok: boolean; message?: string }>) =>
     startTransition(async () => {
-      const res = await fn();
+      const res = await runAction(fn);
       if (!res.ok) toast.error(res.message ?? "No pudimos guardar el cambio.");
       else if (res.message) toast.success(res.message);
       router.refresh();
@@ -70,7 +71,7 @@ export function MenusList({
   const toggle = (menuId: string, active: boolean) => {
     setPendingActive((p) => ({ ...p, [menuId]: active }));
     startTransition(async () => {
-      const res = await toggleMenu({ businessId, menuId, active });
+      const res = await runAction(() => toggleMenu({ businessId, menuId, active }));
       if (res.ok) toast.success(res.message);
       else toast.error(res.message);
       router.refresh();
@@ -86,7 +87,7 @@ export function MenusList({
     // Fuera de la transición: se oculta al instante, sin esperar al servidor.
     setHidden((h) => [...h, menu.id]);
     startTransition(async () => {
-      const res = await removeMenu({ businessId, menuId: menu.id });
+      const res = await runAction(() => removeMenu({ businessId, menuId: menu.id }));
       if (!res.ok) {
         setHidden((h) => h.filter((id) => id !== menu.id));
         toast.error(res.message);
@@ -102,7 +103,7 @@ export function MenusList({
         action: {
           label: "Deshacer",
           onClick: async () => {
-            const undo = await undoRemoveMenu({ businessId, menuId: menu.id });
+            const undo = await runAction(() => undoRemoveMenu({ businessId, menuId: menu.id }));
             if (undo.ok) {
               setHidden((h) => h.filter((id) => id !== menu.id));
               toast.success(undo.message);
@@ -249,7 +250,7 @@ function NewMenuForm({ businessId, menusHref }: { businessId: string; menusHref:
     e.preventDefault();
     setError(null);
     startCreate(async () => {
-      const res = await createMenuAction({ businessId, name });
+      const res = await runAction(() => createMenuAction({ businessId, name }));
       if (!res.ok) return setError(res.message);
       router.push(`${menusHref}/${res.data.menuId}`);
     });

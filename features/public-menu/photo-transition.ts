@@ -21,5 +21,13 @@ export function expandPhoto(photo: HTMLElement | null, update: () => void) {
     photo.style.viewTransitionName = "";
     update();
   });
-  void transition.finished.finally(() => delete root.dataset.fotoTransicion);
+  // Si el navegador la interrumpe (cambio de app, pestaña oculta), las promesas
+  // se rechazan con InvalidStateError: la hoja se abre igual, no es un error.
+  transition.ready.catch(() => {});
+  void transition.finished
+    .catch(() => {})
+    .finally(() => {
+      photo.style.viewTransitionName = "";
+      delete root.dataset.fotoTransicion;
+    });
 }

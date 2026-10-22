@@ -1,4 +1,4 @@
-# Cómo verificar qr-menu (Fases 0, 1 y 2)
+# Cómo verificar qr-menu (Fases 0 a 3)
 
 Guía paso a paso para probar en local (rama `develop`) todo lo construido hasta v0.2.x, y para revisar que un entorno de Vercel esté bien configurado.
 
@@ -42,33 +42,35 @@ El negocio demo es **Café El Portal** (link `cafe-el-portal`), con sucursales *
 
 ## 3. Mapa de rutas
 
-| Ruta                                    | Qué es                                                                   | Quién entra                                              |
-| --------------------------------------- | ------------------------------------------------------------------------ | -------------------------------------------------------- |
-| `/`                                     | Portada                                                                  | Todos                                                    |
-| `/styleguide`                           | Sistema de diseño (botones, colores, cargas…)                            | Todos en local y previews; en producción solo el equipo  |
-| `/entrar`                               | Entrar con contraseña o enlace por correo                                | Sin sesión                                               |
-| `/registro`                             | Crear cuenta de dueño                                                    | Sin sesión                                               |
-| `/recuperar`                            | Recuperar contraseña                                                     | Sin sesión                                               |
-| `/onboarding`                           | Crear el primer negocio (cuenta nueva)                                   | Con sesión                                               |
-| `/panel`                                | Te lleva al panel de tu negocio                                          | Dueño o encargado                                        |
-| `/panel/{negocio}`                      | **Inicio** del panel                                                     | Dueño o encargado                                        |
-| `/panel/{negocio}/productos`            | Catálogo, búsqueda y disponibilidad                                      | Dueño o encargado                                        |
-| `/panel/{negocio}/productos/nuevo`      | Nuevo producto                                                           | Dueño o encargado                                        |
-| `/panel/{negocio}/productos/categorias` | Categorías                                                               | Dueño o encargado                                        |
-| `/panel/{negocio}/menus`                | Menús: crear, duplicar, predeterminado, pausar                           | Dueño o encargado                                        |
-| `/panel/{negocio}/menus/{menú}`         | Editor del menú (se guarda solo)                                         | Dueño o encargado                                        |
-| `/panel/{negocio}/programacion`         | Franjas, semana (días × franjas) y fechas especiales                     | Franjas y "Todas": dueño. Sucursal: dueño o su encargado |
-| `/panel/{negocio}/sucursales`           | Sucursales (horario, entregas, mapa)                                     | Dueño (encargado: solo las suyas)                        |
-| `/panel/{negocio}/ajustes/negocio`      | Logo, portada, nombre, link y redes                                      | Solo dueño                                               |
-| `/panel/{negocio}/ajustes/pagos`        | Cuentas para transferencia                                               | Solo dueño                                               |
-| `/panel/{negocio}/ajustes/licencia`     | Mi plan                                                                  | Solo dueño                                               |
-| `/admin`                                | Super admin (provisional)                                                | Equipo de la plataforma con 2FA                          |
-| `/{negocio}`                            | Menú público: selector de sucursal (o el menú directo si tiene una sola) | Todos                                                    |
-| `/{negocio}/{sucursal}`                 | Menú público de la sucursal                                              | Todos                                                    |
-| `/demo`                                 | Lleva al negocio demo                                                    | Todos                                                    |
-| `/api/health`                           | Estado de la configuración                                               | Todos (solo sí/no)                                       |
+| Ruta                                      | Qué es                                                                   | Quién entra                                              |
+| ----------------------------------------- | ------------------------------------------------------------------------ | -------------------------------------------------------- |
+| `/`                                       | Portada                                                                  | Todos                                                    |
+| `/styleguide`                             | Sistema de diseño (botones, colores, cargas…)                            | Todos en local y previews; en producción solo el equipo  |
+| `/entrar`                                 | Entrar con contraseña o enlace por correo                                | Sin sesión                                               |
+| `/registro`                               | Crear cuenta de dueño                                                    | Sin sesión                                               |
+| `/recuperar`                              | Recuperar contraseña                                                     | Sin sesión                                               |
+| `/onboarding`                             | Crear el primer negocio (cuenta nueva)                                   | Con sesión                                               |
+| `/panel`                                  | Te lleva al panel de tu negocio                                          | Dueño o encargado                                        |
+| `/panel/{negocio}`                        | **Inicio** del panel                                                     | Dueño o encargado                                        |
+| `/panel/{negocio}/productos`              | Catálogo, búsqueda y disponibilidad                                      | Dueño o encargado                                        |
+| `/panel/{negocio}/productos/nuevo`        | Nuevo producto                                                           | Dueño o encargado                                        |
+| `/panel/{negocio}/productos/categorias`   | Categorías                                                               | Dueño o encargado                                        |
+| `/panel/{negocio}/menus`                  | Menús: crear, duplicar, predeterminado, pausar                           | Dueño o encargado                                        |
+| `/panel/{negocio}/menus/{menú}`           | Editor del menú (se guarda solo)                                         | Dueño o encargado                                        |
+| `/panel/{negocio}/programacion`           | Franjas, semana (días × franjas) y fechas especiales                     | Franjas y "Todas": dueño. Sucursal: dueño o su encargado |
+| `/panel/{negocio}/sucursales`             | Sucursales (horario, entregas, mapa)                                     | Dueño (encargado: solo las suyas)                        |
+| `/panel/{negocio}/ajustes/negocio`        | Logo, portada, nombre, link y redes                                      | Solo dueño                                               |
+| `/panel/{negocio}/ajustes/pagos`          | Cuentas para transferencia                                               | Solo dueño                                               |
+| `/panel/{negocio}/ajustes/licencia`       | Mi plan                                                                  | Solo dueño                                               |
+| `/panel/{negocio}/ajustes/notificaciones` | Avisos push en este dispositivo y sucursal que escucha                   | Dueño o encargado                                        |
+| `/admin`                                  | Super admin (provisional)                                                | Equipo de la plataforma con 2FA                          |
+| `/{negocio}`                              | Menú público: selector de sucursal (o el menú directo si tiene una sola) | Todos                                                    |
+| `/{negocio}/{sucursal}`                   | Menú público de la sucursal                                              | Todos                                                    |
+| `/demo`                                   | Lleva al negocio demo                                                    | Todos                                                    |
+| `/api/health`                             | Estado de la configuración                                               | Todos (solo sí/no)                                       |
+| `/api/cron/push`                          | Escalamiento de avisos y aviso de programados (cada minuto)              | Solo con `Authorization: Bearer <CRON_SECRET>`           |
 
-`{negocio}` es el id del negocio. No hace falta copiarlo: entra a `/panel` y te lleva solo. Pedidos, QR, Reseñas, Analíticas, Equipo, Apariencia y Notificaciones aparecen en la navegación, pero son de fases siguientes y muestran "Muy pronto".
+`{negocio}` es el id del negocio. No hace falta copiarlo: entra a `/panel` y te lleva solo. QR, Reseñas, Analíticas y Apariencia aparecen en la navegación, pero son de fases siguientes y muestran "Muy pronto".
 
 ## 4. Lista de verificación
 
@@ -149,7 +151,7 @@ Marca cada punto. Prueba en el celular (o con DevTools a 390 px) y en escritorio
 - [ ] Toca **+ Entradas**, **+ Platos fuertes**, **+ Bebidas** y **+ Postres**: cada una abre el catálogo; marca productos y toca **Agregar N productos**.
 - [ ] Arriba dice "Guardando…" → "Guardado". Recarga la página: todo sigue ahí.
 - [ ] Escribe un **precio especial** en un producto (vacío = precio del catálogo) y toca la **estrella** para destacarlo.
-- [ ] Ordena con **⋯ → Subir / Bajar** (secciones y productos). ⚠️ Arrastrar con la manija ⠿ todavía **no funciona** (ver "Pendientes conocidos").
+- [ ] Ordena **arrastrando la manija ⠿** y con **⋯ → Subir / Bajar** (secciones y productos).
 - [ ] **⋯ → Mover a** lleva un producto a otra sección. **⋯ → Eliminar sección** → **Deshacer**.
 - [ ] En la lista: **Duplicar** (queda "en pausa"), **Hacer predeterminado** (el interruptor del predeterminado no se puede apagar) y **Eliminar** → **Deshacer**.
 - [ ] Deja los menús como estaban: Cena y carta como predeterminado y borra tus menús de prueba.
@@ -192,7 +194,7 @@ Marca cada punto. Prueba en el celular (o con DevTools a 390 px) y en escritorio
 
 - [ ] En **Antigua**, franja **Desayunos**, toca "Desayuno chapín": se abre la hoja (en Chrome y Safari la foto de la tarjeta se expande) con foto grande, descripción, "Listo en unos 15 min" y el botón **Agregar · Q48.00**.
 - [ ] Huevos y Frijoles (obligatorios) ya vienen con la primera opción. Elige **Aguacate** → **Agregar · Q54.00**; sube la cantidad a 2 → **Q108.00**.
-- [ ] Toca **Agregar**: se cierra la hoja y aparece "Agregado: 2 × Desayuno chapín". (La barra del carrito llega en QRM-024.)
+- [ ] Toca **Agregar**: se cierra la hoja, la foto vuela a la barra del carrito y aparece **2 productos · Q108.00**.
 - [ ] En **Zona 1** el mismo platillo empieza en **Agregar · Q45.00** (sin precio de sucursal).
 - [ ] Con la hoja abierta, el botón **atrás** del celular la cierra sin salir del menú. El link con `?producto=…` abre la hoja directo.
 - [ ] El **+** de "Parrillada para compartir" agrega directo (sin opciones obligatorias); el de "Americano" abre la hoja para elegir el tamaño.
@@ -208,6 +210,137 @@ Marca cada punto. Prueba en el celular (o con DevTools a 390 px) y en escritorio
 - [ ] En `/styleguide#bienvenida` prueba los 4 estilos, las 3 curvas, los 3 fondos, los 3 tamaños de logo y la duración (1.2–3.0 s) con **Reproducir**. "Sin bienvenida" muestra el menú directo.
 - [ ] Rendimiento: en Chrome DevTools → Performance (CPU 4× más lenta), graba la carga del menú: la bienvenida solo anima `transform` y `opacity` (sin "Layout" ni "Paint" largos).
 - [ ] La configuración se edita en Apariencia → Bienvenida (QRM-033). Sin la función "bienvenida personalizada" del plan se usa la estándar.
+
+### Carrito (QRM-024): criterio "Sobrevive a recargar; se vacía al cambiar de sucursal con aviso"
+
+- [ ] En **Antigua** toca el **+** de dos platillos: la barra "N productos · Q… · Ver pedido" sube con un pequeño rebote, la foto vuela a ella y el contador rebota con cada uno.
+- [ ] Recarga la página: la barra sigue con lo mismo.
+- [ ] **Ver pedido** abre "Tu pedido · Antigua": cambia cantidades (el total se actualiza), quita uno con el bote de basura. El botón **atrás** del celular cierra la hoja.
+- [ ] **Vaciar** → aviso "Vaciamos tu pedido" con **Deshacer**, que lo recupera.
+- [ ] Con productos en el carrito, entra a **Zona 1**: el carrito se vacía y aparece "Vaciamos tu pedido de Antigua" con **Volver a Antigua**, que te regresa con tu pedido.
+- [ ] En el panel agota en Antigua algo que está en el carrito → en "Tu pedido" aparece "Se nos acabó aquí." con **Quitar**, y no cuenta en el total. Devuélvelo a como estaba.
+- [ ] El carrito vence a las 12 horas. Ver o borrar lo guardado: DevTools → Application → Local Storage → `qrm:carrito`.
+
+### Hoja de pedido (QRM-025): criterio "Mesa precargada desde QR; horarios programables según reglas"
+
+- [ ] Abre `/cafe-el-portal/zona-1?mesa=4` (como si escanearas el QR de la Mesa 4), toca **+** en un platillo y **Ver pedido**: la hoja ya dice "Zona 1 · Comer aquí · Mesa 4".
+- [ ] Toca **Pedir por WhatsApp** sin llenar nada: marca "Escribe tu nombre." y "Elige cómo vas a pagar." y lleva al primero.
+- [ ] Elige **Transferencia**: aparecen las cuentas (de la sucursal y del negocio) con **Copiar**.
+- [ ] Escribe tu nombre y pide: aviso "¡Todo listo!". Recarga y abre la hoja: tu nombre, el tipo y el pago ya vienen puestos. (El envío por WhatsApp llega en QRM-027/028.)
+- [ ] **A domicilio**: pide dirección y teléfono, muestra el envío y, si el pedido no llega al mínimo, "Te faltan Q… para el pedido a domicilio mínimo.".
+- [ ] **¿Para cuándo?** con la sucursal abierta: "Lo antes posible" o "Programar" con día y hora cada 15 min, desde ahora + la anticipación mínima de la sucursal (Sucursales → pedidos fuera de horario).
+- [ ] Con la sucursal cerrada y "Para cuando abra": arriba del menú "Ahorita estamos cerrados, pero puedes dejar tu pedido para mañana desde las 7:00." y la hoja ya trae el primer horario. Con "No permitir": "Ahorita estamos cerrados. Abrimos…" y el botón de pedir desactivado. Sin la función "pedidos programados" en el plan se comporta como "No permitir".
+- [ ] Una fecha especial **Cerrado** (Programación) no aparece entre los días para programar.
+- [ ] Borrar los datos guardados: DevTools → Application → Local Storage → `qrm:comensal`.
+
+### Ubicación a domicilio (QRM-026): criterio "Funciona con permiso, sin permiso y en navegador de Instagram"
+
+Hazlo en el celular (la ubicación necesita HTTPS: usa el preview de Vercel o producción). En **Zona 1** agrega más de Q50 y en "Ver pedido" elige **A domicilio**:
+
+- [ ] Dice "Compartiremos tu ubicación solo con Café El Portal para entregar tu pedido."
+- [ ] **Con permiso**: "Usar mi ubicación actual" → modal "Buscando tu ubicación…" → mapa con el pin, "Precisión ±N m" (si es peor que 150 m pide arrastrar el pin) y "A X km de Zona 1".
+- [ ] **Sin permiso** (niégalo cuando el navegador pregunte): "Sin problema: marca el lugar en el mapa o escribe la dirección." → **Elegir en el mapa**: el pin empieza en la sucursal; arrástralo o toca el mapa.
+- [ ] **Instagram**: manda el link por un mensaje de Instagram y ábrelo ahí. Aparece "Estás en el navegador de Instagram…" con **Copiar link**; "Elegir en el mapa" funciona aunque la ubicación esté bloqueada.
+- [ ] **Fuera de cobertura** (pin a más de 5 km de Zona 1, por ejemplo en Mixco): "Estás a 10.1 km y esta sucursal entrega hasta 5 km. ¿Pasas a recoger?" con **Pasar a recoger** (cambia a Para llevar). Si otra sucursal sí llega, también ofrece **Pedir a …**.
+- [ ] La dirección y el **punto de referencia** son obligatorios. Pide; recarga; elige A domicilio otra vez: aparece **Usar mi dirección guardada**.
+- [ ] Si la sucursal no exige ubicación (Sucursales → entregas), aparece "Prefiero solo escribir la dirección".
+- [ ] En producción el mapa necesita la llave de MapTiler o Stadia (`NEXT_PUBLIC_MAP_TILE_URL`); sin ella usa las teselas de OpenStreetMap (solo para desarrollo).
+
+### Crear pedido (QRM-027): criterio "50 pedidos simultáneos sin números repetidos; precio manipulado se ignora"
+
+- [ ] `pnpm test:integration` → `tests/integration/orders.test.ts` (crea un negocio de prueba y lo borra): 50 pedidos a la vez con números 2–51 sin repetir, precio enviado por el cliente ignorado, agotado / fuera del menú / opción inválida rechazados diciendo cuál, cobertura, horario y límite por dispositivo.
+- [ ] En el menú: arma un pedido, llena tus datos y toca **Pedir por WhatsApp** → modal "Preparando tu pedido…" → "Pedido #0021 recibido. Total: Q…". El carrito se vacía. (WhatsApp se abre en QRM-028.)
+- [ ] En Supabase (Table Editor → orders) aparece el pedido con su número, sus líneas (order_items) y el evento "new". **Bórralo al terminar** y devuelve `branches.next_order_number` a como estaba (la base es la misma de producción).
+- [ ] Con el panel agota algo que está en tu carrito y pide: "Revisa tu pedido: … (se nos acabó). Quítalo para continuar." Devuélvelo a como estaba.
+- [ ] Más de 5 pedidos en 10 minutos desde el mismo teléfono: "Ya enviaste varios pedidos seguidos. Intenta de nuevo en N minutos."
+
+### WhatsApp y confirmación (QRM-028): criterio "Funciona en Safari, Chrome e Instagram"
+
+Hazlo en el celular con producción o un preview (y luego borra el pedido de prueba, ver QRM-027). Pon tu propio número como WhatsApp de la sucursal en Sucursales si quieres recibir el mensaje.
+
+- [ ] Pide desde el menú: modal "Preparando tu pedido…" → se abre WhatsApp con el chat de la sucursal y el mensaje listo: "🧾 _Pedido #0021_ — Café El Portal · Zona 1", tu nombre, tipo y hora (o "🕒 … Programado para mañana 7:30"), productos con opciones, total, pago y, a domicilio, dirección, referencia y links de **Google Maps** y **Waze**. Los emojis se ven bien (no "�").
+- [ ] Regresa al navegador: estás en "¡Pedido #0021 recibido!" con el check y el confeti, el estado "Recibido", el resumen y, si pagas por transferencia, las cuentas con **Copiar**.
+- [ ] **Reenviar por WhatsApp** vuelve a abrir el chat; **Copiar pedido** copia el texto; **WhatsApp Web** abre la versión web (computadora sin la app).
+- [ ] Recarga la confirmación: ya no reabre WhatsApp sola.
+- [ ] Repite en **Safari (iPhone)**, **Chrome (Android)** y dentro de **Instagram** (manda el link por mensaje de Instagram y ábrelo ahí).
+- [ ] El link "Detalle" del mensaje abre la misma confirmación.
+
+### Correo de confirmación (QRM-029): criterio "Llega a Gmail sin spam; no se envía si no hay email; nunca al negocio"
+
+Requiere la cuenta de Resend (ver "Activar el correo" abajo). Sin `RESEND_API_KEY` no se envía nada y todo lo demás funciona igual.
+
+- [ ] Vista previa sin enviar nada: `/styleguide#correos` (la plantilla real con un pedido de ejemplo, HTML y texto).
+- [ ] Pide con tu correo de Gmail en "¿Quieres el resumen por correo?": en menos de un minuto llega "Recibimos tu pedido #00XX en Café El Portal · Zona 1" a la **bandeja de entrada** (no a spam), con el resumen, el total, el pago (y las cuentas si elegiste transferencia), "Ver mi pedido" y "WhatsApp de la sucursal". La confirmación dice "Te enviamos el resumen a tu correo.".
+- [ ] Repite en Outlook/Hotmail.
+- [ ] Pide **sin** correo: no se envía nada.
+- [ ] El correo nunca llega al del negocio; si respondes, la respuesta va al correo del negocio (Ajustes → Negocio).
+- [ ] Borra los pedidos de prueba (ver QRM-027).
+
+**Activar el correo (una vez):**
+
+1. En Resend → Domains, agrega el dominio de la app y copia en el DNS los registros que da Resend (SPF, DKIM) y un DMARC (`_dmarc` TXT `v=DMARC1; p=none;`). Espera a que diga "Verified".
+2. Resend → API Keys: crea una llave con permiso "Sending access".
+3. En Vercel (Production y Preview) y en `.env.local`: `RESEND_API_KEY=…` y `EMAIL_FROM=pedidos@tu-dominio`. Redeploy.
+
+### Bandeja de pedidos (QRM-030): criterio "Pedido aparece en < 2 s; otra sucursal no lo recibe"
+
+- [ ] Entra como **dueño** → Pedidos ("Todas"): arriba dice **En vivo**. Toca **Activar sonido** (los navegadores solo dejan sonar después de un toque).
+- [ ] En otro teléfono haz un pedido en Zona 1: la tarjeta aparece sola en menos de 2 s, suena, vibra, aparece "Nuevo pedido #00XX · Q…" y el título de la pestaña parpadea "(1) Pedido nuevo" hasta que alguien lo acepta.
+- [ ] En la tarjeta: **Aceptar** → **Empezar a preparar** → **Listo** → **Entregado** (o **Servido** si es para comer aquí). El comensal ve el estado nuevo en su confirmación (se actualiza sola cada 15 s).
+- [ ] Filtros: Activos, Programados (con hora a futuro), Entregados, Cancelados; y por tipo.
+- [ ] Toca la tarjeta → detalle: cliente con **Llamar** y **Responder por WhatsApp**, productos con opciones y notas, totales, historial; a domicilio, el **mapa** con el pin y **Abrir en Google Maps**, **Abrir en Waze** y **Copiar coordenadas**. **Cancelar** pide confirmación.
+- [ ] Entra como **encargado** (solo Antigua): un pedido de **Zona 1** no aparece ni suena; uno de **Antigua** sí. Abrir a mano el link del detalle de un pedido de Zona 1 → "Esta sección no está disponible".
+- [ ] Borra los pedidos de prueba y devuelve `next_order_number` (ver QRM-027).
+
+### Staff con PIN (QRM-031): criterio "PIN no funciona en dispositivo no autorizado; 5 fallos bloquean 5 min"
+
+Requiere **Anonymous Sign-Ins** activado en Supabase (Authentication → Sign In / Providers). En desarrollo el seed crea a "Rosa - caja" (Zona 1, PIN 1234) y "Luis - cocina" (Antigua, PIN 5678).
+
+- [ ] En un teléfono sin sesión abre `/staff`: te pide entrar. Entra como dueño → **Autorizar este dispositivo** (sucursal Zona 1, "Tablet de caja") → tu sesión se cierra en ese teléfono y aparece el **teclado de PIN** con el logo.
+- [ ] PIN de Antigua (5678) en la tablet de Zona 1 → "PIN incorrecto. Te quedan 4 intentos.". PIN 1234 → modal "Abriendo tu turno…" → bandeja de **Zona 1** con "Turno de Rosa - caja".
+- [ ] Haz un pedido en Antigua: no aparece. Uno en Zona 1: aparece al instante y suena. Rosa puede Aceptar/Listo/Entregado; en el historial queda quién lo hizo.
+- [ ] Con el turno abierto, abrir `/panel` → pide entrar (el staff no tiene acceso al panel).
+- [ ] **Cerrar turno** → vuelve al teclado.
+- [ ] 5 PIN incorrectos seguidos → "Demasiados intentos. Espera 5 minutos…"; ni el PIN correcto entra hasta que pasen.
+- [ ] En otro teléfono (no autorizado) `/staff` no muestra el teclado: pide entrar. El PIN no sirve ahí.
+- [ ] Panel → Más → **Equipo**: aparece "Tablet de caja"; **Revocar** → la tablet vuelve a decir "Este dispositivo no está autorizado" y su turno termina.
+- [ ] El plan Gratis no incluye staff con PIN: al autorizar, aviso de la función.
+
+### App del panel/staff y avisos push (QRM-032): criterio "Push llega en Android e iPhone instalado; repite a los 3 min"
+
+Requiere las llaves de push en `.env.local` (`pnpm push:keys --write`) y, en Vercel, las mismas tres variables (ver §5). El push real solo se puede probar en un teléfono y con un dominio https (Vercel): en `localhost` funciona en Chrome de la PC.
+
+**En la PC (Chrome, localhost):**
+
+- [ ] Entra como dueño → **Más → Notificaciones** → **Activar avisos de pedidos** (con "Todas las sucursales") → Chrome pide permiso → "Avisos activados en este dispositivo".
+- [ ] **Enviar aviso de prueba** → llega "Avisos activados ✓" y se queda en pantalla hasta tocarlo; al tocarlo abre la bandeja.
+- [ ] En otra pestaña haz un pedido en Zona 1 → llega **"Nuevo pedido #00XX · QXX.00"** / "Nombre · Para llevar · Zona 1". Tocarlo abre el **detalle del pedido** en el panel.
+- [ ] No lo aceptes: si el cron está programado (`pnpm push:cron --status`), a los 3 min llega **"#00XX sigue esperando"**, otra vez a los 6 y a los 9, y ya no más. Aceptarlo detiene los avisos. (Sin cron en local, simúlalo: `curl -H "Authorization: Bearer <CRON_SECRET>" http://localhost:3000/api/cron/push` después de 3 minutos.)
+- [ ] Elige "Solo Antigua" → **Guardar sucursal** → un pedido de Zona 1 ya no avisa en este dispositivo; uno de Antigua sí.
+- [ ] Entra como **encargado** (Antigua): con "Todas mis sucursales" solo recibe los de Antigua.
+- [ ] **Desactivar** → ya no llegan avisos. La franja "Recibe un aviso con cada pedido" vuelve a aparecer en Pedidos.
+
+**En Android (Chrome, con el dominio de Vercel):**
+
+- [ ] Abre `/panel` → menú ⋮ → **Instalar app** (o "Agregar a pantalla principal"): queda el ícono de la app. Ábrela.
+- [ ] Notificaciones → Activar → permitir. Bloquea el teléfono y haz un pedido desde otro dispositivo: suena, vibra y aparece en la pantalla bloqueada. Tocarlo abre el pedido **dentro de la app**.
+
+**En iPhone (iOS 16.4 o más, Safari):**
+
+- [ ] En Safari, Notificaciones muestra la guía "Compartir → Agregar a inicio" (no el botón): en Safari no hay push.
+- [ ] Agrega a inicio y abre la app desde el ícono → ahora sí aparece **Activar avisos de pedidos** → permitir. Prueba con la app cerrada y el teléfono bloqueado.
+
+**Staff con PIN (tablet de caja):**
+
+- [ ] En la tablet autorizada, abre turno → en la bandeja aparece **"Recibe un aviso con cada pedido" → Activar avisos de pedidos** → llega la prueba. (Instala `/staff` como app para que el iPhone/iPad reciba avisos.)
+- [ ] Un pedido de Zona 1 avisa en la tablet de Zona 1 y tocarlo abre `/staff/pedidos/…`; uno de Antigua no.
+- [ ] Si otra persona abre turno en la misma tablet, los avisos siguen llegando (se asocian al turno nuevo). Al desactivar a esa persona en Equipo, su tablet deja de recibirlos hasta que otro active los avisos.
+
+**Programados:**
+
+- [ ] Haz un pedido programado para dentro de 1 h o más → avisa al crearse ("Pedido programado #00XX…") y otra vez **30 min antes** ("Programado #00XX en 30 min").
+
+**Al terminar:** borra los pedidos de prueba como en QRM-027 y deja `next_order_number` como estaba. Las suscripciones de tus dispositivos pueden quedarse (Notificaciones → Desactivar para quitarlas).
 
 ### Encargado (permisos)
 
@@ -233,8 +366,18 @@ pnpm db:seed    # deja los datos de demo como estaban
 | `database`              | `DATABASE_URL` (pooler, puerto 6543) y `DIRECT_URL` (puerto 5432).                                                                                                                     |
 | `plans`                 | La base está vacía: desde tu PC con las variables de ese entorno, `pnpm db:deploy && SEED_SCOPE=base pnpm db:seed`.                                                                    |
 
-3. Opcionales: `app_url` (`NEXT_PUBLIC_APP_URL`), `map_tiles` (llave de MapTiler o Stadia; OSM solo sirve para desarrollo) y `sentry` (`NEXT_PUBLIC_SENTRY_DSN`, **sin** marcar Sensitive).
-4. En **Supabase → Authentication → URL Configuration** de ese proyecto: _Site URL_ = el dominio, y en _Redirect URLs_ agrega `https://<dominio>/auth/callback`.
+3. Opcionales: `app_url` (`NEXT_PUBLIC_APP_URL`), `map_tiles` (llave de MapTiler o Stadia; OSM solo sirve para desarrollo), `sentry` (`NEXT_PUBLIC_SENTRY_DSN`, **sin** marcar Sensitive), `web_push` y `cron_secret` (avisos de pedidos, abajo).
+4. **Avisos push (QRM-032).** Copia de tu `.env.local` a Vercel (Production y Preview) las líneas `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` y `CRON_SECRET` (las dos últimas como Sensitive) y haz un **Redeploy**. Usa las **mismas** llaves VAPID en todos los entornos: la base es compartida y una suscripción solo acepta avisos firmados con la llave con que se creó. Opcional: `VAPID_SUBJECT` (por defecto, el dominio de la app).
+5. **Cron del escalamiento (cada minuto).** Vercel Hobby solo permite crons diarios (y un cron más frecuente en `vercel.json` hace fallar el deploy), así que corre en Supabase con pg_cron + pg_net. Una sola vez, desde tu PC, cuando producción ya tenga `/api/cron/push`:
+
+   ```bash
+   pnpm push:cron https://<dominio>/api/cron/push
+   pnpm push:cron --status   # debe mostrar status_code 200 cada minuto
+   ```
+
+   La URL y `CRON_SECRET` quedan cifrados en Supabase Vault. `pnpm push:cron --off` lo apaga. Con el plan Pro de Vercel se puede usar Vercel Cron en su lugar (`"crons": [{ "path": "/api/cron/push", "schedule": "* * * * *" }]` en `vercel.json`): manda el mismo encabezado.
+
+6. En **Supabase → Authentication → URL Configuration** de ese proyecto: _Site URL_ = el dominio, y en _Redirect URLs_ agrega `https://<dominio>/auth/callback`.
 
 Mientras falte Supabase, el sitio no se cae: la portada funciona, `/entrar` muestra "El acceso todavía no está configurado en este entorno" y las rutas privadas piden entrar.
 
@@ -242,11 +385,20 @@ Mientras falte Supabase, el sitio no se cae: la portada funciona, `/entrar` mues
 
 Fallas detectadas en la revisión que se corrigen al final del MVP. No bloquean el uso: cada una tiene una alternativa.
 
-| #   | Dónde                    | Qué pasa                                                                                                                                                                                                                                                       | Alternativa mientras tanto                                    | Detectado                       |
-| --- | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- | ------------------------------- |
-| 1   | Menús → editor (QRM-017) | **Arrastrar** secciones y productos con la manija ⠿ (dedo, mouse o teclado) no los mueve.                                                                                                                                                                      | **⋯ → Subir / Bajar** sí funciona y se guarda solo.           | 2026-10-21, revisión de QRM-017 |
-| 2   | Menú público (QRM-020)   | El JS inicial pesa **~225 KB gzip** (presupuesto de la guía: ~130 KB). La página de inicio `/` ya pesa ~216 KB: el menú solo agrega ~9 KB. El peso viene de lo común a todas las páginas (Next 16 + React 19, layout raíz con Sentry, sonner, Radix y lucide). | Funciona bien; afecta el tiempo de carga en celulares lentos. | 2026-10-21, revisión de QRM-020 |
+| #   | Dónde                    | Qué pasa                                                                                                                                                                                                                                                                    | Alternativa mientras tanto                                    | Detectado                           |
+| --- | ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- | ----------------------------------- |
+| 1   | Menús → editor (QRM-017) | ~~**Arrastrar** secciones y productos con la manija ⠿ no los mueve.~~ **Resuelto**: confirmado en un navegador real el 2026-10-22 (el navegador de pruebas automáticas no permite arrastrar).                                                                               | —                                                             | 2026-10-21, revisión de QRM-017     |
+| 2   | Menú público (QRM-020)   | El JS inicial pesa **~225 KB gzip** (presupuesto de la guía: ~130 KB). La página de inicio `/` ya pesa ~216 KB: el menú solo agrega ~9 KB. El peso viene de lo común a todas las páginas (Next 16 + React 19, layout raíz con Sentry, sonner, Radix y lucide).              | Funciona bien; afecta el tiempo de carga en celulares lentos. | 2026-10-21, revisión de QRM-020     |
+| 3   | Producción (mapa)        | Falta `NEXT_PUBLIC_MAP_TILE_URL` (MapTiler o Stadia): se usan teselas de OpenStreetMap, no aptas para producción.                                                                                                                                                           | El mapa funciona, pero OSM puede bloquearlo.                  | 2026-10-20                          |
+| 4   | Producción (seguridad)   | ~~Solo se envía HSTS.~~ **Resuelto** (2026-10-22): `X-Frame-Options: DENY`, `frame-ancestors 'none'`, `nosniff`, `Referrer-Policy` y `Permissions-Policy` (ubicación solo para la app) en todas las rutas (`lib/security-headers.ts`). Falta una CSP completa para scripts. | Ninguna: corregir antes del release de la Fase 3.             | 2026-10-22, reporte de verificación |
+| 5   | SEO                      | ~~No hay robots.txt ni sitemap.xml.~~ **Resuelto** (2026-10-22): `app/robots.ts` y `app/sitemap.ts` (menús publicados, caché de 1 h). Sigue: las páginas inexistentes responden 200 (soft 404), mitigado con `noindex`.                                                     | No afecta a usuarios; afecta a Google.                        | 2026-10-22, reporte de verificación |
+| 6   | Menú público (QRM-022)   | ~~`Uncaught (in promise) InvalidStateError` al interrumpirse la transición de la foto.~~ **Resuelto** (2026-10-22): las promesas de la transición se atrapan.                                                                                                               | La hoja se abre igual.                                        | 2026-10-22, reporte de verificación |
+| 7   | Menú público (QRM-025)   | ~~Dos avisos que se contradicen con la sucursal cerrada.~~ **Resuelto** (2026-10-22): cerrada, solo se muestra su aviso. (La franja de desayuno del demo, 06:30, sigue antes de la apertura, 07:00.)                                                                        | Ajustar la franja del demo a 07:00.                           | 2026-10-22, reporte de verificación |
+| 8   | Demo                     | El WhatsApp de las sucursales del demo es `+502 0000-0000`: los pedidos de la demo no llegan a nadie.                                                                                                                                                                       | Poner un número real en Panel → Sucursales.                   | 2026-10-22, reporte de verificación |
+| 9   | Avisos push (QRM-032)    | Sin probar en teléfonos reales: Android con la app instalada, iPhone instalado (iOS 16.4+) y la tablet del staff. En local se probó el cifrado contra el RFC, los destinatarios y el escalamiento con un servicio de push simulado.                                         | Probar con el dominio de Vercel siguiendo §4 (QRM-032).       | 2026-10-22, QRM-032                 |
+| 10  | Avisos push (QRM-032)    | El escalamiento cada 3 min y el aviso de programados necesitan el cron de Supabase (`pnpm push:cron …`), que se programa cuando producción tenga `/api/cron/push`. Hasta entonces solo llega el primer aviso.                                                               | La bandeja abierta sigue sonando y parpadeando.               | 2026-10-22, QRM-032                 |
+| 11  | Avisos push (QRM-032)    | Si el navegador renueva la suscripción por su cuenta (`pushsubscriptionchange`, poco común), el dispositivo deja de recibir avisos hasta que se vuelvan a activar. La tablet del staff se re-asocia sola al abrir la bandeja; el panel no.                                  | Notificaciones → Activar otra vez.                            | 2026-10-22, QRM-032                 |
+
+El detalle de los puntos 4 a 8 y lo que se verificó está en [reporte-verificacion-2026-10-22.md](reporte-verificacion-2026-10-22.md).
 
 Para corregir el #2: analizar el bundle (`next build` con análisis de chunks) y revisar qué entra en el layout raíz: confirmar que Sentry se cargue de verdad diferido (`lib/sentry.ts`) y llevar `LoadingOverlay`/`Toaster` solo a las rutas que los usan.
-
-Para corregir el #1: revisar la integración de `@dnd-kit` en `features/menus/components/menu-editor.tsx` (sensores, `DndContext` anidados de secciones e ítems y `touch-action` de las manijas) en un navegador real, porque el navegador de pruebas automáticas no permite arrastrar.

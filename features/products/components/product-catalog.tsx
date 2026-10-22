@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
+import { runAction } from "@/lib/action-client";
 import { formatQ } from "@/lib/money";
 import {
   duplicate,
@@ -108,12 +109,14 @@ export function ProductCatalog({
     const key = `${product.id}:${scope ?? "all"}`;
     setPending((p) => ({ ...p, [key]: available }));
     startTransition(async () => {
-      const res = await setAvailability({
-        businessId,
-        productId: product.id,
-        available,
-        ...(scope ? { branchId: scope } : {}),
-      });
+      const res = await runAction(() =>
+        setAvailability({
+          businessId,
+          productId: product.id,
+          available,
+          ...(scope ? { branchId: scope } : {}),
+        }),
+      );
       if (!res.ok) toast.error(res.message);
       else
         toast.success(
@@ -134,7 +137,7 @@ export function ProductCatalog({
     // Fuera de la transición: se oculta al instante, sin esperar al servidor.
     setHidden((h) => [...h, product.id]);
     startTransition(async () => {
-      const res = await removeProduct({ businessId, productId: product.id });
+      const res = await runAction(() => removeProduct({ businessId, productId: product.id }));
       if (!res.ok) {
         setHidden((h) => h.filter((id) => id !== product.id));
         toast.error(res.message);
@@ -147,7 +150,9 @@ export function ProductCatalog({
         action: {
           label: "Deshacer",
           onClick: async () => {
-            const undo = await undoRemoveProduct({ businessId, productId: product.id });
+            const undo = await runAction(() =>
+              undoRemoveProduct({ businessId, productId: product.id }),
+            );
             if (undo.ok) {
               setHidden((h) => h.filter((id) => id !== product.id));
               toast.success(undo.message);
@@ -163,7 +168,7 @@ export function ProductCatalog({
 
   const run = (fn: () => Promise<{ ok: boolean; message?: string }>) =>
     startTransition(async () => {
-      const res = await fn();
+      const res = await runAction(fn);
       if (!res.ok) toast.error(res.message ?? "No pudimos guardar el cambio.");
       else if (res.message) toast.success(res.message);
       router.refresh();

@@ -1,3 +1,4 @@
+import { AuthRetryableFetchError, AuthSessionMissingError } from "@supabase/supabase-js";
 import { NextRequest } from "next/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -39,6 +40,28 @@ describe("updateSession", () => {
     getClaims.mockRejectedValue(new Error("fetch failed"));
     const { claims } = await updateSession(request());
     expect(claims).toBeNull();
+  });
+
+  it("reintenta una vez si falla la red al verificar la sesión", async () => {
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://x.supabase.co");
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY", FAKE_KEY);
+    getClaims
+      .mockResolvedValueOnce({ data: null, error: new AuthRetryableFetchError("fetch failed", 0) })
+      .mockResolvedValueOnce({ data: { claims: { sub: "u1" } }, error: null });
+    const { claims } = await updateSession(request());
+    expect(claims).toEqual({ sub: "u1" });
+    expect(getClaims).toHaveBeenCalledTimes(2);
+  });
+
+  it("sin sesión no reintenta ni registra error", async () => {
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://x.supabase.co");
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY", FAKE_KEY);
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+    getClaims.mockResolvedValue({ data: null, error: new AuthSessionMissingError() });
+    const { claims } = await updateSession(request());
+    expect(claims).toBeNull();
+    expect(getClaims).toHaveBeenCalledTimes(1);
+    expect(error).not.toHaveBeenCalled();
   });
 
   it("con sesión válida devuelve los claims", async () => {

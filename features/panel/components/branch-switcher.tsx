@@ -4,6 +4,7 @@ import { ChevronsUpDownIcon, StoreIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useOptimistic, useTransition } from "react";
 import { cn } from "cn";
+import { runAction } from "@/lib/action-client";
 import { selectBranch } from "../actions";
 import { ALL_BRANCHES } from "../branch-selection";
 import type { PanelBranch } from "../context";
@@ -54,7 +55,7 @@ export function BranchSwitcher({
           const branchId = e.target.value;
           startTransition(async () => {
             setOptimistic(branchId);
-            const result = await selectBranch({ businessId, branchId });
+            const result = await runAction(() => selectBranch({ businessId, branchId }));
             if (result.ok) router.refresh();
           });
         }}

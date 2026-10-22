@@ -3,16 +3,15 @@
 import { useSyncExternalStore } from "react";
 
 /**
- * La hoja de producto abierta vive en la URL (?producto=id): el botón "atrás"
- * del celular la cierra en lugar de salir del menú, y el link se puede
- * compartir. Se lee sin useSearchParams para no sacar el menú del HTML
+ * Las hojas del menú viven en la URL (?producto=id, ?pedido=1): el botón
+ * "atrás" del celular las cierra en lugar de salir del menú, y el link se
+ * puede compartir. Se lee sin useSearchParams para no sacar el menú del HTML
  * prerenderizado.
  */
 
-const PARAM = "producto";
 const listeners = new Set<() => void>();
-/** true si la entrada del historial la agregamos nosotros (entonces cerrar = atrás). */
-let pushed = false;
+/** Parámetros cuya entrada del historial agregamos nosotros (cerrar = atrás). */
+const pushed = new Set<string>();
 
 function emit() {
   listeners.forEach((l) => l());
@@ -20,7 +19,7 @@ function emit() {
 
 function subscribe(listener: () => void) {
   const onPop = () => {
-    pushed = false;
+    pushed.clear();
     listener();
   };
   listeners.add(listener);
@@ -31,33 +30,49 @@ function subscribe(listener: () => void) {
   };
 }
 
-const read = () => new URLSearchParams(window.location.search).get(PARAM);
+const read = (param: string) => new URLSearchParams(window.location.search).get(param);
 
-/** Id del producto con la hoja abierta (null en el servidor y sin hoja). */
-export function useOpenProductId() {
-  return useSyncExternalStore(subscribe, read, () => null);
+function sheetParam(param: string) {
+  return {
+    /** Valor del parámetro (null en el servidor y con la hoja cerrada). */
+    useValue: () =>
+      useSyncExternalStore(
+        subscribe,
+        () => read(param),
+        () => null,
+      ),
+    open(value: string) {
+      const url = new URL(window.location.href);
+      url.searchParams.set(param, value);
+      if (read(param)) window.history.replaceState(null, "", url);
+      else {
+        window.history.pushState(null, "", url);
+        pushed.add(param);
+      }
+      emit();
+    },
+    close() {
+      if (pushed.has(param)) {
+        pushed.delete(param);
+        window.history.back(); // popstate avisa a los suscriptores
+        return;
+      }
+      // Llegó con el link: se quita sin salir del menú.
+      const url = new URL(window.location.href);
+      url.searchParams.delete(param);
+      window.history.replaceState(null, "", url);
+      emit();
+    },
+  };
 }
 
-export function openProductSheet(productId: string) {
-  const url = new URL(window.location.href);
-  url.searchParams.set(PARAM, productId);
-  if (read()) window.history.replaceState(null, "", url);
-  else {
-    window.history.pushState(null, "", url);
-    pushed = true;
-  }
-  emit();
-}
+const productSheet = sheetParam("producto");
+const orderSheet = sheetParam("pedido");
 
-export function closeProductSheet() {
-  if (pushed) {
-    pushed = false;
-    window.history.back(); // popstate avisa a los suscriptores
-    return;
-  }
-  // Llegó con el link (?producto=…): se quita sin salir del menú.
-  const url = new URL(window.location.href);
-  url.searchParams.delete(PARAM);
-  window.history.replaceState(null, "", url);
-  emit();
-}
+export const useOpenProductId = productSheet.useValue;
+export const openProductSheet = productSheet.open;
+export const closeProductSheet = productSheet.close;
+
+export const useOrderSheetOpen = () => orderSheet.useValue() !== null;
+export const openOrderSheet = () => orderSheet.open("1");
+export const closeOrderSheet = orderSheet.close;

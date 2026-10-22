@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { EmptyState } from "@/components/feedback/empty-state";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { runAction } from "@/lib/action-client";
 import { moveCategoryAction, removeCategory, saveCategory, undoRemoveCategory } from "../actions";
 
 type Category = { id: string; name: string; productCount: number };
@@ -37,7 +38,7 @@ export function CategoriesManager({
   const add = (e: React.FormEvent) => {
     e.preventDefault();
     startBusy(async () => {
-      const res = await saveCategory({ businessId, name: newName });
+      const res = await runAction(() => saveCategory({ businessId, name: newName }));
       if (!res.ok) return void toast.error(res.message);
       toast.success(res.message);
       setNewName("");
@@ -48,7 +49,9 @@ export function CategoriesManager({
   const rename = () => {
     if (!editing) return;
     startBusy(async () => {
-      const res = await saveCategory({ businessId, categoryId: editing.id, name: editing.name });
+      const res = await runAction(() =>
+        saveCategory({ businessId, categoryId: editing.id, name: editing.name }),
+      );
       if (!res.ok) return void toast.error(res.message);
       setEditing(null);
       router.refresh();
@@ -59,7 +62,7 @@ export function CategoriesManager({
     // Fuera de la transición: se oculta al instante, sin esperar al servidor.
     setHidden((h) => [...h, category.id]);
     startBusy(async () => {
-      const res = await removeCategory({ businessId, categoryId: category.id });
+      const res = await runAction(() => removeCategory({ businessId, categoryId: category.id }));
       if (!res.ok) {
         setHidden((h) => h.filter((id) => id !== category.id));
         return void toast.error(res.message);
@@ -74,7 +77,9 @@ export function CategoriesManager({
           action: {
             label: "Deshacer",
             onClick: async () => {
-              const undo = await undoRemoveCategory({ businessId, deleted: res.data.deleted });
+              const undo = await runAction(() =>
+                undoRemoveCategory({ businessId, deleted: res.data.deleted }),
+              );
               if (undo.ok) {
                 setHidden((h) => h.filter((id) => id !== category.id));
                 toast.success(undo.message);
@@ -91,7 +96,7 @@ export function CategoriesManager({
 
   const move = (categoryId: string, direction: -1 | 1) =>
     startBusy(async () => {
-      const res = await moveCategoryAction({ businessId, categoryId, direction });
+      const res = await runAction(() => moveCategoryAction({ businessId, categoryId, direction }));
       if (!res.ok) toast.error(res.message);
       router.refresh();
     });

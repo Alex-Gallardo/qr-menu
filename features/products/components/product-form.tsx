@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { ImageUploader } from "@/features/media/components/image-uploader";
+import { runAction } from "@/lib/action-client";
 import type { ActionResult } from "@/lib/action-result";
 import { formatQ, parseQ } from "@/lib/money";
 import { saveProduct } from "../actions";
@@ -57,7 +58,7 @@ export function ProductForm({
     startSave(async () => {
       const values = form.getValues();
       setResult(null);
-      const res = await saveProduct(values);
+      const res = await runAction(() => saveProduct(values));
       if (res.ok && mode === "create") {
         router.push(listHref);
         router.refresh();

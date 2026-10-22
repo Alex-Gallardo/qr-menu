@@ -34,7 +34,8 @@ export type ProductSheetProps = {
   blockedReason: string | null;
   /** Otro platillo de la sección para cuando este se acabó. */
   suggestion: { id: string; name: string } | null;
-  onAdd: (line: ProductSheetLine) => void;
+  /** Recibe la foto de la hoja para que vuele a la barra del carrito. */
+  onAdd: (line: ProductSheetLine, photo: HTMLElement | null) => void;
   onSuggest: (productId: string) => void;
   onClose: () => void;
 };
@@ -61,6 +62,7 @@ function Sheet({
   onClose,
 }: ProductSheetProps) {
   const ref = useRef<HTMLDialogElement>(null);
+  const photoRef = useRef<HTMLDivElement>(null);
   const groups = product.optionGroups;
   const [selected, setSelected] = useState(() => defaultSelection(groups));
   const [quantity, setQuantity] = useState(1);
@@ -89,14 +91,17 @@ function Sheet({
       el?.querySelector<HTMLInputElement>("input:not(:disabled)")?.focus({ preventScroll: true });
       return;
     }
-    onAdd({
-      productId: product.id,
-      optionIds: selected,
-      optionNames: line.optionNames,
-      note: note.trim(),
-      quantity: line.quantity,
-      unitCents: line.unitCents,
-    });
+    onAdd(
+      {
+        productId: product.id,
+        optionIds: selected,
+        optionNames: line.optionNames,
+        note: note.trim(),
+        quantity: line.quantity,
+        unitCents: line.unitCents,
+      },
+      photoRef.current,
+    );
   }
 
   return (
@@ -113,6 +118,7 @@ function Sheet({
     >
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
         <div
+          ref={photoRef}
           className={cn(
             "relative grid aspect-[4/3] w-full place-items-center overflow-hidden bg-[var(--menu-soft)] text-[var(--menu-muted)] [view-transition-name:foto-producto]",
             soldOut && "grayscale",

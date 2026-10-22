@@ -8,6 +8,7 @@ const base: RouteContext = {
   isStaffSession: false,
   hasStaffDevice: false,
   maintenance: false,
+  isServerAction: false,
 };
 const ctx = (over: Partial<RouteContext>) => ({ ...base, ...over });
 
@@ -21,6 +22,22 @@ describe("decideRoute", () => {
       });
     },
   );
+
+  it.each(["/panel/abc/menus/x", "/staff/pedidos", "/entrar"])(
+    "una Server Action en %s nunca se redirige (la acción valida la sesión)",
+    (pathname) => {
+      expect(decideRoute(ctx({ pathname, isServerAction: true }))).toEqual({ type: "next" });
+      expect(decideRoute(ctx({ pathname, isServerAction: true, isUser: true }))).toEqual({
+        type: "next",
+      });
+    },
+  );
+
+  it("en mantenimiento una Server Action también se detiene", () => {
+    expect(
+      decideRoute(ctx({ pathname: "/panel/abc", isServerAction: true, maintenance: true })),
+    ).toEqual({ type: "maintenance" });
+  });
 
   it("con sesión deja pasar al panel", () => {
     expect(decideRoute(ctx({ pathname: "/panel", isUser: true }))).toEqual({ type: "next" });

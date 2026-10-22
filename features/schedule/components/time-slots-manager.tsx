@@ -10,6 +10,7 @@ import { Field, FormMessage } from "@/components/forms/field";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
+import { runAction } from "@/lib/action-client";
 import { removeSlot, saveSlot, toggleSlot, undoRemoveSlot } from "../actions";
 import { slotFormSchema } from "../schemas";
 import {
@@ -72,7 +73,7 @@ export function TimeSlotsManager({
   const toggle = (slotId: string, active: boolean) => {
     setPendingActive((p) => ({ ...p, [slotId]: active }));
     startTransition(async () => {
-      const res = await toggleSlot({ businessId, slotId, active });
+      const res = await runAction(() => toggleSlot({ businessId, slotId, active }));
       if (res.ok) toast.success(res.message);
       else toast.error(res.message);
       router.refresh();
@@ -88,7 +89,7 @@ export function TimeSlotsManager({
     // Fuera de la transición: se oculta al instante, sin esperar al servidor.
     setHidden((h) => [...h, slot.id]);
     startTransition(async () => {
-      const res = await removeSlot({ businessId, slotId: slot.id });
+      const res = await runAction(() => removeSlot({ businessId, slotId: slot.id }));
       if (!res.ok) {
         setHidden((h) => h.filter((id) => id !== slot.id));
         toast.error(res.message);
@@ -105,7 +106,7 @@ export function TimeSlotsManager({
           action: {
             label: "Deshacer",
             onClick: async () => {
-              const undo = await undoRemoveSlot({ businessId, slotId: slot.id });
+              const undo = await runAction(() => undoRemoveSlot({ businessId, slotId: slot.id }));
               if (undo.ok) {
                 setHidden((h) => h.filter((id) => id !== slot.id));
                 toast.success(undo.message);
@@ -288,7 +289,7 @@ function SlotForm({
     }
     setError(null);
     startSave(async () => {
-      const res = await saveSlot(parsed.data);
+      const res = await runAction(() => saveSlot(parsed.data));
       if (!res.ok) return setError(res.message);
       toast.success(res.message);
       onSaved();

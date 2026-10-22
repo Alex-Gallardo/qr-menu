@@ -33,7 +33,7 @@ import {
   Trash2Icon,
   XIcon,
 } from "lucide-react";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useId, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { cn } from "cn";
 import { SaveIndicator } from "@/components/feedback/save-indicator";
@@ -157,6 +157,8 @@ export function MenuEditor({
     });
   };
 
+  // id estable: sin él, dnd-kit numera "DndDescribedBy-N" distinto en servidor y navegador.
+  const dndId = useId();
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
@@ -236,6 +238,7 @@ export function MenuEditor({
       </section>
 
       <DndContext
+        id={dndId}
         sensors={sensors}
         collisionDetection={closestCenter}
         modifiers={[restrictToVerticalAxis]}
@@ -351,6 +354,7 @@ function SectionCard({
     isDragging,
   } = useSortable({ id: section.key });
   const [showDescription, setShowDescription] = useState(section.description !== "");
+  const dndId = useId();
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
@@ -451,6 +455,7 @@ function SectionCard({
         </p>
       ) : (
         <DndContext
+          id={dndId}
           sensors={sensors}
           collisionDetection={closestCenter}
           modifiers={[restrictToVerticalAxis, restrictToParentElement]}

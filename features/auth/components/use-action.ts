@@ -1,7 +1,7 @@
 "use client";
 
-import { unstable_rethrow } from "next/navigation";
 import { useState, useTransition } from "react";
+import { runAction } from "@/lib/action-client";
 import type { ActionResult } from "../actions";
 
 /**
@@ -15,13 +15,8 @@ export function useAction<TInput>(action: (input: TInput) => Promise<ActionResul
   const run = (input: TInput) =>
     startTransition(async () => {
       setResult(null);
-      try {
-        setResult(await action(input));
-      } catch (error) {
-        // redirect() de Next se propaga como excepción interna: no es un error real.
-        unstable_rethrow(error);
-        setResult({ ok: false, message: "Parece que se fue el internet. Probemos otra vez." });
-      }
+      // redirect() de Next se propaga (no es un error real); lo demás vuelve como mensaje.
+      setResult(await runAction(() => action(input)));
     });
 
   return { run, pending, result };

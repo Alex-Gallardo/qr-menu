@@ -54,6 +54,34 @@ export function formatDateEs(isoDate: string, now: Date = new Date()) {
   }).format(date);
 }
 
+const timeFormatter = new Intl.DateTimeFormat("es-GT", {
+  timeZone: GT_TIMEZONE,
+  hour: "numeric",
+  minute: "2-digit",
+});
+const dayFormatter = new Intl.DateTimeFormat("es-GT", {
+  timeZone: GT_TIMEZONE,
+  day: "numeric",
+  month: "short",
+});
+
+/**
+ * Node separa "a. m." con espacio duro (U+00A0) y Chrome con espacio normal:
+ * sin normalizar, el HTML del servidor no coincide con el del navegador y
+ * React marca error de hidratación.
+ */
+const plainSpaces = (text: string) => text.replace(/\s/g, " "); // \s incluye U+00A0 y U+202F
+
+/** Instante → "11:51 a. m." en Guatemala. */
+export const formatTimeGT = (date: Date) => plainSpaces(timeFormatter.format(date));
+
+/** "11:51 a. m." si es hoy en Guatemala; si no, "21 oct, 11:51 a. m.". */
+export function formatWhenGT(date: Date, now: Date = new Date()) {
+  const time = formatTimeGT(date);
+  if (todayInGuatemala(date) === todayInGuatemala(now)) return time;
+  return `${plainSpaces(dayFormatter.format(date))}, ${time}`;
+}
+
 /** Fecha de la base (@db.Date, medianoche UTC) → "YYYY-MM-DD". */
 export const dateOnly = (date: Date) => date.toISOString().slice(0, 10);
 

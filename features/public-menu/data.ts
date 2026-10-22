@@ -56,6 +56,20 @@ export async function getPublicBusiness(slug: string) {
           splash_frequency: true,
         },
       },
+      // Cuentas para transferencia: se muestran al comensal que elige Transferencia.
+      bank_accounts: {
+        where: { is_active: true },
+        orderBy: [{ sort: "asc" }, { id: "asc" }],
+        select: {
+          id: true,
+          branch_id: true,
+          bank_name: true,
+          account_type: true,
+          account_number: true,
+          holder_name: true,
+          instructions: true,
+        },
+      },
       branches: {
         where: { hidden_by_license: false },
         orderBy: [{ sort: "asc" }, { created_at: "asc" }],
@@ -74,6 +88,14 @@ export async function getPublicBusiness(slug: string) {
           accepts_dine_in: true,
           accepts_takeout: true,
           accepts_delivery: true,
+          accepts_transfer: true,
+          delivery_fee_cents: true,
+          delivery_radius_km: true,
+          min_order_cents: true,
+          delivery_requires_location: true,
+          preorder_mode: true,
+          preorder_min_lead_min: true,
+          preorder_max_days: true,
           hours: { select: { weekday: true, opens: true, closes: true } },
         },
       },
@@ -91,6 +113,8 @@ export async function getPublicBusiness(slug: string) {
     splash: normalizeSplash(business.theme, theme, hasFeature(entitlements, "custom_splash")),
     /** Licencia suspendida o cancelada → "Menú no disponible temporalmente". */
     menuOnline: entitlements.menuOnline,
+    /** Pedidos programados (función del plan). */
+    preorders: hasFeature(entitlements, "preorders"),
     /** Indexable solo si publicó y su licencia está en línea. */
     indexable: business.published && entitlements.menuOnline,
   };
@@ -107,7 +131,17 @@ export async function getBranchMenu(
   "use cache";
   cacheLife("hours");
   cacheTag(tags.business(businessId), tags.branch(branchId));
+  return queryBranchMenu(businessId, branchId);
+}
 
+/**
+ * La misma lectura sin caché: createOrder valida contra la disponibilidad y
+ * los precios de este momento, no contra la página cacheada.
+ */
+export async function queryBranchMenu(
+  businessId: string,
+  branchId: string,
+): Promise<BranchMenuPayload> {
   const today = todayInGuatemala();
   const [products, menus, slots, rules, overrides] = await Promise.all([
     db().products.findMany({
@@ -223,4 +257,29 @@ export async function getBranchMenu(
     })),
     overrides: overrides.map((o) => ({ ...o, date: dateOnly(o.date) })),
   });
+}
+
+/** Negocios indexables (publicados y con la licencia en línea) para sitemap.xml. */
+export async function listIndexableBusinesses() {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("sitemap");
+  const businesses = await db().businesses.findMany({
+    where: { published: true },
+    orderBy: { created_at: "asc" },
+    select: {
+      id: true,
+      slug: true,
+      updated_at: true,
+      branches: {
+        where: { hidden_by_license: false },
+        orderBy: [{ sort: "asc" }, { created_at: "asc" }],
+        select: { slug: true },
+      },
+    },
+  });
+  const online = await Promise.all(businesses.map((b) => getEntitlements(b.id)));
+  return businesses
+    .filter((_, i) => online[i]!.menuOnline)
+    .map((b) => ({ slug: b.slug, updatedAt: b.updated_at, branches: b.branches }));
 }
