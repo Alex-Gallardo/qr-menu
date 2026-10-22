@@ -36,6 +36,7 @@ export function OrderConfirmation({
   whatsappUrl,
   bankAccounts,
   menuHref,
+  emailNotice,
 }: {
   orderId: string;
   status: string;
@@ -46,6 +47,8 @@ export function OrderConfirmation({
   whatsappUrl: string;
   bankAccounts: BankAccount[];
   menuHref: string;
+  /** Dejó su correo y el envío está activo: "Te enviamos el resumen a tu correo". */
+  emailNotice: boolean;
 }) {
   const webUrl = `https://web.whatsapp.com/send?phone=${branchWhatsapp.replace(/\D/g, "")}&text=${encodeURIComponent(message)}`;
 
@@ -114,6 +117,9 @@ export function OrderConfirmation({
         >
           Estado: {statusLabel}
         </p>
+        {emailNotice ? (
+          <p className="type-small text-[var(--menu-muted)]">Te enviamos el resumen a tu correo.</p>
+        ) : null}
       </section>
 
       <section className="grid gap-3 rounded-[var(--menu-radius)] border border-[var(--menu-line)] bg-[var(--menu-surface)] p-4">

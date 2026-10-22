@@ -263,6 +263,23 @@ Hazlo en el celular con producción o un preview (y luego borra el pedido de pru
 - [ ] Repite en **Safari (iPhone)**, **Chrome (Android)** y dentro de **Instagram** (manda el link por mensaje de Instagram y ábrelo ahí).
 - [ ] El link "Detalle" del mensaje abre la misma confirmación.
 
+### Correo de confirmación (QRM-029): criterio "Llega a Gmail sin spam; no se envía si no hay email; nunca al negocio"
+
+Requiere la cuenta de Resend (ver "Activar el correo" abajo). Sin `RESEND_API_KEY` no se envía nada y todo lo demás funciona igual.
+
+- [ ] Vista previa sin enviar nada: `/styleguide#correos` (la plantilla real con un pedido de ejemplo, HTML y texto).
+- [ ] Pide con tu correo de Gmail en "¿Quieres el resumen por correo?": en menos de un minuto llega "Recibimos tu pedido #00XX en Café El Portal · Zona 1" a la **bandeja de entrada** (no a spam), con el resumen, el total, el pago (y las cuentas si elegiste transferencia), "Ver mi pedido" y "WhatsApp de la sucursal". La confirmación dice "Te enviamos el resumen a tu correo.".
+- [ ] Repite en Outlook/Hotmail.
+- [ ] Pide **sin** correo: no se envía nada.
+- [ ] El correo nunca llega al del negocio; si respondes, la respuesta va al correo del negocio (Ajustes → Negocio).
+- [ ] Borra los pedidos de prueba (ver QRM-027).
+
+**Activar el correo (una vez):**
+
+1. En Resend → Domains, agrega el dominio de la app y copia en el DNS los registros que da Resend (SPF, DKIM) y un DMARC (`_dmarc` TXT `v=DMARC1; p=none;`). Espera a que diga "Verified".
+2. Resend → API Keys: crea una llave con permiso "Sending access".
+3. En Vercel (Production y Preview) y en `.env.local`: `RESEND_API_KEY=…` y `EMAIL_FROM=pedidos@tu-dominio`. Redeploy.
+
 ### Encargado (permisos)
 
 - [ ] Sal y entra como **encargado** → el selector solo muestra **Antigua** (sin "Todas").
