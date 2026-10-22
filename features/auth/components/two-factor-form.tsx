@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { Field, FormMessage } from "@/components/forms/field";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { runAction } from "@/lib/action-client";
 import { enrollTotp, verifyTotp, type TotpEnrollment } from "../actions";
 import { useAction } from "./use-action";
 
@@ -36,7 +37,7 @@ export function TwoFactorForm(props: Props) {
           type="button"
           loading={enrolling}
           className="w-full"
-          onClick={() => startEnroll(async () => setEnrollment(await enrollTotp()))}
+          onClick={() => startEnroll(async () => setEnrollment(await runAction(enrollTotp)))}
         >
           Generar mi código QR
         </Button>

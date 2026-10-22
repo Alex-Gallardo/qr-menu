@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import { runAction } from "@/lib/action-client";
 import { withLoading } from "@/lib/loading/store";
 import { setBusinessImage } from "../actions";
 import { ImageUploader } from "./image-uploader";
@@ -23,7 +24,7 @@ export function BusinessImages({
   const [images, setImages] = useState({ logo_url: logoUrl, cover_url: coverUrl });
 
   const persist = async (field: Field, url: string | null) => {
-    const res = await setBusinessImage({ businessId, field, url });
+    const res = await runAction(() => setBusinessImage({ businessId, field, url }));
     if (res.ok) {
       setImages((prev) => ({ ...prev, [field]: url }));
       router.refresh();

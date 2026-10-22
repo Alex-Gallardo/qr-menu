@@ -5,15 +5,9 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { runAction } from "@/lib/action-client";
+import { formatWhenGT } from "@/lib/gt-time";
 import { revokeDeviceAction } from "../actions";
-
-const dateFmt = new Intl.DateTimeFormat("es-GT", {
-  timeZone: "America/Guatemala",
-  day: "numeric",
-  month: "short",
-  hour: "numeric",
-  minute: "2-digit",
-});
 
 /** Dispositivos autorizados para el staff con PIN, con "Revocar". */
 export function DevicesList({
@@ -54,7 +48,7 @@ export function DevicesList({
             <p className="type-small text-muted-foreground">
               {d.branch.name} ·{" "}
               {d.lastSeenAt
-                ? `último turno ${dateFmt.format(new Date(d.lastSeenAt))}`
+                ? `último turno ${formatWhenGT(new Date(d.lastSeenAt))}`
                 : "sin turnos todavía"}
             </p>
           </div>
@@ -67,7 +61,9 @@ export function DevicesList({
                 loading={pending}
                 onClick={() =>
                   startTransition(async () => {
-                    const result = await revokeDeviceAction({ businessId, deviceId: d.id });
+                    const result = await runAction(() =>
+                      revokeDeviceAction({ businessId, deviceId: d.id }),
+                    );
                     if (result.ok) toast.success(result.message);
                     else toast.error(result.message);
                     setConfirm(null);

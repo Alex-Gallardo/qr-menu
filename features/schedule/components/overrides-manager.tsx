@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Field, FormMessage } from "@/components/forms/field";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { runAction } from "@/lib/action-client";
 import { formatDateEs } from "@/lib/gt-time";
 import { removeOverrideAction, saveOverrideAction } from "../actions";
 import type { OverrideRow } from "../program-server";
@@ -60,7 +61,7 @@ export function OverridesManager({
 
   const save = (input: Record<string, unknown>, after?: () => void) =>
     startTransition(async () => {
-      const res = await saveOverrideAction({ businessId, branchId, ...input });
+      const res = await runAction(() => saveOverrideAction({ businessId, branchId, ...input }));
       if (!res.ok) return void toast.error(res.message);
       toast.success(res.message);
       after?.();
@@ -70,7 +71,7 @@ export function OverridesManager({
   const remove = (row: OverrideRow) => {
     setHidden((h) => [...h, row.id]);
     startTransition(async () => {
-      const res = await removeOverrideAction({ businessId, overrideId: row.id });
+      const res = await runAction(() => removeOverrideAction({ businessId, overrideId: row.id }));
       if (!res.ok) {
         setHidden((h) => h.filter((id) => id !== row.id));
         return void toast.error(res.message);
@@ -81,7 +82,7 @@ export function OverridesManager({
         action: {
           label: "Deshacer",
           onClick: async () => {
-            const undo = await saveOverrideAction(res.data.restore);
+            const undo = await runAction(() => saveOverrideAction(res.data.restore));
             if (undo.ok) {
               toast.success("Recuperamos la fecha especial.");
               router.refresh();

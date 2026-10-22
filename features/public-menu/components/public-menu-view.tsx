@@ -19,6 +19,7 @@ import { createOrderAction } from "@/features/orders/actions";
 import { clientSessionId } from "@/features/orders/client-session";
 import { orderTiming, type PreorderMode } from "@/features/orders/preorder";
 import { isOnAnyMenu, unitPrice } from "@/features/orders/pricing";
+import { isNetworkError } from "@/lib/action-client";
 import { LoadingCancelledError } from "@/lib/loading/controller";
 import { withLoading } from "@/lib/loading/store";
 import { hasRequiredGroups } from "@/features/products/options";
@@ -429,7 +430,9 @@ export function PublicMenuView({ business, branch, payload, selectorHref }: Prop
     } catch (error) {
       if (error instanceof LoadingCancelledError) return;
       toast.error(
-        "Parece que se fue el internet. Tu pedido sigue guardado aquí; toca para reintentar.",
+        isNetworkError(error, navigator.onLine)
+          ? "Parece que se fue el internet. Tu pedido sigue guardado aquí; toca para reintentar."
+          : "No pudimos enviar tu pedido. Sigue guardado aquí; toca para reintentar.",
       );
       return;
     }

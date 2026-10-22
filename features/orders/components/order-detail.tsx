@@ -17,6 +17,8 @@ import { cn } from "cn";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatCoords, mapLinks } from "@/features/location/lib/coords";
+import { runAction } from "@/lib/action-client";
+import { formatTimeGT, formatWhenGT, todayInGuatemala } from "@/lib/gt-time";
 import { formatQ } from "@/lib/money";
 import { formatPhone } from "@/lib/phone";
 import { ORDER_TYPE_LABELS, PAY_METHOD_LABELS } from "../checkout";
@@ -31,12 +33,6 @@ import { useOrdersRealtime } from "./use-orders-realtime";
 const LocationMap = dynamic(() => import("@/features/location/components/location-map"), {
   ssr: false,
   loading: () => <Skeleton className="size-full rounded-none" />,
-});
-
-const timeFmt = new Intl.DateTimeFormat("es-GT", {
-  timeZone: "America/Guatemala",
-  hour: "numeric",
-  minute: "2-digit",
 });
 
 /**
@@ -65,6 +61,7 @@ export function OrderDetail({
     },
   });
 
+  const createdAt = new Date(order.createdAt);
   const next = primaryAction(order.status, order.orderType);
   const links = order.location ? mapLinks(order.location) : null;
   const customerChat = order.customer.phone
@@ -75,7 +72,9 @@ export function OrderDetail({
 
   function move(to: OrderStatus) {
     startTransition(async () => {
-      const result = await updateOrderStatusAction({ businessId, orderId: order.id, to });
+      const result = await runAction(() =>
+        updateOrderStatusAction({ businessId, orderId: order.id, to }),
+      );
       if (result.ok)
         toast.success(`${orderNumberLabel(order.number)}: ${STATUS_LABELS[to].toLowerCase()}.`);
       else toast.error(result.message);
@@ -125,7 +124,10 @@ export function OrderDetail({
             ? `Programado para ${scheduledLabel(new Date(order.scheduledFor).toISOString())}`
             : "Lo antes posible"}
           {" · "}
-          {order.branch.name} · pedido a las {timeFmt.format(new Date(order.createdAt))}
+          {order.branch.name} ·{" "}
+          {todayInGuatemala(createdAt) === todayInGuatemala()
+            ? `pedido a las ${formatTimeGT(createdAt)}`
+            : `pedido el ${formatWhenGT(createdAt)}`}
         </p>
         {!order.whatsappOpened ? (
           <p className="type-small text-muted-foreground">
@@ -319,7 +321,9 @@ export function OrderDetail({
         <ol className="grid gap-1">
           {order.events.map((e, i) => (
             <li key={i} className="type-small flex gap-3 text-muted-foreground">
-              <span className="w-16 tabular-nums">{timeFmt.format(new Date(e.at))}</span>
+              <span className="shrink-0 whitespace-nowrap tabular-nums">
+                {formatWhenGT(new Date(e.at))}
+              </span>
               <span className="font-semibold text-foreground">{STATUS_LABELS[e.status]}</span>
             </li>
           ))}

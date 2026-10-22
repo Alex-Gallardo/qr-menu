@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { cn } from "cn";
 import { Button } from "@/components/ui/button";
 import { useNowMinute } from "@/features/public-menu/use-now";
+import { runAction } from "@/lib/action-client";
 import { formatQ } from "@/lib/money";
 import { ORDER_TYPE_LABELS, PAY_METHOD_LABELS, type OrderType } from "../checkout";
 import type { InboxOrder } from "../inbox";
@@ -125,7 +126,9 @@ export function OrderInbox({
     setMoved((m) => ({ ...m, [order.id]: change }));
     setBusyId(order.id);
     startTransition(async () => {
-      const result = await updateOrderStatusAction({ businessId, orderId: order.id, to });
+      const result = await runAction(() =>
+        updateOrderStatusAction({ businessId, orderId: order.id, to }),
+      );
       if (result.ok) {
         toast.success(`${orderNumberLabel(order.number)}: ${STATUS_LABELS[to].toLowerCase()}.`);
       } else {

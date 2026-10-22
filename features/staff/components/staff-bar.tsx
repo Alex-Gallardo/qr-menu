@@ -3,7 +3,9 @@
 import { LogOutIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { runAction } from "@/lib/action-client";
 import { endShiftAction } from "../actions";
 
 /** Barra del turno: negocio, sucursal, quién atiende y "Cerrar turno". */
@@ -34,7 +36,11 @@ export function StaffBar({
           loading={pending}
           onClick={() =>
             startTransition(async () => {
-              await endShiftAction();
+              const result = await runAction(endShiftAction);
+              if (!result.ok) {
+                toast.error(result.message);
+                return;
+              }
               router.replace("/staff");
               router.refresh();
             })

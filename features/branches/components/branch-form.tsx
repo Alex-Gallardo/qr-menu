@@ -20,6 +20,7 @@ import { Switch } from "@/components/ui/switch";
 import { slugify } from "@/features/businesses/slug";
 import { LocationPicker } from "@/features/location/components/location-picker";
 import type { Coords } from "@/features/location/lib/coords";
+import { runAction } from "@/lib/action-client";
 import type { ActionResult } from "@/lib/action-result";
 import { createBranch, updateBranch } from "../actions";
 import { WEEKDAYS } from "../hours";
@@ -86,7 +87,7 @@ export function BranchForm({
       const values = form.getValues();
       setResult(null);
       if (mode === "create") {
-        const res = await createBranch(values);
+        const res = await runAction(() => createBranch(values));
         if (res.ok) {
           router.push(listHref);
           router.refresh();
@@ -94,7 +95,7 @@ export function BranchForm({
         }
         setResult(res);
       } else {
-        const res = await updateBranch(values);
+        const res = await runAction(() => updateBranch(values));
         setResult(res);
         if (res.ok) form.reset(values);
       }

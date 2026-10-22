@@ -11,6 +11,7 @@ import { EmptyState } from "@/components/feedback/empty-state";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
+import { runAction } from "@/lib/action-client";
 import {
   moveBankAccountAction,
   removeBankAccount,
@@ -51,7 +52,7 @@ export function BankAccountsManager({
   const remove = (account: BankAccountRow) =>
     startBusy(async () => {
       setHidden((h) => [...h, account.id]);
-      const res = await removeBankAccount({ businessId, accountId: account.id });
+      const res = await runAction(() => removeBankAccount({ businessId, accountId: account.id }));
       if (!res.ok) {
         setHidden((h) => h.filter((id) => id !== account.id));
         toast.error(res.message);
@@ -64,7 +65,9 @@ export function BankAccountsManager({
         action: {
           label: "Deshacer",
           onClick: async () => {
-            const undo = await undoRemoveBankAccount({ businessId, account: res.data.account });
+            const undo = await runAction(() =>
+              undoRemoveBankAccount({ businessId, account: res.data.account }),
+            );
             if (undo.ok) {
               setHidden((h) => h.filter((id) => id !== account.id));
               toast.success(undo.message);
@@ -79,7 +82,7 @@ export function BankAccountsManager({
 
   const run = (fn: () => Promise<{ ok: boolean; message?: string }>) =>
     startBusy(async () => {
-      const res = await fn();
+      const res = await runAction(fn);
       if (!res.ok) toast.error(res.message ?? "No pudimos guardar el cambio.");
       router.refresh();
     });
@@ -235,7 +238,7 @@ function AccountForm({
   const onSubmit = form.handleSubmit(() =>
     startSave(async () => {
       setError(null);
-      const res = await saveBankAccount(form.getValues());
+      const res = await runAction(() => saveBankAccount(form.getValues()));
       if (!res.ok) {
         setError(res.message);
         return;

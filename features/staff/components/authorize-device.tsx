@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { runAction } from "@/lib/action-client";
 import { LoadingCancelledError } from "@/lib/loading/controller";
 import { withLoading } from "@/lib/loading/store";
 import { authorizeDeviceAction } from "../actions";
@@ -37,7 +38,7 @@ export function AuthorizeDevice({ options }: { options: Option[] }) {
     setError(null);
     try {
       const result = await withLoading("Autorizando este dispositivo…", () =>
-        authorizeDeviceAction({ businessId, branchId, name }),
+        runAction(() => authorizeDeviceAction({ businessId, branchId, name })),
       );
       if (!result.ok) {
         setError(result.message);

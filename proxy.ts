@@ -10,6 +10,7 @@ import { updateSession, withSessionCookies } from "@/lib/supabase/proxy";
  */
 export async function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
+  const isServerAction = request.method === "POST" && request.headers.has("next-action");
   const [{ claims, response }, maintenance] = await Promise.all([
     updateSession(request),
     getMaintenance(),
@@ -22,10 +23,20 @@ export async function proxy(request: NextRequest) {
     isStaffSession: !!claims?.is_anonymous,
     hasStaffDevice: request.cookies.has(STAFF_DEVICE_COOKIE),
     maintenance: maintenance.enabled,
+    isServerAction,
   });
 
   if (decision.type === "redirect") {
     return withSessionCookies(NextResponse.redirect(new URL(decision.to, request.url)), response());
+  }
+
+  if (decision.type === "maintenance" && isServerAction) {
+    // Next muestra el texto de una respuesta text/plain con error; la página
+    // de mantenimiento (HTML) llegaría como "respuesta inesperada".
+    return new NextResponse(maintenance.message, {
+      status: 503,
+      headers: { "content-type": "text/plain" },
+    });
   }
 
   if (decision.type === "maintenance") {

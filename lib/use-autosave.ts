@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { SaveState } from "@/components/feedback/save-indicator";
+import { runAction } from "@/lib/action-client";
 
 type SaveResult = { ok: boolean; message?: string };
 
@@ -30,9 +31,7 @@ export function useAutosave<T>(value: T, save: (value: T) => Promise<SaveResult>
     inFlight.current = true;
     dirty.current = false;
     setState("saving");
-    const res = await saveRef
-      .current(latest.current)
-      .catch((): SaveResult => ({ ok: false, message: "Se fue el internet. Probemos otra vez." }));
+    const res: SaveResult = await runAction(() => saveRef.current(latest.current));
     inFlight.current = false;
     if (again.current) {
       again.current = false;
