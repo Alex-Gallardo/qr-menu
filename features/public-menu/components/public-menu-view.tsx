@@ -21,7 +21,7 @@ import { orderTiming, type PreorderMode } from "@/features/orders/preorder";
 import { isOnAnyMenu, unitPrice } from "@/features/orders/pricing";
 import { isNetworkError } from "@/lib/action-client";
 import { LoadingCancelledError } from "@/lib/loading/controller";
-import { withLoading } from "@/lib/loading/store";
+import { configureLoader, withLoading } from "@/lib/loading/store";
 import { hasRequiredGroups } from "@/features/products/options";
 import { resolveActiveMenu } from "@/features/schedule/resolve-active-menu";
 import { guatemalaNow, gtInstant } from "@/lib/gt-time";
@@ -115,6 +115,15 @@ export function PublicMenuView({ business, branch, payload, selectorHref }: Prop
   const slots = payload.resolver.slots.filter((s) => s.is_active);
 
   useEffect(() => rememberBranch(business.slug, branch.slug), [business.slug, branch.slug]);
+  // "Cargando…" con el estilo, el logo y el color del negocio; al salir, el de la plataforma.
+  useEffect(() => {
+    configureLoader({
+      loader: business.theme.loader,
+      logoUrl: business.logoUrl,
+      color: business.theme.primary,
+    });
+    return () => configureLoader({ loader: "logo", logoUrl: null, color: null });
+  }, [business.theme.loader, business.theme.primary, business.logoUrl]);
   useEffect(() => {
     // Llegó por el QR de una mesa (?mesa=4): se recuerda en esta pestaña.
     const table = tableFromParam(new URLSearchParams(window.location.search).get("mesa"));
@@ -281,6 +290,7 @@ export function PublicMenuView({ business, branch, payload, selectorHref }: Prop
         coverUrl={business.coverUrl}
         hours={hours}
         selectorHref={selectorHref}
+        theme={business.theme}
       />
 
       {!branch.isActive ? (

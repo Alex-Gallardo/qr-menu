@@ -1,5 +1,6 @@
 import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
+import { appearanceAllowance } from "@/features/appearance/appearance";
 import { hasFeature } from "@/features/licensing/entitlements";
 import { getEntitlements } from "@/features/licensing/server";
 import { db } from "@/lib/db";
@@ -37,12 +38,21 @@ export async function getPublicBusiness(slug: string) {
       published: true,
       theme: {
         select: {
+          palette_preset: true,
           color_primary: true,
           color_accent: true,
           color_bg: true,
           color_surface: true,
           color_text: true,
+          bg_type: true,
+          bg_value: true,
+          bg_video_url: true,
+          bg_poster_url: true,
+          bg_overlay: true,
+          font_heading: true,
+          font_body: true,
           radius: true,
+          loader_style: true,
           show_powered_by: true,
           splash_style: true,
           splash_bg_type: true,
@@ -105,7 +115,8 @@ export async function getPublicBusiness(slug: string) {
   cacheTag(tags.business(business.id));
 
   const entitlements = await getEntitlements(business.id);
-  const theme = normalizeTheme(business.theme);
+  // Lo que el plan no incluye (paleta propia, fondos, quitar la marca) se muestra con la versión estándar.
+  const theme = normalizeTheme(business.theme, appearanceAllowance(entitlements.features));
   return {
     ...business,
     theme,

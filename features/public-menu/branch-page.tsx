@@ -1,4 +1,7 @@
 import type { Metadata } from "next";
+import type { CSSProperties } from "react";
+import { fontClasses } from "@/features/appearance/font-loaders";
+import { fontStack } from "@/features/appearance/fonts";
 import { BRAND } from "@/lib/brand";
 import { PublicMenuView } from "./components/public-menu-view";
 import { Splash } from "./components/splash";
@@ -73,60 +76,66 @@ export async function BranchMenu({
           __html: serializeJsonLd(restaurantJsonLd(business, branch, payload, url)),
         }}
       />
-      <Splash
-        config={business.splash}
-        storageKey={business.id}
-        name={business.name}
-        logoUrl={business.logo_url}
+      {/* Fuentes del negocio también en la bienvenida (el nombre usa la de títulos). */}
+      <div
+        className={fontClasses(business.theme.fontHeading, business.theme.fontBody)}
+        style={{ "--font-display": fontStack(business.theme.fontHeading) } as CSSProperties}
       >
-        <PublicMenuView
-          business={{
-            id: business.id,
-            slug: business.slug,
-            name: business.name,
-            description: business.description,
-            logoUrl: business.logo_url,
-            coverUrl: business.cover_url,
-            theme: business.theme,
-          }}
-          branch={{
-            id: branch.id,
-            slug: branch.slug,
-            name: branch.name,
-            isActive: branch.is_active,
-            hours: branch.hours,
-            order: {
-              acceptsDineIn: branch.accepts_dine_in,
-              acceptsTakeout: branch.accepts_takeout,
-              acceptsDelivery: branch.accepts_delivery,
-              acceptsTransfer: branch.accepts_transfer,
-              deliveryFeeCents: branch.delivery_fee_cents,
-              minOrderCents: branch.min_order_cents,
-              hasBankAccounts: bankAccounts.length > 0,
-              requiresLocation: branch.delivery_requires_location,
-              location: coordsOf(branch),
-              radiusKm: branch.delivery_radius_km,
-              preorderMode: branch.preorder_mode,
-              preorderMinLeadMin: branch.preorder_min_lead_min,
-              preorderMaxDays: branch.preorder_max_days,
-              preordersEnabled: business.preorders,
-            },
-            bankAccounts,
-            // Para sugerir "Pedir a Antigua" si esta sucursal no llega.
-            otherBranches: business.branches
-              .filter((b) => b.id !== branch.id && b.is_active)
-              .map((b) => ({
-                slug: b.slug,
-                name: b.name,
-                location: coordsOf(b),
-                radiusKm: b.delivery_radius_km,
-                acceptsDelivery: b.accepts_delivery,
-              })),
-          }}
-          payload={payload}
-          selectorHref={business.branches.length > 1 ? `/${business.slug}` : null}
-        />
-      </Splash>
+        <Splash
+          config={business.splash}
+          storageKey={business.id}
+          name={business.name}
+          logoUrl={business.logo_url}
+        >
+          <PublicMenuView
+            business={{
+              id: business.id,
+              slug: business.slug,
+              name: business.name,
+              description: business.description,
+              logoUrl: business.logo_url,
+              coverUrl: business.cover_url,
+              theme: business.theme,
+            }}
+            branch={{
+              id: branch.id,
+              slug: branch.slug,
+              name: branch.name,
+              isActive: branch.is_active,
+              hours: branch.hours,
+              order: {
+                acceptsDineIn: branch.accepts_dine_in,
+                acceptsTakeout: branch.accepts_takeout,
+                acceptsDelivery: branch.accepts_delivery,
+                acceptsTransfer: branch.accepts_transfer,
+                deliveryFeeCents: branch.delivery_fee_cents,
+                minOrderCents: branch.min_order_cents,
+                hasBankAccounts: bankAccounts.length > 0,
+                requiresLocation: branch.delivery_requires_location,
+                location: coordsOf(branch),
+                radiusKm: branch.delivery_radius_km,
+                preorderMode: branch.preorder_mode,
+                preorderMinLeadMin: branch.preorder_min_lead_min,
+                preorderMaxDays: branch.preorder_max_days,
+                preordersEnabled: business.preorders,
+              },
+              bankAccounts,
+              // Para sugerir "Pedir a Antigua" si esta sucursal no llega.
+              otherBranches: business.branches
+                .filter((b) => b.id !== branch.id && b.is_active)
+                .map((b) => ({
+                  slug: b.slug,
+                  name: b.name,
+                  location: coordsOf(b),
+                  radiusKm: b.delivery_radius_km,
+                  acceptsDelivery: b.accepts_delivery,
+                })),
+            }}
+            payload={payload}
+            selectorHref={business.branches.length > 1 ? `/${business.slug}` : null}
+          />
+        </Splash>
+      </div>
     </>
   );
 }
