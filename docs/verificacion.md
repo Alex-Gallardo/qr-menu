@@ -244,6 +244,14 @@ Hazlo en el celular (la ubicación necesita HTTPS: usa el preview de Vercel o pr
 - [ ] Si la sucursal no exige ubicación (Sucursales → entregas), aparece "Prefiero solo escribir la dirección".
 - [ ] En producción el mapa necesita la llave de MapTiler o Stadia (`NEXT_PUBLIC_MAP_TILE_URL`); sin ella usa las teselas de OpenStreetMap (solo para desarrollo).
 
+### Crear pedido (QRM-027): criterio "50 pedidos simultáneos sin números repetidos; precio manipulado se ignora"
+
+- [ ] `pnpm test:integration` → `tests/integration/orders.test.ts` (crea un negocio de prueba y lo borra): 50 pedidos a la vez con números 2–51 sin repetir, precio enviado por el cliente ignorado, agotado / fuera del menú / opción inválida rechazados diciendo cuál, cobertura, horario y límite por dispositivo.
+- [ ] En el menú: arma un pedido, llena tus datos y toca **Pedir por WhatsApp** → modal "Preparando tu pedido…" → "Pedido #0021 recibido. Total: Q…". El carrito se vacía. (WhatsApp se abre en QRM-028.)
+- [ ] En Supabase (Table Editor → orders) aparece el pedido con su número, sus líneas (order_items) y el evento "new". **Bórralo al terminar** y devuelve `branches.next_order_number` a como estaba (la base es la misma de producción).
+- [ ] Con el panel agota algo que está en tu carrito y pide: "Revisa tu pedido: … (se nos acabó). Quítalo para continuar." Devuélvelo a como estaba.
+- [ ] Más de 5 pedidos en 10 minutos desde el mismo teléfono: "Ya enviaste varios pedidos seguidos. Intenta de nuevo en N minutos."
+
 ### Encargado (permisos)
 
 - [ ] Sal y entra como **encargado** → el selector solo muestra **Antigua** (sin "Todas").

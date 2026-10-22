@@ -918,3 +918,14 @@ model audit_logs {
 
   @@index([business_id, created_at])
 }
+
+/// Límite de solicitudes por ventana fija (pedidos, y más adelante PIN y subidas).
+/// La llave nunca guarda datos personales: la IP va como hash.
+model rate_limits {
+  /// "order:session:{id}", "order:ip:{sha256}"
+  key          String   @id
+  window_start DateTime @db.Timestamptz(6)
+  count        Int      @default(0)
+
+  @@index([window_start])
+}

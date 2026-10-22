@@ -8,9 +8,19 @@ import { minutesOf, openState } from "@/features/branches/hours";
 import { priceCart } from "@/features/cart/cart";
 import { tableKey, useCustomer } from "@/features/cart/customer";
 import { useCart } from "@/features/cart/store";
-import { tableFromParam, type CheckoutBranch } from "@/features/orders/checkout";
+import {
+  tableFromParam,
+  type CheckoutBranch,
+  type CheckoutInput,
+} from "@/features/orders/checkout";
 import type { OtherBranch } from "@/features/orders/delivery";
+import { createOrderAction } from "@/features/orders/actions";
+import { clientSessionId } from "@/features/orders/client-session";
 import { orderTiming, type PreorderMode } from "@/features/orders/preorder";
+import { isOnAnyMenu, unitPrice } from "@/features/orders/pricing";
+import { LoadingCancelledError } from "@/lib/loading/controller";
+import { withLoading } from "@/lib/loading/store";
+import { formatQ } from "@/lib/money";
 import { hasRequiredGroups } from "@/features/products/options";
 import { resolveActiveMenu } from "@/features/schedule/resolve-active-menu";
 import { guatemalaNow, gtInstant } from "@/lib/gt-time";
@@ -182,15 +192,8 @@ export function PublicMenuView({ business, branch, payload, selectorHref }: Prop
   }, [orderOpen, Order]);
 
   const items = (menu?.sections ?? []).flatMap((s) => s.items);
-  const priceIn = (productId: string) =>
-    (
-      items.find((i) => i.productId === productId) ??
-      payload.menus
-        .flatMap((m) => m.sections.flatMap((s) => s.items))
-        .find((i) => i.productId === productId)
-    )?.priceCents ??
-    payload.products[productId]?.priceCents ??
-    0;
+  // Misma regla que el servidor (features/orders/pricing): precio en el menú que se ve o en la sucursal.
+  const priceIn = (productId: string) => unitPrice(payload, menu?.id ?? null, productId) ?? 0;
 
   async function openSheet(productId: string, photo: HTMLElement | null) {
     const { ProductSheet } = await loadSheet();
@@ -205,10 +208,7 @@ export function PublicMenuView({ business, branch, payload, selectorHref }: Prop
   // Lo del carrito con los precios y la disponibilidad de hoy en esta sucursal.
   const cart = priceCart(cartLines, {
     product: (id) => payload.products[id],
-    priceCents: (id) =>
-      payload.menus.some((m) => m.sections.some((s) => s.items.some((i) => i.productId === id)))
-        ? priceIn(id)
-        : undefined,
+    priceCents: (id) => (isOnAnyMenu(payload, id) ? priceIn(id) : undefined),
   });
 
   function addLine(product: PublicProduct, line: ProductSheetLine, photo: HTMLElement | null) {
@@ -398,25 +398,58 @@ export function PublicMenuView({ business, branch, payload, selectorHref }: Prop
           onQuantity={(key, quantity) => useCart.getState().setQuantity(business.id, key, quantity)}
           onClear={clearCart}
           onClose={closeOrderSheet}
-          onSubmit={(input) => {
-            useCustomer.getState().remember({
-              name: input.name.trim(),
-              phone: input.phone.trim(),
-              email: input.email.trim(),
-              address: input.address.trim(),
-              addressReference: input.addressReference.trim(),
-              // Solo se recuerda el pin de una entrega a domicilio.
-              ...(input.orderType === "delivery" ? { location: input.location } : {}),
-              lastOrderType: input.orderType,
-              lastPayment: input.payment,
-            });
-            // QRM-027 crea el pedido en el servidor y QRM-028 abre WhatsApp con el mensaje.
-            toast.success("¡Todo listo! Guardamos tus datos para la próxima.", {
-              description: "El envío por WhatsApp se activa en el siguiente paso.",
-            });
-          }}
+          onSubmit={(input) => void submitOrder(input)}
         />
       ) : null}
     </MenuShell>
   );
+
+  async function submitOrder(input: CheckoutInput) {
+    const items = cart.lines
+      .filter((l) => !l.issue)
+      .map((l) => ({
+        productId: l.productId,
+        optionIds: l.optionIds,
+        quantity: l.quantity,
+        note: l.note,
+      }));
+    let result: Awaited<ReturnType<typeof createOrderAction>>;
+    try {
+      result = await withLoading("Preparando tu pedido…", () =>
+        createOrderAction({
+          ...input,
+          branchId: branch.id,
+          clientSessionId: clientSessionId(),
+          items,
+        }),
+      );
+    } catch (error) {
+      if (error instanceof LoadingCancelledError) return;
+      toast.error(
+        "Parece que se fue el internet. Tu pedido sigue guardado aquí; toca para reintentar.",
+      );
+      return;
+    }
+    if (!result.ok) {
+      toast.error(result.message);
+      return;
+    }
+    useCustomer.getState().remember({
+      name: input.name.trim(),
+      phone: input.phone.trim(),
+      email: input.email.trim(),
+      address: input.address.trim(),
+      addressReference: input.addressReference.trim(),
+      // Solo se recuerda el pin de una entrega a domicilio.
+      ...(input.orderType === "delivery" ? { location: input.location } : {}),
+      lastOrderType: input.orderType,
+      lastPayment: input.payment,
+    });
+    useCart.getState().clear(business.id);
+    closeOrderSheet();
+    // QRM-028 abre WhatsApp con el mensaje y muestra la confirmación.
+    toast.success(result.message, {
+      description: `Total: ${formatQ(result.data.totalCents)}. Guardamos tus datos para la próxima.`,
+    });
+  }
 }

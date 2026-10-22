@@ -1,5 +1,5 @@
 /**
- * Verifica que la base cumpla el contrato del esquema: 37 tablas, RLS en todas,
+ * Verifica que la base cumpla el contrato del esquema: 38 tablas, RLS en todas,
  * políticas, funciones, triggers de auth, bucket de Storage y Realtime.
  *
  *   pnpm db:verify
@@ -10,7 +10,7 @@ import { Client } from "pg";
 config({ path: ".env.local", quiet: true });
 config({ quiet: true });
 
-const EXPECTED_TABLES = 37;
+const EXPECTED_TABLES = 38;
 
 type Check = { name: string; sql: string; ok: (rows: Record<string, unknown>[]) => boolean };
 
