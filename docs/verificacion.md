@@ -290,6 +290,20 @@ Requiere la cuenta de Resend (ver "Activar el correo" abajo). Sin `RESEND_API_KE
 - [ ] Entra como **encargado** (solo Antigua): un pedido de **Zona 1** no aparece ni suena; uno de **Antigua** sí. Abrir a mano el link del detalle de un pedido de Zona 1 → "Esta sección no está disponible".
 - [ ] Borra los pedidos de prueba y devuelve `next_order_number` (ver QRM-027).
 
+### Staff con PIN (QRM-031): criterio "PIN no funciona en dispositivo no autorizado; 5 fallos bloquean 5 min"
+
+Requiere **Anonymous Sign-Ins** activado en Supabase (Authentication → Sign In / Providers). En desarrollo el seed crea a "Rosa - caja" (Zona 1, PIN 1234) y "Luis - cocina" (Antigua, PIN 5678).
+
+- [ ] En un teléfono sin sesión abre `/staff`: te pide entrar. Entra como dueño → **Autorizar este dispositivo** (sucursal Zona 1, "Tablet de caja") → tu sesión se cierra en ese teléfono y aparece el **teclado de PIN** con el logo.
+- [ ] PIN de Antigua (5678) en la tablet de Zona 1 → "PIN incorrecto. Te quedan 4 intentos.". PIN 1234 → modal "Abriendo tu turno…" → bandeja de **Zona 1** con "Turno de Rosa - caja".
+- [ ] Haz un pedido en Antigua: no aparece. Uno en Zona 1: aparece al instante y suena. Rosa puede Aceptar/Listo/Entregado; en el historial queda quién lo hizo.
+- [ ] Con el turno abierto, abrir `/panel` → pide entrar (el staff no tiene acceso al panel).
+- [ ] **Cerrar turno** → vuelve al teclado.
+- [ ] 5 PIN incorrectos seguidos → "Demasiados intentos. Espera 5 minutos…"; ni el PIN correcto entra hasta que pasen.
+- [ ] En otro teléfono (no autorizado) `/staff` no muestra el teclado: pide entrar. El PIN no sirve ahí.
+- [ ] Panel → Más → **Equipo**: aparece "Tablet de caja"; **Revocar** → la tablet vuelve a decir "Este dispositivo no está autorizado" y su turno termina.
+- [ ] El plan Gratis no incluye staff con PIN: al autorizar, aviso de la función.
+
 ### Encargado (permisos)
 
 - [ ] Sal y entra como **encargado** → el selector solo muestra **Antigua** (sin "Todas").
