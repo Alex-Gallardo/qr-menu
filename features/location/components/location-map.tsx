@@ -46,11 +46,14 @@ export default function LocationMap({
   fallbackCenter,
   onChange,
   className,
+  readOnly = false,
 }: {
   value: Coords | null;
   fallbackCenter: Coords;
   onChange: (coords: Coords) => void;
   className?: string;
+  /** Solo mostrar el pin (detalle del pedido en el panel). */
+  readOnly?: boolean;
 }) {
   const center = value ?? fallbackCenter;
   const handlers = useMemo(
@@ -72,16 +75,16 @@ export default function LocationMap({
       attributionControl
     >
       <TileLayer url={TILE_URL} attribution={ATTRIBUTION} maxZoom={19} />
-      <ClickToPlace onChange={onChange} />
+      {readOnly ? null : <ClickToPlace onChange={onChange} />}
       <FollowValue value={value} />
       {value ? (
         <Marker
           position={[value.lat, value.lng]}
           icon={PIN}
-          draggable
-          eventHandlers={handlers}
+          draggable={!readOnly}
+          eventHandlers={readOnly ? undefined : handlers}
           keyboard
-          title="Arrastra el pin para ajustar la ubicación"
+          title={readOnly ? "Ubicación de entrega" : "Arrastra el pin para ajustar la ubicación"}
         />
       ) : null}
     </MapContainer>

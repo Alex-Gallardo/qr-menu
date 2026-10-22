@@ -2,6 +2,7 @@
 
 import { ArrowLeftIcon, CheckIcon, CopyIcon, ExternalLinkIcon } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, type CSSProperties } from "react";
 import { toast } from "sonner";
 import { markWhatsAppOpenedAction } from "@/features/orders/actions";
@@ -66,6 +67,18 @@ export function OrderConfirmation({
     void markWhatsAppOpenedAction(orderId);
     window.location.href = whatsappUrl;
   }, [orderId, whatsappUrl]);
+
+  // Estado "en vivo" sin sesión (el comensal es anónimo): se vuelve a pedir la
+  // página cada 15 s mientras el pedido siga activo y la pestaña esté a la vista.
+  const router = useRouter();
+  const active = status !== "delivered" && status !== "cancelled";
+  useEffect(() => {
+    if (!active) return;
+    const id = window.setInterval(() => {
+      if (document.visibilityState === "visible") router.refresh();
+    }, 15_000);
+    return () => window.clearInterval(id);
+  }, [active, router]);
 
   async function copyOrder() {
     try {
