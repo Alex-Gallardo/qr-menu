@@ -114,7 +114,10 @@ export function ImageUploader({ businessId, kind, value, onUploaded, onRemove, l
     <div className="grid gap-3">
       <div
         className="relative overflow-hidden rounded-lg border border-border bg-muted"
-        style={{ aspectRatio: preset.aspect, maxWidth: kind === "logo" ? "10rem" : undefined }}
+        style={{
+          aspectRatio: preset.aspect,
+          maxWidth: kind === "logo" ? "10rem" : kind === "splash" ? "9rem" : undefined,
+        }}
       >
         {value ? (
           // Ya viene comprimida desde Storage: sin optimizador.

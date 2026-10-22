@@ -9,7 +9,8 @@ import { PoweredBy } from "@/components/brand/powered-by";
 import { PRODUCT_TAGS } from "@/features/products/catalog";
 import { formatQ } from "@/lib/money";
 import type { PublicProduct } from "../../payload";
-import { themeStyle, type MenuTheme } from "../../theme";
+import { fontClasses } from "@/features/appearance/font-loaders";
+import { canvasBackground, heroBackground, themeStyle, type MenuTheme } from "../../theme";
 
 /**
  * Plantilla Clásico: lista con la foto a la derecha. Estos componentes son los
@@ -17,15 +18,62 @@ import { themeStyle, type MenuTheme } from "../../theme";
  * el cliente. Solo usan las variables --menu-* del tema del negocio.
  */
 
-/** Columna de 480 px con el fondo y los colores del negocio. */
-export function MenuShell({ theme, children }: { theme: MenuTheme; children: ReactNode }) {
+/**
+ * Columna de 480 px con los colores y las fuentes del negocio. Su fondo
+ * (degradado, imagen o el poster del video) se ve a los lados en pantallas
+ * grandes; en el celular, en la portada (MenuHeader).
+ */
+export function MenuShell({
+  theme,
+  children,
+  className,
+}: {
+  theme: MenuTheme;
+  children: ReactNode;
+  className?: string;
+}) {
   return (
     <div
-      style={themeStyle(theme) as CSSProperties}
-      className="min-h-dvh bg-[var(--menu-bg)] text-[var(--menu-text)]"
+      style={
+        {
+          ...themeStyle(theme),
+          background: canvasBackground(theme),
+          fontFamily: "var(--menu-font-body)",
+        } as CSSProperties
+      }
+      className={cn(
+        "min-h-dvh text-[var(--menu-text)]",
+        fontClasses(theme.fontHeading, theme.fontBody),
+        className,
+      )}
     >
       <div className="mx-auto w-full max-w-[480px] bg-[var(--menu-bg)] pb-16">{children}</div>
     </div>
+  );
+}
+
+/** Video de fondo en la portada: sin sonido y solo si el celular no ahorra datos ni movimiento. */
+function HeroVideo({ url, poster }: { url: string; poster: string | null }) {
+  const ref = useRef<HTMLVideoElement>(null);
+  useEffect(() => {
+    const video = ref.current;
+    if (!video) return;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const saveData = (navigator as { connection?: { saveData?: boolean } }).connection?.saveData;
+    if (!reduce && !saveData) video.play().catch(() => {});
+  }, [url]);
+  return (
+    <video
+      ref={ref}
+      src={url}
+      poster={poster ?? undefined}
+      muted
+      loop
+      playsInline
+      preload="metadata"
+      aria-hidden
+      className="absolute inset-0 size-full object-cover"
+    />
   );
 }
 
@@ -37,6 +85,7 @@ export function MenuHeader({
   coverUrl,
   hours,
   selectorHref,
+  theme,
 }: {
   name: string;
   branchName: string;
@@ -46,12 +95,27 @@ export function MenuHeader({
   /** Estado de horario (se calcula en el celular; null mientras tanto). */
   hours: { open: boolean; label: string } | null;
   selectorHref: string | null;
+  /** Fondo del negocio para la portada (video, o degradado/imagen si no hay foto). */
+  theme?: MenuTheme;
 }) {
+  const bg = theme?.background;
+  const hero = theme && !coverUrl ? heroBackground(theme) : null;
   return (
     <header>
       {/* La portada reserva su proporción 16:9: no empuja nada al cargar. */}
       <div className="relative aspect-[16/9] w-full overflow-hidden bg-[var(--menu-soft)]">
-        {coverUrl ? (
+        {bg?.type === "video" ? (
+          <>
+            <HeroVideo url={bg.url} poster={bg.poster ?? coverUrl} />
+            <span
+              aria-hidden
+              className="absolute inset-0 bg-black"
+              style={{ opacity: theme!.overlay }}
+            />
+          </>
+        ) : hero ? (
+          <div aria-hidden className="size-full" style={{ background: hero }} />
+        ) : coverUrl ? (
           <Image
             src={coverUrl}
             alt=""

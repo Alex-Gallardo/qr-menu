@@ -3,7 +3,15 @@ import { randomUUID } from "node:crypto";
 import { assertWithinLimit } from "@/features/licensing/server";
 import { db } from "@/lib/db";
 import { AppError } from "@/lib/errors";
-import { isOwnMediaPath, MAX_IMAGE_BYTES, mediaPath, type ImageKind } from "@/lib/images/presets";
+import {
+  isOwnMediaPath,
+  isOwnVideoPath,
+  MAX_IMAGE_BYTES,
+  MAX_VIDEO_BYTES,
+  mediaPath,
+  videoPath,
+  type ImageKind,
+} from "@/lib/images/presets";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 const BUCKET = "media";
@@ -76,7 +84,55 @@ export function ownMediaPathFromUrl(businessId: string, url: string) {
   const index = url.indexOf(marker);
   if (index < 0) return null; // p. ej. fotos de Unsplash del seed
   const path = decodeURIComponent(url.slice(index + marker.length));
-  return isOwnMediaPath(path, businessId) ? path : null;
+  return isOwnMediaPath(path, businessId) || isOwnVideoPath(path, businessId) ? path : null;
+}
+
+const VIDEO_TOO_LARGE = "El video pesa más de 6 MB. Recórtalo a 10 segundos o bájale la calidad.";
+
+/** URL firmada para subir el video de fondo (MP4 ≤ 6 MB). */
+export async function signVideoUpload(businessId: string, bytes: number) {
+  if (bytes > MAX_VIDEO_BYTES) throw new AppError("too_large", VIDEO_TOO_LARGE);
+  await assertWithinLimit(businessId, "storage_mb", Math.max(1, Math.ceil(bytes / MB)));
+  const path = videoPath(businessId, randomUUID());
+  const { data, error } = await createSupabaseAdminClient()
+    .storage.from(BUCKET)
+    .createSignedUploadUrl(path);
+  if (error || !data)
+    throw new AppError("storage", "No pudimos preparar la subida. Probemos otra vez.");
+  return { signedUrl: data.signedUrl, path };
+}
+
+/** Registra el video ya subido con su tamaño real de Storage. */
+export async function registerUploadedVideo(input: {
+  businessId: string;
+  path: string;
+  width: number;
+  height: number;
+}) {
+  if (!isOwnVideoPath(input.path, input.businessId)) {
+    throw new AppError("forbidden", "Ese video no es de tu negocio.");
+  }
+  const storage = createSupabaseAdminClient().storage.from(BUCKET);
+  const { data: info, error } = await storage.info(input.path);
+  if (error || !info)
+    throw new AppError("not_found", "No encontramos el video subido. Probemos otra vez.");
+  const bytes = Number(info.size ?? 0);
+  if (bytes > MAX_VIDEO_BYTES) {
+    await storage.remove([input.path]);
+    throw new AppError("too_large", VIDEO_TOO_LARGE);
+  }
+  const media = await db().media.create({
+    data: {
+      business_id: input.businessId,
+      path: input.path,
+      kind: "video",
+      width: input.width,
+      height: input.height,
+      bytes,
+    },
+    select: { id: true, path: true },
+  });
+  return { id: media.id, url: publicMediaUrl(media.path) };
 }
 
 /** ¿La URL apunta a una imagen registrada de este negocio? */

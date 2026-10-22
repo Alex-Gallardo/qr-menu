@@ -3,8 +3,10 @@ import {
   encodeUnderLimit,
   fitWithin,
   isOwnMediaPath,
+  isOwnVideoPath,
   MAX_IMAGE_BYTES,
   mediaPath,
+  videoPath,
 } from "@/lib/images/presets";
 
 const BIZ = "ef7f52a0-acbb-4db7-8071-7c5b91ebae12";
@@ -63,5 +65,15 @@ describe("rutas de Storage", () => {
     expect(isOwnMediaPath(`${BIZ}/../${ID}.webp`, BIZ)).toBe(false);
     expect(isOwnMediaPath(`${BIZ}/secretos/${ID}.webp`, BIZ)).toBe(false);
     expect(isOwnMediaPath(`${BIZ}/logos/${ID}.svg`, BIZ)).toBe(false);
+    expect(isOwnMediaPath(`${BIZ}/backgrounds/${ID}.webp`, BIZ)).toBe(true);
+    // Un video no se registra como imagen.
+    expect(isOwnMediaPath(`${BIZ}/videos/${ID}.mp4`, BIZ)).toBe(false);
+  });
+
+  it("videos: solo MP4 en la carpeta de videos del negocio", () => {
+    expect(videoPath(BIZ, ID)).toBe(`${BIZ}/videos/${ID}.mp4`);
+    expect(isOwnVideoPath(`${BIZ}/videos/${ID}.mp4`, BIZ)).toBe(true);
+    expect(isOwnVideoPath(`${BIZ}/videos/${ID}.mov`, BIZ)).toBe(false);
+    expect(isOwnVideoPath(`${BIZ}/covers/${ID}.mp4`, BIZ)).toBe(false);
   });
 });

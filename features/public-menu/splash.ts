@@ -1,4 +1,5 @@
 import { readableTextOn } from "@/lib/color";
+import { safeHttpsUrl } from "@/lib/safe-url";
 import type { MenuTheme } from "./theme";
 
 /**
@@ -69,16 +70,6 @@ const pick = <T extends string>(value: unknown, allowed: readonly T[], fallback:
   allowed.includes(value as T) ? (value as T) : fallback;
 const clamp = (n: number, min: number, max: number) => Math.min(max, Math.max(min, n));
 
-/** Solo URLs https sin comillas ni paréntesis: no pueden romper el HTML ni el CSS. */
-const safeImageUrl = (value: string) => {
-  if (!/^https:\/\/[^\s"'()<>\\]+$/.test(value)) return null;
-  try {
-    return new URL(value).protocol === "https:" ? value : null;
-  } catch {
-    return null;
-  }
-};
-
 function background(raw: RawSplash, theme: MenuTheme): SplashBackground {
   const value = raw.splash_bg_value?.trim() ?? "";
   if (raw.splash_bg_type === "gradient") {
@@ -87,7 +78,7 @@ function background(raw: RawSplash, theme: MenuTheme): SplashBackground {
     if (from && to && HEX.test(from) && HEX.test(to)) return { type: "gradient", from, to };
   }
   if (raw.splash_bg_type === "image") {
-    const url = safeImageUrl(value);
+    const url = safeHttpsUrl(value);
     if (url) return { type: "image", url };
   }
   if (raw.splash_bg_type === "color" && HEX.test(value)) return { type: "color", color: value };
