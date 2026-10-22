@@ -2,6 +2,7 @@
 
 import { headers } from "next/headers";
 import { actionError, type ActionResult } from "@/lib/action-result";
+import { markWhatsAppOpened, orderPath } from "./queries";
 import { createOrderSchema } from "./schemas";
 import { createOrder } from "./server";
 
@@ -18,7 +19,9 @@ async function clientIp() {
  */
 export async function createOrderAction(
   input: unknown,
-): Promise<ActionResult<{ orderId: string; number: number; totalCents: number }>> {
+): Promise<
+  ActionResult<{ orderId: string; number: number; totalCents: number; confirmationPath: string }>
+> {
   const parsed = createOrderSchema.safeParse(input);
   if (!parsed.success)
     return { ok: false, message: "Revisa los datos de tu pedido e inténtalo otra vez." };
@@ -27,9 +30,19 @@ export async function createOrderAction(
     return {
       ok: true,
       message: `Pedido #${String(order.number).padStart(4, "0")} recibido.`,
-      data: { orderId: order.id, number: order.number, totalCents: order.total_cents },
+      data: {
+        orderId: order.id,
+        number: order.number,
+        totalCents: order.total_cents,
+        confirmationPath: orderPath(order.businessSlug, order.branchSlug, order.id),
+      },
     };
   } catch (error) {
     return actionError(error);
   }
+}
+
+/** Se abrió WhatsApp con el pedido (para el registro y las analíticas). */
+export async function markWhatsAppOpenedAction(orderId: unknown): Promise<void> {
+  if (typeof orderId === "string") await markWhatsAppOpened(orderId);
 }

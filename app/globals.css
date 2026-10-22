@@ -40,6 +40,9 @@
   /* Barra del carrito: entra con resorte (--barra-ease) y el contador rebota (450 ms) */
   --animate-barra: subir 600ms var(--barra-ease, var(--ease-out-soft)) both;
   --animate-rebote-contador: rebote-contador 450ms var(--ease-out-soft);
+  /* Pedido enviado: check que aparece con rebote y confeti ligero (900 ms) */
+  --animate-check: check 500ms var(--ease-out-soft) both;
+  --animate-confeti: confeti 900ms var(--ease-out-soft) both;
 
   @keyframes aparecer {
     from {
@@ -55,6 +58,26 @@
   @keyframes subir {
     from {
       transform: translateY(100%);
+    }
+  }
+  @keyframes check {
+    0% {
+      opacity: 0;
+      transform: scale(0.4);
+    }
+    60% {
+      opacity: 1;
+      transform: scale(1.12);
+    }
+  }
+  @keyframes confeti {
+    0% {
+      opacity: 1;
+      transform: translate(-50%, 0) rotate(0deg);
+    }
+    100% {
+      opacity: 0;
+      transform: translate(calc(-50% + var(--x, 0px)), 140px) rotate(var(--r, 180deg));
     }
   }
   @keyframes rebote-contador {
