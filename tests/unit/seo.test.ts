@@ -46,9 +46,9 @@ describe("robots.txt", () => {
 describe("encabezados de seguridad", () => {
   const header = (key: string) => SECURITY_HEADERS.find((h) => h.key === key)?.value;
 
-  it("nadie puede meter la app en un iframe", () => {
-    expect(header("X-Frame-Options")).toBe("DENY");
-    expect(header("Content-Security-Policy")).toBe("frame-ancestors 'none'");
+  it("ningún otro sitio puede meter la app en un iframe (la propia app sí)", () => {
+    expect(header("X-Frame-Options")).toBe("SAMEORIGIN");
+    expect(header("Content-Security-Policy")).toBe("frame-ancestors 'self'");
   });
 
   it("ubicación solo para la app (pedido a domicilio); sin cámara ni micrófono", () => {

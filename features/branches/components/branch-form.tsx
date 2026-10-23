@@ -16,6 +16,7 @@ import { cn } from "cn";
 import { Field, FormMessage } from "@/components/forms/field";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PrefixedInput } from "@/components/forms/prefixed-input";
 import { Switch } from "@/components/ui/switch";
 import { slugify } from "@/features/businesses/slug";
 import { googleReviewUrl } from "@/features/reviews/reviews";
@@ -542,39 +543,5 @@ function DayRow({
         ) : null}
       </div>
     </li>
-  );
-}
-
-/** Input con prefijo (+502, Q) o sufijo (km, min). */
-function PrefixedInput({
-  prefix,
-  suffix,
-  invalid,
-  className,
-  ...props
-}: React.ComponentProps<"input"> & { prefix?: string; suffix?: string; invalid?: boolean }) {
-  return (
-    <div
-      className={cn(
-        "flex h-12 items-stretch overflow-hidden rounded-md border border-input bg-card focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/30",
-        invalid && "border-destructive",
-      )}
-    >
-      {prefix ? (
-        <span className="type-small flex items-center bg-muted px-3 text-muted-foreground">
-          {prefix}
-        </span>
-      ) : null}
-      <input
-        aria-invalid={invalid || undefined}
-        className={cn("min-w-0 flex-1 bg-transparent px-3 text-base outline-none", className)}
-        {...props}
-      />
-      {suffix ? (
-        <span className="type-small flex items-center bg-muted px-3 text-muted-foreground">
-          {suffix}
-        </span>
-      ) : null}
-    </div>
   );
 }
