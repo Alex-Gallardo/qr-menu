@@ -2,7 +2,7 @@
 
 import { ClockIcon, ImageIcon, MinusIcon, PlusIcon, XIcon } from "lucide-react";
 import Image from "next/image";
-import { useLayoutEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { cn } from "cn";
 import { PRODUCT_TAGS } from "@/features/products/catalog";
 import { describeGroup, type OptionGroup } from "@/features/products/options";
@@ -16,6 +16,7 @@ import {
   toggleOption,
 } from "../../cart-line";
 import type { PublicProduct } from "../../payload";
+import { SHEET_BODY, SHEET_DIALOG, useSheet } from "./sheet";
 
 export type ProductSheetLine = {
   productId: string;
@@ -69,13 +70,7 @@ function Sheet({
   const [note, setNote] = useState("");
   const [showProblems, setShowProblems] = useState(false);
 
-  // En layout effect: dentro de la View Transition la hoja ya debe estar abierta.
-  useLayoutEffect(() => {
-    const dialog = ref.current;
-    if (!dialog || dialog.open) return;
-    if (typeof dialog.showModal === "function") dialog.showModal();
-    else dialog.setAttribute("open", ""); // jsdom
-  }, []);
+  useSheet(ref);
 
   const line = priceLine({ priceCents, groups, selectedOptionIds: selected, quantity });
   const problemFor = (groupId: string) =>
@@ -114,9 +109,9 @@ function Sheet({
       }}
       // Tocar fuera de la hoja (el fondo) la cierra.
       onClick={(e) => e.target === e.currentTarget && onClose()}
-      className="product-sheet animate-subir mx-auto mt-auto mb-0 flex max-h-[92dvh] w-full max-w-[480px] flex-col overflow-hidden rounded-t-[calc(var(--menu-radius)*1.25)] border-0 bg-[var(--menu-surface)] p-0 text-[var(--menu-text)] shadow-3 backdrop:bg-black/50 open:flex"
+      className={cn(SHEET_DIALOG, "max-h-[92dvh]")}
     >
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+      <div className={SHEET_BODY}>
         <div
           ref={photoRef}
           className={cn(
@@ -232,7 +227,7 @@ function Sheet({
       </div>
 
       {soldOut ? null : (
-        <footer className="grid gap-2 border-t border-[var(--menu-line)] bg-[var(--menu-surface)] p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+        <footer className="grid shrink-0 gap-2 border-t border-[var(--menu-line)] bg-[var(--menu-surface)] p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
           {blockedReason ? (
             <p role="status" className="type-small text-center text-[var(--menu-muted)]">
               {blockedReason}
