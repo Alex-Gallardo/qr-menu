@@ -66,6 +66,8 @@ describe("rutas de Storage", () => {
     expect(isOwnMediaPath(`${BIZ}/secretos/${ID}.webp`, BIZ)).toBe(false);
     expect(isOwnMediaPath(`${BIZ}/logos/${ID}.svg`, BIZ)).toBe(false);
     expect(isOwnMediaPath(`${BIZ}/backgrounds/${ID}.webp`, BIZ)).toBe(true);
+    // El logo se sube en PNG (QRM-036).
+    expect(isOwnMediaPath(`${BIZ}/logos/${ID}.png`, BIZ)).toBe(true);
     // Un video no se registra como imagen.
     expect(isOwnMediaPath(`${BIZ}/videos/${ID}.mp4`, BIZ)).toBe(false);
   });

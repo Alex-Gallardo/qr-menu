@@ -70,7 +70,7 @@ El negocio demo es **Café El Portal** (link `cafe-el-portal`), con sucursales *
 | `/api/health`                             | Estado de la configuración                                               | Todos (solo sí/no)                                       |
 | `/api/cron/push`                          | Escalamiento de avisos y aviso de programados (cada minuto)              | Solo con `Authorization: Bearer <CRON_SECRET>`           |
 
-`{negocio}` es el id del negocio. No hace falta copiarlo: entra a `/panel` y te lleva solo. QR, Reseñas y Analíticas aparecen en la navegación, pero son de fases siguientes y muestran "Muy pronto".
+`{negocio}` es el id del negocio. No hace falta copiarlo: entra a `/panel` y te lleva solo. Reseñas y Analíticas aparecen en la navegación, pero son de fases siguientes y muestran "Muy pronto".
 
 ## 4. Lista de verificación
 
@@ -362,6 +362,40 @@ El demo tiene el plan **Negocio** (todo habilitado). Antes de empezar, anota que
 
 **Al terminar:** vuelve a **Tomate**, fondo **Color**, Bricolage Grotesque + Inter, Suaves (16), loader **Tu logo latiendo**, pie visible y la bienvenida Levantar / Color / Mediano / 1.8 s / Suave / Una vez por visita.
 
+### Plantillas (QRM-034): criterio "Las 4 plantillas pasan el mismo test visual"
+
+- [ ] `/styleguide` → **Menú público**: el selector **Plantilla** cambia el marco de 390 px entre **Clásico** (foto a la derecha), **Galería** (foto grande arriba, nombre como título), **Minimal** (sin fotos, "nombre · · · precio") y **Tarjetas** (2 columnas, foto cuadrada). Combínalo con 3 paletas (p. ej. Tomate, Noche y Minimal): todo se lee, el "+" queda sobre la foto (o a la derecha en Minimal), "Agotado" y las etiquetas se ven igual en las 4.
+- [ ] **Menús → Cena y carta → Plantilla: Tarjetas** → abre el menú real: se ve en 2 columnas. Tocar un producto abre su hoja; el "+" agrega y la miniatura vuela al carrito (en Minimal no hay foto que vuele). Vuelve a **Clásico** al terminar.
+- [ ] **Apariencia**: la vista previa usa la plantilla del menú predeterminado.
+- [ ] Plan **Gratis**: en el editor de menús solo aparece Clásico; un menú guardado en otra plantilla (de cuando tenía Pro) se muestra en Clásico.
+- Automático: `tests/unit/templates.test.tsx` corre la misma prueba a las 4 (título y orden, precio una sola vez, tachado, Agotado, etiquetas, Destacado, abrir, "+" que nunca agrega un agotado y `alt` de las fotos).
+
+### QR y compartir (QRM-035): criterio "QR A6 escanea a 1 m; escaneo se cuenta"
+
+El demo trae 8 QR del seed (`demo01`…`demo08`, con escaneos de ejemplo). Anota sus escaneos antes de probar y déjalos igual al terminar (o corre `pnpm db:seed`).
+
+- [ ] **Más → QR y compartir** (dueño o encargado; el encargado solo ve sus sucursales): el QR de **Zona 1** y sus mesas, con vista previa en el color del negocio (o frijol si el color no contrasta con blanco), la inicial o el logo al centro y "N escaneos".
+- [ ] **Agregar QR → Mesas**, del 5 al 8 → aparecen Mesa 5…8 en orden. Repetir del 1 al 6 → "Creamos 2 QR (4 ya existían)": no hay dos QR para la misma mesa.
+- [ ] **Campaña** "Volante" → aparece con tipo Campaña. Con la sucursal que ya tiene su QR, la opción "Toda la sucursal" no aparece.
+- [ ] **PDF A6** de una mesa → abre un PDF de 105 × 148 mm: nombre del negocio, "Escanea y pide 📱", QR de 88 mm con el logo, "Mesa N", "Menú del día · Pedidos por WhatsApp" y el link corto. **Imprímelo al 100 %** y escanéalo con 3 celulares (iPhone y Android) a **1 m**: abre el menú con "Mesa N" en la hoja de pedido.
+- [ ] **⋯ → PDF tamaño carta** (para la puerta), **PNG** (1200 px) y **SVG** (imprenta). **Todas las mesas en un PDF (A6)**: una página por mesa.
+- [ ] Escanear (o abrir `/q/{código}` en el celular) suma **1 escaneo** en el panel. Pegar el link en un chat de WhatsApp **no** suma (la vista previa no cuenta). Un código inventado muestra "Este código QR ya no está activo".
+- [ ] **⋯ → Eliminar** → toast con **Deshacer** → vuelve con el **mismo código** (lo impreso sigue sirviendo) y sus escaneos.
+- [ ] **Compartir**: el link del menú de la sucursal y 4 textos listos (estado, publicación, porta-QR, difusión) con el nombre y el link ya puestos; **Copiar** los copia.
+- [ ] Plan **Gratis**: después del primer QR aparece la tarjeta "Tu plan incluye 1 QR…".
+- [ ] En Vercel, `NEXT_PUBLIC_APP_URL` debe ser el dominio de producción (los QR impresos llevan ese dominio). `/api/health` lo revisa (`app_url`).
+
+### App instalable del menú (QRM-036): criterio "Se instala con nombre e ícono del restaurante"
+
+Hace falta el dominio https de Vercel (en `localhost` Chrome también deja instalar). Para que el ícono use el logo, el logo debe estar subido en **PNG**: desde QRM-036 se sube así; uno subido antes (WebP) da el ícono con la inicial hasta volver a subirlo en Ajustes → Negocio.
+
+- [ ] Abre `/{negocio}/{sucursal}/manifest.webmanifest`: nombre del negocio (con la sucursal si hay varias), `start_url` con `?source=pwa`, colores de Apariencia y 3 íconos. `/app-icon/192`, `512`, `maskable` y `apple` son PNG con el logo (o la inicial sobre el color principal).
+- [ ] **Android (Chrome):** al final del menú aparece "Ten {negocio} en tu celular → **Instalar**" → el diálogo del navegador → queda el ícono con el logo y el nombre del negocio. Ábrela: se ve sin la barra del navegador, con el color del negocio arriba. La tarjeta ya no aparece dentro de la app.
+- [ ] **iPhone (Safari o Chrome):** **Instalar** abre la guía "Compartir → Agregar a inicio". El ícono de inicio es el del negocio (apple-touch-icon).
+- [ ] La **X** ("Ahora no") la oculta en ese negocio (`localStorage` `qrm:instalar:{id}`). En el navegador de Instagram o Facebook no se ofrece.
+- [ ] **Sin conexión:** abre el menú una vez con internet, activa el modo avión y vuelve a abrir la app → se ve el último menú guardado con "Sin conexión: este es el último menú que guardamos. Para pedir, conéctate otra vez.". Una sucursal nunca abierta muestra "Sin conexión y todavía no guardamos este menú".
+- [ ] La confirmación del pedido (`/pedido/…`) nunca se guarda sin conexión (tiene datos del cliente). Los avisos push del panel siguen funcionando: su service worker (`/sw.js`, alcance `/`) es otro.
+
 ### Encargado (permisos)
 
 - [ ] Sal y entra como **encargado** → el selector solo muestra **Antigua** (sin "Todas").
@@ -418,10 +452,12 @@ Fallas detectadas en la revisión que se corrigen al final del MVP. No bloquean 
 | 9   | Avisos push (QRM-032)    | Sin probar en teléfonos reales: Android con la app instalada, iPhone instalado (iOS 16.4+) y la tablet del staff. En local se probó el cifrado contra el RFC, los destinatarios y el escalamiento con un servicio de push simulado.                                                                                                                              | Probar con el dominio de Vercel siguiendo §4 (QRM-032).                              | 2026-10-22, QRM-032                 |
 | 10  | Avisos push (QRM-032)    | El escalamiento cada 3 min y el aviso de programados necesitan el cron de Supabase (`pnpm push:cron …`), que se programa cuando producción tenga `/api/cron/push`. Hasta entonces solo llega el primer aviso.                                                                                                                                                    | La bandeja abierta sigue sonando y parpadeando.                                      | 2026-10-22, QRM-032                 |
 | 11  | Avisos push (QRM-032)    | Si el navegador renueva la suscripción por su cuenta (`pushsubscriptionchange`, poco común), el dispositivo deja de recibir avisos hasta que se vuelvan a activar. La tablet del staff se re-asocia sola al abrir la bandeja; el panel no.                                                                                                                       | Notificaciones → Activar otra vez.                                                   | 2026-10-22, QRM-032                 |
-| 12  | Apariencia (QRM-033)     | Fuentes y fondos solo se aplican en la plantilla **Clásico** (la única que existe). Galería, Minimal y Tarjetas (QRM-034) deben usar `MenuShell` y `MenuHeader` para heredarlos.                                                                                                                                                                                 | —                                                                                    | 2026-10-22, QRM-033                 |
+| 12  | Apariencia (QRM-033)     | ~~Fuentes y fondos solo en Clásico.~~ **Resuelto** (QRM-034): las 4 plantillas comparten `MenuShell` y `MenuHeader`. Pendiente: capturas de pantalla automáticas (4 plantillas × 3 paletas) con Playwright en QRM-045; hoy la prueba común es de contenido y comportamiento, y la revisión visual es en `/styleguide`.                                           | —                                                                                    | 2026-10-22, QRM-033                 |
 | 13  | Apariencia (QRM-033)     | Sin probar en teléfonos reales: el video de fondo en la portada (Safari iOS, Chrome Android, navegador de Instagram) y "Extraer de mi logo" con un logo real subido (el demo no tiene logo).                                                                                                                                                                     | Probar con el dominio de Vercel siguiendo §4 (QRM-033).                              | 2026-10-22, QRM-033                 |
 | 14  | Pruebas de integración   | `audit_logs` no tiene FK (la auditoría sobrevive al negocio): las pruebas anteriores dejaron ~1,100 filas de negocios `zz-test-*` ya borrados. La de QRM-033 limpia las suyas.                                                                                                                                                                                   | No afecta a usuarios; limpiar con un DELETE y hacer que cada prueba borre las suyas. | 2026-10-22, QRM-033                 |
 | 15  | Menú público (hojas)     | Arreglado el 2026-10-22: en el iPhone las hojas de producto y de pedido salían sin contenido (WebKit resolvía a 0 la base `flex-1` del cuerpo) y elegir Transferencia desplazaba toda la hoja (los radios ocultos desbordaban el `<dialog>`). En Chromium se verificó la medida; **falta confirmarlo en un iPhone real** (el navegador de pruebas no es WebKit). | Probar §4 (QRM-025) en el iPhone.                                                    | 2026-10-22, pruebas del usuario     |
+| 16  | QR (QRM-035)             | Sin probar impreso: escanear un A6 a 1 m con 3 celulares (criterio del ticket). Lo medido: QR de 88 mm, versión 4 (33 módulos), **2.1 mm por módulo**, nivel Q con logo < 5 % del área.                                                                                                                                                                          | Probar §4 (QRM-035) con una impresión al 100 %.                                      | 2026-10-23, QRM-035                 |
+| 17  | App del menú (QRM-036)   | Sin probar en teléfonos reales: instalar en Android (botón) e iPhone (guía), el ícono con el logo y abrir sin conexión. En local se verificó el manifiesto, los 4 íconos, el registro del service worker y la copia sin conexión (servidor apagado). Los logos subidos antes en WebP dan el ícono con la inicial.                                                | Probar §4 (QRM-036) con el dominio de Vercel; volver a subir el logo.                | 2026-10-23, QRM-036                 |
 
 El detalle de los puntos 4 a 8 y lo que se verificó está en [reporte-verificacion-2026-10-22.md](reporte-verificacion-2026-10-22.md).
 

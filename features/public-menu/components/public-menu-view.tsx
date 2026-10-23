@@ -41,17 +41,17 @@ import {
   MenuFooter,
   MenuHeader,
   MenuNotice,
-  MenuSection,
   MenuShell,
-  ProductCard,
   SectionTabs,
   SlotChips,
 } from "../templates/clasico/components";
+import { TEMPLATE_PARTS, templateFor } from "../templates";
 import type { BankAccount, OrderSheetProps } from "../templates/clasico/order-sheet";
 import type { ProductSheetLine, ProductSheetProps } from "../templates/clasico/product-sheet";
 import type { MenuTheme } from "../theme";
 import { useBranchCart } from "../use-branch-cart";
 import { useNowMinute } from "../use-now";
+import { InstallApp, OfflineNotice } from "./install-app";
 import { rememberBranch } from "./remember-branch";
 
 // Las hojas se descargan bajo demanda (y en segundo plano tras cargar el menú).
@@ -80,6 +80,8 @@ type Props = {
     logoUrl: string | null;
     coverUrl: string | null;
     theme: MenuTheme;
+    /** El plan incluye Galería, Minimal y Tarjetas. */
+    allTemplates: boolean;
   };
   branch: {
     id: string;
@@ -149,6 +151,7 @@ export function PublicMenuView({ business, branch, payload, selectorHref }: Prop
   const menu: PublicMenu | null =
     (shown?.menuId ? payload.menus.find((m) => m.id === shown.menuId) : null) ??
     (shown ? null : fallbackMenu);
+  const Template = menu ? TEMPLATE_PARTS[templateFor(menu.template, business.allTemplates)] : null;
   const hours = now ? openState(branch.hours, guatemalaNow(now)) : null;
   const currentSlotId =
     active?.status === "open" || active?.status === "default" ? (active.slot?.id ?? null) : null;
@@ -293,6 +296,8 @@ export function PublicMenuView({ business, branch, payload, selectorHref }: Prop
         theme={business.theme}
       />
 
+      <OfflineNotice />
+
       {!branch.isActive ? (
         <MenuNotice icon={<PauseCircleIcon />} tone="info">
           Esta sucursal está en pausa: puedes ver el menú, pero por ahora no recibe pedidos.
@@ -324,7 +329,7 @@ export function PublicMenuView({ business, branch, payload, selectorHref }: Prop
         </MenuNotice>
       ) : null}
 
-      {menu ? (
+      {menu && Template ? (
         <div key={menu.id} className={cascade ? undefined : "animate-fundido"}>
           <SectionTabs sections={menu.sections.map((s) => ({ id: s.id, name: s.name }))} />
           <main className="mt-4 grid gap-8 px-4" aria-label={menu.name}>
@@ -332,7 +337,7 @@ export function PublicMenuView({ business, branch, payload, selectorHref }: Prop
               <p className="type-small -mb-4 text-[var(--menu-muted)]">{menu.description}</p>
             ) : null}
             {menu.sections.map((section, sectionIndex) => (
-              <MenuSection
+              <Template.MenuSection
                 key={section.id}
                 id={section.id}
                 name={section.name}
@@ -345,7 +350,7 @@ export function PublicMenuView({ business, branch, payload, selectorHref }: Prop
                     menu.sections.slice(0, sectionIndex).reduce((n, s) => n + s.items.length, 0) +
                     itemIndex;
                   return (
-                    <ProductCard
+                    <Template.ProductCard
                       key={item.productId}
                       product={product}
                       priceCents={item.priceCents}
@@ -357,7 +362,7 @@ export function PublicMenuView({ business, branch, payload, selectorHref }: Prop
                     />
                   );
                 })}
-              </MenuSection>
+              </Template.MenuSection>
             ))}
           </main>
         </div>
@@ -367,6 +372,11 @@ export function PublicMenuView({ business, branch, payload, selectorHref }: Prop
         </p>
       ) : null}
 
+      <InstallApp
+        businessId={business.id}
+        businessSlug={business.slug}
+        businessName={business.name}
+      />
       <MenuFooter showPoweredBy={business.theme.showPoweredBy} />
       {/* Espacio para que la barra del carrito no tape lo último del menú. */}
       {cart.lines.length > 0 ? <div aria-hidden className="h-20" /> : null}

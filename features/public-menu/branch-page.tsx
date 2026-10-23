@@ -3,6 +3,7 @@ import type { CSSProperties } from "react";
 import { fontClasses } from "@/features/appearance/font-loaders";
 import { fontStack } from "@/features/appearance/fonts";
 import { BRAND } from "@/lib/brand";
+import { menuAppPaths } from "./pwa";
 import { PublicMenuView } from "./components/public-menu-view";
 import { Splash } from "./components/splash";
 import { getBranchMenu, type PublicBranch, type PublicBusiness } from "./data";
@@ -25,9 +26,14 @@ export function branchMetadata(business: PublicBusiness, branch: PublicBranch): 
     `Mira el menú del día de ${business.name} en ${branch.name} y pide por WhatsApp.`;
   const image = business.cover_url ?? business.logo_url;
   const path = `/${business.slug}/${branch.slug}`;
+  const app = menuAppPaths(business.slug, branch.slug);
   return {
     title: { absolute: title },
     description,
+    // App instalable con el nombre y el ícono del negocio (QRM-036).
+    manifest: app.manifest,
+    icons: { apple: [{ url: app.icon("apple"), sizes: "180x180", type: "image/png" }] },
+    appleWebApp: { capable: true, title: business.name, statusBarStyle: "default" },
     // Con una sola sucursal, /{negocio} muestra lo mismo: la canónica es la de la sucursal.
     alternates: { canonical: path },
     robots: business.indexable ? undefined : { index: false, follow: false },
@@ -69,6 +75,8 @@ export async function BranchMenu({
 
   return (
     <>
+      {/* Barra del navegador con el color del negocio (React la sube al <head>). */}
+      <meta name="theme-color" content={business.theme.primary} />
       <script
         type="application/ld+json"
         // Datos del negocio escapados: "<" no puede cerrar el script.
@@ -96,6 +104,7 @@ export async function BranchMenu({
               logoUrl: business.logo_url,
               coverUrl: business.cover_url,
               theme: business.theme,
+              allTemplates: business.allTemplates,
             }}
             branch={{
               id: branch.id,

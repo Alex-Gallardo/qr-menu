@@ -5,12 +5,11 @@ import { fontStack } from "@/features/appearance/fonts";
 import type { PublicProduct } from "@/features/public-menu/payload";
 import { Splash } from "@/features/public-menu/components/splash";
 import type { SplashConfig } from "@/features/public-menu/splash";
+import { TEMPLATE_PARTS, type MenuTemplateId } from "@/features/public-menu/templates";
 import {
   MenuFooter,
   MenuHeader,
-  MenuSection,
   MenuShell,
-  ProductCard,
 } from "@/features/public-menu/templates/clasico/components";
 import type { MenuTheme } from "@/features/public-menu/theme";
 
@@ -67,10 +66,12 @@ export function PhonePreview({
     logoUrl: string | null;
     coverUrl: string | null;
     branchName: string;
+    template: MenuTemplateId;
     products: PublicProduct[];
   };
 }) {
   const products = business.products.length > 0 ? business.products : SAMPLE;
+  const { MenuSection, ProductCard } = TEMPLATE_PARTS[business.template];
   return (
     <div
       data-testid="vista-previa"

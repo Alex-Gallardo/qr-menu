@@ -10,6 +10,7 @@ import {
   MAX_VIDEO_BYTES,
   mediaPath,
   videoPath,
+  type ImageExt,
   type ImageKind,
 } from "@/lib/images/presets";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
@@ -26,7 +27,7 @@ export async function signImageUpload(
   businessId: string,
   kind: ImageKind,
   bytes: number,
-  ext: "webp" | "jpg",
+  ext: ImageExt,
 ) {
   if (bytes > MAX_IMAGE_BYTES * 1.1) {
     throw new AppError("too_large", "La foto quedó muy pesada. Prueba con otra o recórtala más.");

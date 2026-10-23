@@ -8,6 +8,7 @@ import { getAppearancePage } from "@/features/appearance/server";
 import { PanelPage } from "@/features/panel/components/panel-page";
 import { requireOwnerPage } from "@/features/panel/context";
 import { panelHref } from "@/features/panel/nav";
+import { templateFor } from "@/features/public-menu/templates";
 
 export const metadata: Metadata = { title: "Apariencia" };
 
@@ -43,6 +44,7 @@ async function Appearance({ params }: { params: Promise<{ businessId: string }> 
           logoUrl: business.logoUrl,
           coverUrl: business.coverUrl,
           branchName: business.branch?.name ?? "Tu sucursal",
+          template: templateFor(business.template, data.features.includes("all_templates")),
           products: business.products,
         }}
       />
