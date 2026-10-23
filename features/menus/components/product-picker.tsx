@@ -56,7 +56,7 @@ export function ProductPicker({
       }}
       className="m-auto flex max-h-[min(44rem,calc(100dvh-2rem))] w-[min(32rem,calc(100%-2rem))] flex-col rounded-xl border border-border bg-card p-0 text-card-foreground shadow-3 backdrop:bg-frijol/50 open:flex"
     >
-      <div className="grid gap-3 border-b border-border p-4">
+      <div className="grid shrink-0 gap-3 border-b border-border p-4">
         <h2 id="picker-title" className="type-h3">
           Agregar a “{sectionName || "Sección"}”
         </h2>
@@ -77,7 +77,7 @@ export function ProductPicker({
         </label>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto p-2">
+      <div className="relative min-h-0 flex-auto overflow-y-auto p-2">
         {groups.length === 0 ? (
           <p className="type-body p-6 text-center text-muted-foreground">
             {products.length === 0
@@ -146,7 +146,7 @@ export function ProductPicker({
         ))}
       </div>
 
-      <div className="flex gap-2 border-t border-border p-4">
+      <div className="flex shrink-0 gap-2 border-t border-border p-4">
         <Button type="button" variant="ghost" className="flex-1" onClick={onClose}>
           Cancelar
         </Button>
