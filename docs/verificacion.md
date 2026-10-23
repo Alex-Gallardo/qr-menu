@@ -396,6 +396,17 @@ Hace falta el dominio https de Vercel (en `localhost` Chrome también deja insta
 - [ ] **Sin conexión:** abre el menú una vez con internet, activa el modo avión y vuelve a abrir la app → se ve el último menú guardado con "Sin conexión: este es el último menú que guardamos. Para pedir, conéctate otra vez.". Una sucursal nunca abierta muestra "Sin conexión y todavía no guardamos este menú".
 - [ ] La confirmación del pedido (`/pedido/…`) nunca se guarda sin conexión (tiene datos del cliente). Los avisos push del panel siguen funcionando: su service worker (`/sw.js`, alcance `/`) es otro.
 
+### Reseñas (QRM-037): criterio "Botón de Google con el Place ID de la sucursal"
+
+Las sucursales del demo no tienen Place ID: para probar el botón, pon uno en Sucursales → la sucursal → **Google Place ID** (búscalo en el [buscador de Place ID](https://developers.google.com/maps/documentation/places/web-service/place-id#find-id)) y quítalo al terminar.
+
+- [ ] En Sucursales, con un Place ID válido aparece "**Probar el enlace de reseñas**" → abre `https://search.google.com/local/writereview?placeid=…` en la ficha de esa sucursal.
+- [ ] Abre la confirmación de un pedido **Entregado** (o de hace más de 2 h) → "¿Qué tal estuvo todo?" con 5 estrellas (Muy mal … ¡Excelente!). Uno recién hecho o **Cancelado** no muestra la tarjeta.
+- [ ] Califica con comentario → agradecimiento según la nota y "**Publicar también en Google**" para **cualquier** calificación (Google prohíbe pedir reseñas solo a los contentos). Sin Place ID se agradece sin botón. Al recargar se ve la reseña enviada; no se puede calificar dos veces.
+- [ ] Panel → **Reseñas**: promedio, total y barras de 5 a 1 por sucursal (o "Todas"); % que tocó Google contra la meta del 30 %; enlace de cada sucursal (Copiar / Probar) o "Agregarlo en Sucursales".
+- [ ] **Ocultar** un comentario lo quita de la lista (con "Deshacer" y "Ver los ocultos"), pero sigue contando en el promedio; queda en la auditoría (`review.hide` / `review.show`). El encargado solo ve y oculta las de su sucursal.
+- [ ] Al terminar, borra la reseña de prueba (y su evento `review_submitted`) y quita el Place ID.
+
 ### Encargado (permisos)
 
 - [ ] Sal y entra como **encargado** → el selector solo muestra **Antigua** (sin "Todas").
@@ -458,6 +469,7 @@ Fallas detectadas en la revisión que se corrigen al final del MVP. No bloquean 
 | 15  | Menú público (hojas)     | Arreglado el 2026-10-22: en el iPhone las hojas de producto y de pedido salían sin contenido (WebKit resolvía a 0 la base `flex-1` del cuerpo) y elegir Transferencia desplazaba toda la hoja (los radios ocultos desbordaban el `<dialog>`). En Chromium se verificó la medida; **falta confirmarlo en un iPhone real** (el navegador de pruebas no es WebKit). | Probar §4 (QRM-025) en el iPhone.                                                    | 2026-10-22, pruebas del usuario     |
 | 16  | QR (QRM-035)             | Sin probar impreso: escanear un A6 a 1 m con 3 celulares (criterio del ticket). Lo medido: QR de 88 mm, versión 4 (33 módulos), **2.1 mm por módulo**, nivel Q con logo < 5 % del área.                                                                                                                                                                          | Probar §4 (QRM-035) con una impresión al 100 %.                                      | 2026-10-23, QRM-035                 |
 | 17  | App del menú (QRM-036)   | Sin probar en teléfonos reales: instalar en Android (botón) e iPhone (guía), el ícono con el logo y abrir sin conexión. En local se verificó el manifiesto, los 4 íconos, el registro del service worker y la copia sin conexión (servidor apagado). Los logos subidos antes en WebP dan el ícono con la inicial.                                                | Probar §4 (QRM-036) con el dominio de Vercel; volver a subir el logo.                | 2026-10-23, QRM-036                 |
+| 18  | Reseñas (QRM-037)        | Sin probar con una ficha real de Google: el demo no tiene Place ID. En local se verificó con un Place ID de ejemplo: la reseña se guarda con su sucursal, el botón abre el formulario de Google y el toque se cuenta (meta 30 %); ocultar/mostrar queda auditado.                                                                                                | Poner el Place ID real de cada sucursal y probar §4 (QRM-037) en el teléfono.        | 2026-10-23, QRM-037                 |
 
 El detalle de los puntos 4 a 8 y lo que se verificó está en [reporte-verificacion-2026-10-22.md](reporte-verificacion-2026-10-22.md).
 

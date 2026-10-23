@@ -8,6 +8,8 @@ import { toast } from "sonner";
 import { markWhatsAppOpenedAction } from "@/features/orders/actions";
 import { ORDER_TYPE_LABELS, PAY_METHOD_LABELS } from "@/features/orders/checkout";
 import { scheduledLabel } from "@/features/orders/preorder";
+import { ReviewCard } from "@/features/reviews/components/review-card";
+import type { OrderReview } from "@/features/reviews/server";
 import { orderNumberLabel, type MessageOrder } from "@/features/orders/whatsapp";
 import { formatQ } from "@/lib/money";
 import { formatPhone } from "@/lib/phone";
@@ -38,6 +40,7 @@ export function OrderConfirmation({
   bankAccounts,
   menuHref,
   emailNotice,
+  review,
 }: {
   orderId: string;
   status: string;
@@ -50,6 +53,8 @@ export function OrderConfirmation({
   menuHref: string;
   /** Dejó su correo y el envío está activo: "Te enviamos el resumen a tu correo". */
   emailNotice: boolean;
+  /** Reseña del pedido: la tarjeta aparece al entregarse (o 2 h después de pedir). */
+  review: OrderReview | null;
 }) {
   const webUrl = `https://web.whatsapp.com/send?phone=${branchWhatsapp.replace(/\D/g, "")}&text=${encodeURIComponent(message)}`;
 
@@ -134,6 +139,10 @@ export function OrderConfirmation({
           <p className="type-small text-[var(--menu-muted)]">Te enviamos el resumen a tu correo.</p>
         ) : null}
       </section>
+
+      {review && (review.open || review.review) ? (
+        <ReviewCard orderId={orderId} initial={review} />
+      ) : null}
 
       <section className="grid gap-3 rounded-[var(--menu-radius)] border border-[var(--menu-line)] bg-[var(--menu-surface)] p-4">
         <p className="type-small">
