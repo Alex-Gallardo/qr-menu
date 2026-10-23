@@ -78,13 +78,13 @@ export async function signUp(input: unknown): Promise<ActionResult> {
     password: parsed.data.password,
     options: {
       data: { full_name: parsed.data.fullName },
-      emailRedirectTo: await callbackUrl("/onboarding"),
+      emailRedirectTo: await callbackUrl(safeNext(parsed.data.next, "/onboarding")),
     },
   });
   if (error) return { ok: false, message: authErrorMessage(error) };
 
   // Con confirmación de correo desactivada, Supabase ya devuelve la sesión.
-  if (data.session) redirect("/onboarding");
+  if (data.session) redirect(safeNext(parsed.data.next, "/onboarding"));
   return {
     ok: true,
     message: `Te enviamos un correo a ${parsed.data.email}. Ábrelo para confirmar tu cuenta.`,
