@@ -4,7 +4,10 @@ import { PageSkeleton } from "@/components/feedback/page-skeleton";
 import { getProfile, requireUser } from "@/lib/auth/session";
 import { db } from "@/lib/db";
 
-/** /panel → el primer negocio del usuario; sin negocio → onboarding (o super admin). */
+/**
+ * /panel → el primer negocio del usuario; sin negocio → onboarding (o super
+ * admin). Si es dueño de un negocio sin publicar, vuelve al asistente.
+ */
 export default function PanelIndexPage() {
   return (
     <Suspense fallback={<PageSkeleton />}>
@@ -18,8 +21,9 @@ async function ResolveBusiness(): Promise<never> {
   const membership = await db().business_members.findFirst({
     where: { user_id: user.id },
     orderBy: { created_at: "asc" },
-    select: { business_id: true },
+    select: { business_id: true, role: true, business: { select: { published: true } } },
   });
+  if (membership?.role === "owner" && !membership.business.published) redirect("/onboarding");
   if (membership) redirect(`/panel/${membership.business_id}`);
 
   const profile = await getProfile(user.id);
