@@ -82,6 +82,12 @@ export async function getAppearancePage(businessId: string) {
           take: 1,
           select: { name: true, slug: true },
         },
+        // Plantilla del menú predeterminado: la vista previa se ve como el menú real.
+        menus: {
+          orderBy: [{ is_default: "desc" }, { created_at: "asc" }],
+          take: 1,
+          select: { template: true },
+        },
         products: {
           where: { deleted_at: null, hidden_by_license: false },
           orderBy: [{ image_url: { sort: "asc", nulls: "last" } }, { created_at: "asc" }],
@@ -127,6 +133,7 @@ export async function getAppearancePage(businessId: string) {
       logoUrl: business.logo_url,
       coverUrl: business.cover_url,
       branch: business.branches[0] ?? null,
+      template: business.menus[0]?.template ?? null,
       products,
     },
   };

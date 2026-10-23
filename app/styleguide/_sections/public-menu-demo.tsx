@@ -5,15 +5,15 @@ import { useState } from "react";
 import { gtInstant, todayInGuatemala } from "@/lib/gt-time";
 import { addLine, priceCart, setLineQuantity, type CartLine } from "@/features/cart/cart";
 import { PALETTE_PRESETS } from "@/features/appearance/palettes";
+import { MENU_TEMPLATES } from "@/features/menus/structure";
+import { TEMPLATE_PARTS, type MenuTemplateId } from "@/features/public-menu/templates";
 import { orderTiming, type TimingRules } from "@/features/orders/preorder";
 import type { PublicProduct } from "@/features/public-menu/payload";
 import {
   MenuFooter,
   MenuHeader,
   MenuNotice,
-  MenuSection,
   MenuShell,
-  ProductCard,
   SectionTabs,
   SlotChips,
 } from "@/features/public-menu/templates/clasico/components";
@@ -167,6 +167,8 @@ const SECTIONS = [
  */
 export function PublicMenuDemo() {
   const [paletteId, setPaletteId] = useState("tomate");
+  const [template, setTemplate] = useState<MenuTemplateId>("clasico");
+  const { MenuSection, ProductCard } = TEMPLATE_PARTS[template];
   const [slot, setSlot] = useState("almuerzo");
   const [sheetId, setSheetId] = useState<string | null>(null);
   const [lines, setLines] = useState<CartLine[]>([]);
@@ -194,6 +196,20 @@ export function PublicMenuDemo() {
           >
             <span aria-hidden className="size-4 rounded-full" style={{ background: p.primary }} />
             {p.name}
+          </button>
+        ))}
+      </div>
+
+      <div role="group" aria-label="Plantilla" className="flex flex-wrap gap-2">
+        {MENU_TEMPLATES.map((t) => (
+          <button
+            key={t.value}
+            type="button"
+            aria-pressed={template === t.value}
+            onClick={() => setTemplate(t.value)}
+            className="type-small inline-flex h-10 items-center rounded-full border border-border bg-card px-4 font-semibold aria-pressed:ring-3 aria-pressed:ring-ring/40"
+          >
+            {t.label}
           </button>
         ))}
       </div>

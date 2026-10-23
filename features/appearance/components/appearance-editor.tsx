@@ -8,6 +8,7 @@ import { SaveIndicator } from "@/components/feedback/save-indicator";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import type { PublicProduct } from "@/features/public-menu/payload";
+import type { MenuTemplateId } from "@/features/public-menu/templates";
 import { normalizeSplash } from "@/features/public-menu/splash";
 import { normalizeTheme } from "@/features/public-menu/theme";
 import { BRAND } from "@/lib/brand";
@@ -59,6 +60,8 @@ export function AppearanceEditor({
     logoUrl: string | null;
     coverUrl: string | null;
     branchName: string;
+    /** Plantilla del menú predeterminado (la vista previa la usa). */
+    template: MenuTemplateId;
     products: PublicProduct[];
   };
   licenseHref: string;
