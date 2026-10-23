@@ -70,7 +70,7 @@ El negocio demo es **Café El Portal** (link `cafe-el-portal`), con sucursales *
 | `/api/health`                             | Estado de la configuración                                               | Todos (solo sí/no)                                       |
 | `/api/cron/push`                          | Escalamiento de avisos y aviso de programados (cada minuto)              | Solo con `Authorization: Bearer <CRON_SECRET>`           |
 
-`{negocio}` es el id del negocio. No hace falta copiarlo: entra a `/panel` y te lleva solo. QR, Reseñas y Analíticas aparecen en la navegación, pero son de fases siguientes y muestran "Muy pronto".
+`{negocio}` es el id del negocio. No hace falta copiarlo: entra a `/panel` y te lleva solo. Reseñas y Analíticas aparecen en la navegación, pero son de fases siguientes y muestran "Muy pronto".
 
 ## 4. Lista de verificación
 
@@ -370,6 +370,21 @@ El demo tiene el plan **Negocio** (todo habilitado). Antes de empezar, anota que
 - [ ] Plan **Gratis**: en el editor de menús solo aparece Clásico; un menú guardado en otra plantilla (de cuando tenía Pro) se muestra en Clásico.
 - Automático: `tests/unit/templates.test.tsx` corre la misma prueba a las 4 (título y orden, precio una sola vez, tachado, Agotado, etiquetas, Destacado, abrir, "+" que nunca agrega un agotado y `alt` de las fotos).
 
+### QR y compartir (QRM-035): criterio "QR A6 escanea a 1 m; escaneo se cuenta"
+
+El demo trae 8 QR del seed (`demo01`…`demo08`, con escaneos de ejemplo). Anota sus escaneos antes de probar y déjalos igual al terminar (o corre `pnpm db:seed`).
+
+- [ ] **Más → QR y compartir** (dueño o encargado; el encargado solo ve sus sucursales): el QR de **Zona 1** y sus mesas, con vista previa en el color del negocio (o frijol si el color no contrasta con blanco), la inicial o el logo al centro y "N escaneos".
+- [ ] **Agregar QR → Mesas**, del 5 al 8 → aparecen Mesa 5…8 en orden. Repetir del 1 al 6 → "Creamos 2 QR (4 ya existían)": no hay dos QR para la misma mesa.
+- [ ] **Campaña** "Volante" → aparece con tipo Campaña. Con la sucursal que ya tiene su QR, la opción "Toda la sucursal" no aparece.
+- [ ] **PDF A6** de una mesa → abre un PDF de 105 × 148 mm: nombre del negocio, "Escanea y pide 📱", QR de 88 mm con el logo, "Mesa N", "Menú del día · Pedidos por WhatsApp" y el link corto. **Imprímelo al 100 %** y escanéalo con 3 celulares (iPhone y Android) a **1 m**: abre el menú con "Mesa N" en la hoja de pedido.
+- [ ] **⋯ → PDF tamaño carta** (para la puerta), **PNG** (1200 px) y **SVG** (imprenta). **Todas las mesas en un PDF (A6)**: una página por mesa.
+- [ ] Escanear (o abrir `/q/{código}` en el celular) suma **1 escaneo** en el panel. Pegar el link en un chat de WhatsApp **no** suma (la vista previa no cuenta). Un código inventado muestra "Este código QR ya no está activo".
+- [ ] **⋯ → Eliminar** → toast con **Deshacer** → vuelve con el **mismo código** (lo impreso sigue sirviendo) y sus escaneos.
+- [ ] **Compartir**: el link del menú de la sucursal y 4 textos listos (estado, publicación, porta-QR, difusión) con el nombre y el link ya puestos; **Copiar** los copia.
+- [ ] Plan **Gratis**: después del primer QR aparece la tarjeta "Tu plan incluye 1 QR…".
+- [ ] En Vercel, `NEXT_PUBLIC_APP_URL` debe ser el dominio de producción (los QR impresos llevan ese dominio). `/api/health` lo revisa (`app_url`).
+
 ### Encargado (permisos)
 
 - [ ] Sal y entra como **encargado** → el selector solo muestra **Antigua** (sin "Todas").
@@ -430,6 +445,7 @@ Fallas detectadas en la revisión que se corrigen al final del MVP. No bloquean 
 | 13  | Apariencia (QRM-033)     | Sin probar en teléfonos reales: el video de fondo en la portada (Safari iOS, Chrome Android, navegador de Instagram) y "Extraer de mi logo" con un logo real subido (el demo no tiene logo).                                                                                                                                                                     | Probar con el dominio de Vercel siguiendo §4 (QRM-033).                              | 2026-10-22, QRM-033                 |
 | 14  | Pruebas de integración   | `audit_logs` no tiene FK (la auditoría sobrevive al negocio): las pruebas anteriores dejaron ~1,100 filas de negocios `zz-test-*` ya borrados. La de QRM-033 limpia las suyas.                                                                                                                                                                                   | No afecta a usuarios; limpiar con un DELETE y hacer que cada prueba borre las suyas. | 2026-10-22, QRM-033                 |
 | 15  | Menú público (hojas)     | Arreglado el 2026-10-22: en el iPhone las hojas de producto y de pedido salían sin contenido (WebKit resolvía a 0 la base `flex-1` del cuerpo) y elegir Transferencia desplazaba toda la hoja (los radios ocultos desbordaban el `<dialog>`). En Chromium se verificó la medida; **falta confirmarlo en un iPhone real** (el navegador de pruebas no es WebKit). | Probar §4 (QRM-025) en el iPhone.                                                    | 2026-10-22, pruebas del usuario     |
+| 16  | QR (QRM-035)             | Sin probar impreso: escanear un A6 a 1 m con 3 celulares (criterio del ticket). Lo medido: QR de 88 mm, versión 4 (33 módulos), **2.1 mm por módulo**, nivel Q con logo < 5 % del área.                                                                                                                                                                          | Probar §4 (QRM-035) con una impresión al 100 %.                                      | 2026-10-23, QRM-035                 |
 
 El detalle de los puntos 4 a 8 y lo que se verificó está en [reporte-verificacion-2026-10-22.md](reporte-verificacion-2026-10-22.md).
 
