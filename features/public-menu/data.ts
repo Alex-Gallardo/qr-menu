@@ -126,6 +126,8 @@ export async function getPublicBusiness(slug: string) {
     menuOnline: entitlements.menuOnline,
     /** Pedidos programados (función del plan). */
     preorders: hasFeature(entitlements, "preorders"),
+    /** Galería, Minimal y Tarjetas (sin la función, los menús se ven en Clásico). */
+    allTemplates: hasFeature(entitlements, "all_templates"),
     /** Indexable solo si publicó y su licencia está en línea. */
     indexable: business.published && entitlements.menuOnline,
   };
