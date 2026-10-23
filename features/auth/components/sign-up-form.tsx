@@ -10,12 +10,14 @@ import { signUp } from "../actions";
 import { signUpSchema, type SignUpInput } from "../schemas";
 import { useAction } from "./use-action";
 
-export function SignUpForm() {
+/** `next` y `email` llegan desde una invitación de equipo (/registro?next=…&correo=…). */
+export function SignUpForm({ next, email }: { next?: string; email?: string } = {}) {
   const { run, pending, result } = useAction(signUp);
   const form = useForm<SignUpInput>({
     resolver: zodResolver(signUpSchema),
-    defaultValues: { fullName: "", email: "", password: "" },
+    defaultValues: { fullName: "", email: email ?? "", password: "", next },
   });
+  const invited = Boolean(next?.startsWith("/invitacion/"));
   const { errors } = form.formState;
 
   if (result?.ok) {
@@ -65,14 +67,19 @@ export function SignUpForm() {
       </Field>
       {result && !result.ok ? <FormMessage tone="error">{result.message}</FormMessage> : null}
       <Button type="submit" loading={pending} className="w-full">
-        Crear mi menú gratis
+        {invited ? "Crear mi cuenta" : "Crear mi menú gratis"}
       </Button>
-      <p className="type-caption text-center text-muted-foreground">
-        14 días gratis · Sin tarjeta · Sin comisiones por pedido
-      </p>
+      {invited ? null : (
+        <p className="type-caption text-center text-muted-foreground">
+          14 días gratis · Sin tarjeta · Sin comisiones por pedido
+        </p>
+      )}
       <p className="type-small text-center text-muted-foreground">
         ¿Ya tienes cuenta?{" "}
-        <Link href="/entrar" className="font-semibold text-tomate-700 hover:underline">
+        <Link
+          href={next ? `/entrar?next=${encodeURIComponent(next)}` : "/entrar"}
+          className="font-semibold text-tomate-700 hover:underline"
+        >
           Entrar
         </Link>
       </p>

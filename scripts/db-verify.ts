@@ -10,7 +10,7 @@ import { Client } from "pg";
 config({ path: ".env.local", quiet: true });
 config({ quiet: true });
 
-const EXPECTED_TABLES = 38;
+const EXPECTED_TABLES = 39;
 
 type Check = { name: string; sql: string; ok: (rows: Record<string, unknown>[]) => boolean };
 
