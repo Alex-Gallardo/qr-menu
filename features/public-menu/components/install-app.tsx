@@ -2,6 +2,7 @@
 
 import { DownloadIcon, PlusSquareIcon, ShareIcon, WifiOffIcon, XIcon } from "lucide-react";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { track } from "@/features/analytics/track";
 import { isIOSDevice } from "@/features/notifications/support";
 import { installOffer, isInAppBrowser, type InstallOffer } from "../pwa";
 
@@ -28,10 +29,13 @@ const subscribeOnline = (cb: () => void) => {
  */
 export function InstallApp({
   businessId,
+  branchId,
   businessSlug,
   businessName,
 }: {
   businessId: string;
+  /** Sucursal donde se instaló (para analíticas). */
+  branchId: string;
   businessSlug: string;
   businessName: string;
 }) {
@@ -73,14 +77,17 @@ export function InstallApp({
       setPrompt(e as InstallPromptEvent);
       update(true);
     };
-    const onInstalled = () => setOffer(null);
+    const onInstalled = () => {
+      setOffer(null);
+      track({ businessId, branchId }, "app_installed");
+    };
     window.addEventListener("beforeinstallprompt", onPrompt);
     window.addEventListener("appinstalled", onInstalled);
     return () => {
       window.removeEventListener("beforeinstallprompt", onPrompt);
       window.removeEventListener("appinstalled", onInstalled);
     };
-  }, [businessId]);
+  }, [businessId, branchId]);
 
   const dismiss = () => {
     setOffer(null);

@@ -1,10 +1,11 @@
 "use client";
 
 import { CalendarOffIcon, ClockIcon, MoonIcon, PauseCircleIcon } from "lucide-react";
-import { useEffect, useState, type ComponentType } from "react";
+import { useEffect, useRef, useState, type ComponentType } from "react";
 import { useRouter } from "next/navigation";
 import { flushSync } from "react-dom";
 import { toast } from "sonner";
+import { track, trackVisit, visitSource } from "@/features/analytics/track";
 import { minutesOf, openState } from "@/features/branches/hours";
 import { priceCart } from "@/features/cart/cart";
 import { tableKey, useCustomer } from "@/features/cart/customer";
@@ -136,6 +137,11 @@ export function PublicMenuView({ business, branch, payload, selectorHref }: Prop
     }
     void useCustomer.persist.rehydrate();
   }, [branch.id]);
+  // Analíticas: la visita (una por pestaña cada 30 min) y de dónde llegó.
+  const where = { businessId: business.id, branchId: branch.id };
+  useEffect(() => {
+    trackVisit({ businessId: business.id, branchId: branch.id }, { source: visitSource() });
+  }, [business.id, branch.id]);
 
   // Menú que toca ahora (o el de la franja que el cliente eligió).
   const active = now ? resolveActiveMenu(input, now) : null;
@@ -202,6 +208,15 @@ export function PublicMenuView({ business, branch, payload, selectorHref }: Prop
     // Llegó con el link de un producto: se carga la hoja y se abre.
     if (openId && !Sheet) void loadSheet().then((m) => setSheet(() => m.ProductSheet));
   }, [openId, Sheet]);
+  // Producto visto: cada vez que se abre su hoja (no al volver a renderizar).
+  const viewed = useRef<string | null>(null);
+  useEffect(() => {
+    if (openId && viewed.current !== openId)
+      track({ businessId: business.id, branchId: branch.id }, "product_view", {
+        productId: openId,
+      });
+    viewed.current = openId;
+  }, [openId, business.id, branch.id]);
   useEffect(() => {
     if (orderOpen && !Order) void loadOrder().then((m) => setOrder(() => m.OrderSheet));
   }, [orderOpen, Order]);
@@ -230,6 +245,7 @@ export function PublicMenuView({ business, branch, payload, selectorHref }: Prop
     useCart
       .getState()
       .add(business.id, { ...line, name: product.name, imageUrl: product.imageUrl });
+    track(where, "add_to_cart", { productId: product.id, quantity: line.quantity });
     flyToCart(photo);
     setAnnounce(`Agregado: ${line.quantity} × ${product.name}.`);
   }
@@ -251,6 +267,7 @@ export function PublicMenuView({ business, branch, payload, selectorHref }: Prop
   }
 
   async function openOrder() {
+    track(where, "checkout_start");
     const { OrderSheet } = await loadOrder();
     setLeaving(false);
     setOrder(() => OrderSheet);
@@ -374,6 +391,7 @@ export function PublicMenuView({ business, branch, payload, selectorHref }: Prop
 
       <InstallApp
         businessId={business.id}
+        branchId={branch.id}
         businessSlug={business.slug}
         businessName={business.name}
       />
