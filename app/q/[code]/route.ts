@@ -17,7 +17,10 @@ export async function GET(request: NextRequest, ctx: RouteContext<"/q/[code]">) 
   });
 
   if (target) {
-    const response = NextResponse.redirect(new URL(target, request.url), 302);
+    // ?origen=qr: el menú cuenta la visita como llegada por QR (y lo quita de la barra).
+    const url = new URL(target, request.url);
+    url.searchParams.set("origen", "qr");
+    const response = NextResponse.redirect(url, 302);
     response.headers.set("cache-control", "no-store");
     return response;
   }

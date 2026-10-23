@@ -407,6 +407,19 @@ Las sucursales del demo no tienen Place ID: para probar el botón, pon uno en Su
 - [ ] **Ocultar** un comentario lo quita de la lista (con "Deshacer" y "Ver los ocultos"), pero sigue contando en el promedio; queda en la auditoría (`review.hide` / `review.show`). El encargado solo ve y oculta las de su sucursal.
 - [ ] Al terminar, borra la reseña de prueba (y su evento `review_submitted`) y quita el Place ID.
 
+### Analíticas (QRM-038): criterio "Embudo cuadra con la DB"
+
+Las visitas, productos vistos, carrito y "abrir pedido" se registran desde este ticket (`/api/ev`, con `sendBeacon`); pedidos y ventas salen de la tabla de pedidos, así que cuadran con la bandeja desde siempre.
+
+- [ ] Abre el menú desde un QR (`/q/{código}`) → llega con `?origen=qr`, que desaparece de la barra. En DevTools → Red se ve `POST /api/ev` (204) al abrir un producto, agregarlo y abrir "Ver pedido", y al cambiar de pestaña.
+- [ ] Recargar el menú en la misma pestaña no suma otra visita (una cada 30 min por sucursal).
+- [ ] Panel → **Analíticas** (plan Pro o Negocio): Hoy / 7 días / 30 días con el cambio contra la semana anterior (▲/▼); visitas, escaneos, pedidos, conversión, ventas, ticket, % domicilio y % programados.
+- [ ] **Embudo**: vieron el menú → abrieron un producto → agregaron → abrieron su pedido → pidieron. "Pedidos" del resumen es igual a la cuenta de la bandeja en ese periodo; "Pidieron" son los celulares que vieron el menú y además pidieron (mismo id de dispositivo que el pedido).
+- [ ] El selector de sucursal de arriba filtra todo (como en Inicio). El encargado solo ve sus sucursales.
+- [ ] Pedidos por hora (hora de Guatemala), productos más pedidos (sin cancelados) y más vistos, escaneos por QR.
+- [ ] **Negocio**: con "Todas" aparece la comparación por sucursal y **Exportar por día (CSV)** abre bien en Excel (separador `;`, acentos correctos). Pro muestra el aviso del plan Negocio; **Gratis** solo ve hoy (visitas, escaneos, pedidos, ventas) y el aviso del plan Pro.
+- [ ] Al terminar en el demo, borra los eventos creados (`analytics_events` con id mayor al anotado) y las filas `rate_limits` con clave `ev:%`.
+
 ### Encargado (permisos)
 
 - [ ] Sal y entra como **encargado** → el selector solo muestra **Antigua** (sin "Todas").
@@ -470,6 +483,7 @@ Fallas detectadas en la revisión que se corrigen al final del MVP. No bloquean 
 | 16  | QR (QRM-035)             | Sin probar impreso: escanear un A6 a 1 m con 3 celulares (criterio del ticket). Lo medido: QR de 88 mm, versión 4 (33 módulos), **2.1 mm por módulo**, nivel Q con logo < 5 % del área.                                                                                                                                                                          | Probar §4 (QRM-035) con una impresión al 100 %.                                      | 2026-10-23, QRM-035                 |
 | 17  | App del menú (QRM-036)   | Sin probar en teléfonos reales: instalar en Android (botón) e iPhone (guía), el ícono con el logo y abrir sin conexión. En local se verificó el manifiesto, los 4 íconos, el registro del service worker y la copia sin conexión (servidor apagado). Los logos subidos antes en WebP dan el ícono con la inicial.                                                | Probar §4 (QRM-036) con el dominio de Vercel; volver a subir el logo.                | 2026-10-23, QRM-036                 |
 | 18  | Reseñas (QRM-037)        | Sin probar con una ficha real de Google: el demo no tiene Place ID. En local se verificó con un Place ID de ejemplo: la reseña se guarda con su sucursal, el botón abre el formulario de Google y el toque se cuenta (meta 30 %); ocultar/mostrar queda auditado.                                                                                                | Poner el Place ID real de cada sucursal y probar §4 (QRM-037) en el teléfono.        | 2026-10-23, QRM-037                 |
+| 19  | Analíticas (QRM-038)     | Sin probar en teléfonos: que sendBeacon llegue desde Safari, Chrome Android y el navegador de Instagram, y la vista de los planes Gratis y Pro (el demo es Negocio). Las visitas empiezan a contarse con este deploy: la conversión de periodos anteriores sale como "—" o baja.                                                                                 | Probar §4 (QRM-038) con el dominio de Vercel y un negocio en Gratis.                 | 2026-10-23, QRM-038                 |
 
 El detalle de los puntos 4 a 8 y lo que se verificó está en [reporte-verificacion-2026-10-22.md](reporte-verificacion-2026-10-22.md).
 
