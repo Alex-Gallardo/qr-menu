@@ -58,6 +58,6 @@ export const config = {
   matcher: [
     // Todo menos archivos estáticos, optimización de imágenes, íconos, el service
     // worker de los avisos y el túnel de Sentry.
-    "/((?!_next/static|_next/image|api/monitoring|icon.svg|favicon.ico|sw.js|app-icon|apple-icon|.*\\.(?:svg|png|jpg|jpeg|gif|webp|avif|ico|mp3|mp4|webmanifest)$).*)",
+    "/((?!_next/static|_next/image|api/monitoring|icon.svg|favicon.ico|sw.js|menu-sw.js|app-icon|apple-icon|.*\\.(?:svg|png|jpg|jpeg|gif|webp|avif|ico|mp3|mp4|webmanifest)$).*)",
   ],
 };

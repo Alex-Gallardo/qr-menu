@@ -51,6 +51,7 @@ import type { ProductSheetLine, ProductSheetProps } from "../templates/clasico/p
 import type { MenuTheme } from "../theme";
 import { useBranchCart } from "../use-branch-cart";
 import { useNowMinute } from "../use-now";
+import { InstallApp, OfflineNotice } from "./install-app";
 import { rememberBranch } from "./remember-branch";
 
 // Las hojas se descargan bajo demanda (y en segundo plano tras cargar el menú).
@@ -295,6 +296,8 @@ export function PublicMenuView({ business, branch, payload, selectorHref }: Prop
         theme={business.theme}
       />
 
+      <OfflineNotice />
+
       {!branch.isActive ? (
         <MenuNotice icon={<PauseCircleIcon />} tone="info">
           Esta sucursal está en pausa: puedes ver el menú, pero por ahora no recibe pedidos.
@@ -369,6 +372,11 @@ export function PublicMenuView({ business, branch, payload, selectorHref }: Prop
         </p>
       ) : null}
 
+      <InstallApp
+        businessId={business.id}
+        businessSlug={business.slug}
+        businessName={business.name}
+      />
       <MenuFooter showPoweredBy={business.theme.showPoweredBy} />
       {/* Espacio para que la barra del carrito no tape lo último del menú. */}
       {cart.lines.length > 0 ? <div aria-hidden className="h-20" /> : null}

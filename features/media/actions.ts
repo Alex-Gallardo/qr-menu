@@ -29,7 +29,7 @@ const startSchema = z.object({
   businessId: z.uuid(),
   kind: kindSchema,
   bytes: z.number().int().positive(),
-  ext: z.enum(["webp", "jpg"]),
+  ext: z.enum(["webp", "jpg", "png"]),
 });
 
 export async function createImageUpload(

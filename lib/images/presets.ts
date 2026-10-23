@@ -2,7 +2,8 @@
 export const IMAGE_KINDS = {
   product: { aspect: 4 / 3, maxSide: 1600, folder: "products", label: "foto del producto" },
   cover: { aspect: 16 / 9, maxSide: 1600, folder: "covers", label: "portada" },
-  logo: { aspect: 1, maxSide: 800, folder: "logos", label: "logo" },
+  /** PNG: conserva la transparencia y next/og (íconos de la app) no dibuja WebP. */
+  logo: { aspect: 1, maxSide: 800, folder: "logos", label: "logo", format: "png" },
   /** Fondo de la página del menú (Apariencia). */
   background: { aspect: 16 / 9, maxSide: 1600, folder: "backgrounds", label: "fondo" },
   /** Fondo de la bienvenida: pantalla de celular vertical. */
@@ -55,7 +56,9 @@ export async function encodeUnderLimit(
 }
 
 /** Ruta en el bucket media: {negocio}/{carpeta}/{uuid}.{ext} */
-export function mediaPath(businessId: string, kind: ImageKind, id: string, ext: "webp" | "jpg") {
+export type ImageExt = "webp" | "jpg" | "png";
+
+export function mediaPath(businessId: string, kind: ImageKind, id: string, ext: ImageExt) {
   return `${businessId}/${IMAGE_KINDS[kind].folder}/${id}.${ext}`;
 }
 
@@ -64,7 +67,7 @@ export function isOwnMediaPath(path: string, businessId: string) {
   const folders = Object.values(IMAGE_KINDS)
     .map((k) => k.folder)
     .join("|");
-  return new RegExp(`^${businessId}/(${folders})/[0-9a-f-]{36}\\.(webp|jpg)$`).test(path);
+  return new RegExp(`^${businessId}/(${folders})/[0-9a-f-]{36}\\.(webp|jpg|png)$`).test(path);
 }
 
 /** Video de fondo (guía §7): MP4 de máximo 6 MB y 10 s, siempre con poster. */
