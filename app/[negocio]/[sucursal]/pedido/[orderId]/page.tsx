@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { getCustomerOrder } from "@/features/orders/queries";
+import { getOrderReview } from "@/features/reviews/server";
 import { emailEnabled } from "@/lib/email";
 import { MenuFooter, MenuShell } from "@/features/public-menu/templates/clasico/components";
 import { OrderConfirmation } from "@/features/public-menu/templates/clasico/order-confirmation";
@@ -41,6 +42,7 @@ async function Content({
   const { negocio, sucursal, orderId } = await params;
   const data = await getCustomerOrder(negocio, sucursal, orderId);
   if (!data) notFound();
+  const review = await getOrderReview(data.id);
   return (
     <MenuShell theme={data.business.theme}>
       <OrderConfirmation
@@ -54,6 +56,7 @@ async function Content({
         bankAccounts={data.bankAccounts}
         menuHref={`/${data.business.slug}/${data.branch.slug}`}
         emailNotice={data.hasEmail && emailEnabled()}
+        review={review}
       />
       <MenuFooter showPoweredBy={data.business.theme.showPoweredBy} />
     </MenuShell>

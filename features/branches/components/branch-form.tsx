@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { slugify } from "@/features/businesses/slug";
+import { googleReviewUrl } from "@/features/reviews/reviews";
 import { LocationPicker } from "@/features/location/components/location-picker";
 import type { Coords } from "@/features/location/lib/coords";
 import { runAction } from "@/lib/action-client";
@@ -76,10 +77,11 @@ export function BranchForm({
   });
   const { errors, isDirty } = form.formState;
   const control = form.control;
-  const [slug, acceptsDelivery, preorderMode] = useWatch({
+  const [slug, acceptsDelivery, preorderMode, placeId] = useWatch({
     control,
-    name: ["slug", "accepts_delivery", "preorder_mode"],
+    name: ["slug", "accepts_delivery", "preorder_mode", "google_place_id"],
   });
+  const reviewUrl = googleReviewUrl(placeId?.trim());
 
   // La Server Action vuelve a validar con el mismo esquema: se envían los valores crudos.
   const onSubmit = form.handleSubmit(() =>
@@ -208,7 +210,34 @@ export function BranchForm({
             id="google_place_id"
             label="Google Place ID (opcional)"
             error={errors.google_place_id?.message}
-            hint="Para invitar a tus clientes a dejar reseña en Google."
+            hint={
+              reviewUrl ? (
+                <>
+                  Tus clientes verán &quot;Publicar también en Google&quot; al calificar.{" "}
+                  <a
+                    href={reviewUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-semibold text-primary underline-offset-4 hover:underline"
+                  >
+                    Probar el enlace de reseñas
+                  </a>
+                </>
+              ) : (
+                <>
+                  Para invitar a tus clientes a dejar reseña en Google. Búscalo en el{" "}
+                  <a
+                    href="https://developers.google.com/maps/documentation/places/web-service/place-id#find-id"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-semibold text-primary underline-offset-4 hover:underline"
+                  >
+                    buscador de Place ID
+                  </a>
+                  .
+                </>
+              )
+            }
           >
             <Input
               id="google_place_id"
