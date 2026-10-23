@@ -1,12 +1,12 @@
 import { encode as encodeBlurhash } from "blurhash";
 import { clientEnv } from "@/lib/env.client";
-import { encodeUnderLimit, fitWithin, IMAGE_KINDS, type ImageKind } from "./presets";
+import { encodeUnderLimit, fitWithin, IMAGE_KINDS, type ImageExt, type ImageKind } from "./presets";
 
 export type CropArea = { x: number; y: number; width: number; height: number };
 
 export type CompressedImage = {
   blob: Blob;
-  ext: "webp" | "jpg";
+  ext: ImageExt;
   width: number;
   height: number;
   blurhash: string;
@@ -53,7 +53,9 @@ export async function compressImage(
     // Safari antiguo devuelve PNG si no sabe codificar WebP: se detecta y se usa JPEG.
     const probe = await toBlob(draw({ width: 8, height: 8 }), "image/webp", 0.8);
     const webp = probe.type === "image/webp";
-    const type = webp ? "image/webp" : "image/jpeg";
+    // El logo va en PNG (transparencia + íconos de la app); lo demás en WebP o JPEG.
+    const png = "format" in IMAGE_KINDS[kind] && IMAGE_KINDS[kind].format === "png";
+    const type = png ? "image/png" : webp ? "image/webp" : "image/jpeg";
 
     const result = await encodeUnderLimit(start, (size, quality) =>
       toBlob(draw(size), type, quality),
@@ -67,7 +69,7 @@ export async function compressImage(
 
     return {
       blob: result.blob,
-      ext: webp ? "webp" : "jpg",
+      ext: png ? "png" : webp ? "webp" : "jpg",
       width: result.width,
       height: result.height,
       blurhash,

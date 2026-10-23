@@ -385,6 +385,17 @@ El demo trae 8 QR del seed (`demo01`…`demo08`, con escaneos de ejemplo). Anota
 - [ ] Plan **Gratis**: después del primer QR aparece la tarjeta "Tu plan incluye 1 QR…".
 - [ ] En Vercel, `NEXT_PUBLIC_APP_URL` debe ser el dominio de producción (los QR impresos llevan ese dominio). `/api/health` lo revisa (`app_url`).
 
+### App instalable del menú (QRM-036): criterio "Se instala con nombre e ícono del restaurante"
+
+Hace falta el dominio https de Vercel (en `localhost` Chrome también deja instalar). Para que el ícono use el logo, el logo debe estar subido en **PNG**: desde QRM-036 se sube así; uno subido antes (WebP) da el ícono con la inicial hasta volver a subirlo en Ajustes → Negocio.
+
+- [ ] Abre `/{negocio}/{sucursal}/manifest.webmanifest`: nombre del negocio (con la sucursal si hay varias), `start_url` con `?source=pwa`, colores de Apariencia y 3 íconos. `/app-icon/192`, `512`, `maskable` y `apple` son PNG con el logo (o la inicial sobre el color principal).
+- [ ] **Android (Chrome):** al final del menú aparece "Ten {negocio} en tu celular → **Instalar**" → el diálogo del navegador → queda el ícono con el logo y el nombre del negocio. Ábrela: se ve sin la barra del navegador, con el color del negocio arriba. La tarjeta ya no aparece dentro de la app.
+- [ ] **iPhone (Safari o Chrome):** **Instalar** abre la guía "Compartir → Agregar a inicio". El ícono de inicio es el del negocio (apple-touch-icon).
+- [ ] La **X** ("Ahora no") la oculta en ese negocio (`localStorage` `qrm:instalar:{id}`). En el navegador de Instagram o Facebook no se ofrece.
+- [ ] **Sin conexión:** abre el menú una vez con internet, activa el modo avión y vuelve a abrir la app → se ve el último menú guardado con "Sin conexión: este es el último menú que guardamos. Para pedir, conéctate otra vez.". Una sucursal nunca abierta muestra "Sin conexión y todavía no guardamos este menú".
+- [ ] La confirmación del pedido (`/pedido/…`) nunca se guarda sin conexión (tiene datos del cliente). Los avisos push del panel siguen funcionando: su service worker (`/sw.js`, alcance `/`) es otro.
+
 ### Encargado (permisos)
 
 - [ ] Sal y entra como **encargado** → el selector solo muestra **Antigua** (sin "Todas").
@@ -446,6 +457,7 @@ Fallas detectadas en la revisión que se corrigen al final del MVP. No bloquean 
 | 14  | Pruebas de integración   | `audit_logs` no tiene FK (la auditoría sobrevive al negocio): las pruebas anteriores dejaron ~1,100 filas de negocios `zz-test-*` ya borrados. La de QRM-033 limpia las suyas.                                                                                                                                                                                   | No afecta a usuarios; limpiar con un DELETE y hacer que cada prueba borre las suyas. | 2026-10-22, QRM-033                 |
 | 15  | Menú público (hojas)     | Arreglado el 2026-10-22: en el iPhone las hojas de producto y de pedido salían sin contenido (WebKit resolvía a 0 la base `flex-1` del cuerpo) y elegir Transferencia desplazaba toda la hoja (los radios ocultos desbordaban el `<dialog>`). En Chromium se verificó la medida; **falta confirmarlo en un iPhone real** (el navegador de pruebas no es WebKit). | Probar §4 (QRM-025) en el iPhone.                                                    | 2026-10-22, pruebas del usuario     |
 | 16  | QR (QRM-035)             | Sin probar impreso: escanear un A6 a 1 m con 3 celulares (criterio del ticket). Lo medido: QR de 88 mm, versión 4 (33 módulos), **2.1 mm por módulo**, nivel Q con logo < 5 % del área.                                                                                                                                                                          | Probar §4 (QRM-035) con una impresión al 100 %.                                      | 2026-10-23, QRM-035                 |
+| 17  | App del menú (QRM-036)   | Sin probar en teléfonos reales: instalar en Android (botón) e iPhone (guía), el ícono con el logo y abrir sin conexión. En local se verificó el manifiesto, los 4 íconos, el registro del service worker y la copia sin conexión (servidor apagado). Los logos subidos antes en WebP dan el ícono con la inicial.                                                | Probar §4 (QRM-036) con el dominio de Vercel; volver a subir el logo.                | 2026-10-23, QRM-036                 |
 
 El detalle de los puntos 4 a 8 y lo que se verificó está en [reporte-verificacion-2026-10-22.md](reporte-verificacion-2026-10-22.md).
 
