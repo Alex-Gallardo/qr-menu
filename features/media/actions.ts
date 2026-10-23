@@ -13,12 +13,14 @@ import {
   deleteOwnMediaByUrl,
   isRegisteredMediaUrl,
   registerUploadedImage,
+  registerUploadedVideo,
   signImageUpload,
+  signVideoUpload,
 } from "./server";
 
-const kindSchema = z.enum(["product", "cover", "logo"]);
+const kindSchema = z.enum(["product", "cover", "logo", "background", "splash"]);
 
-/** Logo y portada son de Apariencia (solo dueño); fotos de producto también el encargado. */
+/** Logo, portada y fondos son de Apariencia (solo dueño); fotos de producto también el encargado. */
 function rolesFor(kind: ImageKind) {
   return kind === "product" ? (["owner", "manager"] as const) : (["owner"] as const);
 }
@@ -106,6 +108,50 @@ export async function setBusinessImage(input: unknown): Promise<ActionResult> {
     });
     updateTag(tags.business(businessId));
     return { ok: true, message: url ? "¡Listo! Guardamos la imagen." : "Quitamos la imagen." };
+  } catch (error) {
+    return actionError(error);
+  }
+}
+
+const videoStartSchema = z.object({
+  businessId: z.uuid(),
+  bytes: z.number().int().positive(),
+});
+
+/** Video de fondo (Apariencia): solo el dueño y con "video_bg" en el plan. */
+export async function createVideoUpload(
+  input: unknown,
+): Promise<ActionResult<{ signedUrl: string; path: string }>> {
+  const parsed = videoStartSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, message: "No pudimos preparar el video." };
+  const { businessId, bytes } = parsed.data;
+  try {
+    await requireAccess(businessId, { roles: ["owner"], feature: "video_bg", write: true });
+    return { ok: true, data: await signVideoUpload(businessId, bytes) };
+  } catch (error) {
+    return actionError(error);
+  }
+}
+
+const videoRegisterSchema = z.object({
+  businessId: z.uuid(),
+  path: z.string().max(200),
+  width: z.number().int().positive().max(4000),
+  height: z.number().int().positive().max(4000),
+});
+
+export async function registerVideo(
+  input: unknown,
+): Promise<ActionResult<{ id: string; url: string }>> {
+  const parsed = videoRegisterSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, message: "No pudimos guardar el video." };
+  try {
+    await requireAccess(parsed.data.businessId, {
+      roles: ["owner"],
+      feature: "video_bg",
+      write: true,
+    });
+    return { ok: true, data: await registerUploadedVideo(parsed.data) };
   } catch (error) {
     return actionError(error);
   }

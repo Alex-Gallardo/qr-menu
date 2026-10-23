@@ -2,7 +2,7 @@
 
 import { ImageIcon, MinusIcon, PlusIcon, Trash2Icon, XIcon } from "lucide-react";
 import Image from "next/image";
-import { useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import { cn } from "cn";
 import { productsLabel, type PricedLine } from "@/features/cart/cart";
 import {
@@ -29,6 +29,7 @@ import { formatQ } from "@/lib/money";
 import { MAX_QUANTITY } from "../../cart-line";
 import { BankAccounts, type BankAccount } from "./bank-accounts";
 import { DeliveryLocationField } from "./delivery-location";
+import { SHEET_BODY, SHEET_DIALOG, useSheet } from "./sheet";
 
 export type { BankAccount } from "./bank-accounts";
 
@@ -114,12 +115,7 @@ export function OrderSheet({
   const set = <K extends keyof CheckoutInput>(key: K, value: CheckoutInput[K]) =>
     setForm((f) => ({ ...f, [key]: value }));
 
-  useLayoutEffect(() => {
-    const dialog = ref.current;
-    if (!dialog || dialog.open) return;
-    if (typeof dialog.showModal === "function") dialog.showModal();
-    else dialog.setAttribute("open", ""); // jsdom
-  }, []);
+  useSheet(ref);
 
   const totals = orderTotals(subtotalCents, form.orderType, checkout.branch);
   const validTimes = timing.days.flatMap((d) => d.times.map((t) => t.at));
@@ -155,9 +151,9 @@ export function OrderSheet({
         onClose();
       }}
       onClick={(e) => e.target === e.currentTarget && onClose()}
-      className="product-sheet animate-subir mx-auto mt-auto mb-0 flex max-h-[94dvh] w-full max-w-[480px] flex-col overflow-hidden rounded-t-[calc(var(--menu-radius)*1.25)] border-0 bg-[var(--menu-surface)] p-0 text-[var(--menu-text)] shadow-3 backdrop:bg-black/50 open:flex"
+      className={cn(SHEET_DIALOG, "max-h-[94dvh]")}
     >
-      <header className="flex items-center gap-3 border-b border-[var(--menu-line)] py-2 pr-2 pl-4">
+      <header className="flex shrink-0 items-center gap-3 border-b border-[var(--menu-line)] py-2 pr-2 pl-4">
         <div className="min-w-0 flex-1">
           <h2 id="pedido-titulo" className="type-h3">
             Tu pedido
@@ -200,7 +196,7 @@ export function OrderSheet({
         </div>
       ) : (
         <>
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+          <div className={SHEET_BODY}>
             <ul className="px-4" data-field="total">
               {lines.map((line) => (
                 <CartLineRow key={line.key} line={line} onQuantity={onQuantity} />
@@ -409,7 +405,7 @@ export function OrderSheet({
             </div>
           </div>
 
-          <footer className="grid gap-2 border-t border-[var(--menu-line)] bg-[var(--menu-surface)] p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+          <footer className="grid shrink-0 gap-2 border-t border-[var(--menu-line)] bg-[var(--menu-surface)] p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
             {checkout.blockedReason ? (
               <p role="status" className="type-small text-center text-[var(--menu-muted)]">
                 {checkout.blockedReason}
