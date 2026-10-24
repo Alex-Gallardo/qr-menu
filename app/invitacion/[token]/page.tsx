@@ -57,7 +57,14 @@ async function Invitation({ params }: { params: Promise<{ token: string }> }) {
   const sameEmail = signedIn?.email?.toLowerCase() === invitation.email;
 
   return (
-    <AuthCard title={`Te invitan a ${business.name}`} subtitle={`Como encargado de: ${branches}.`}>
+    <AuthCard
+      title={`Te invitan a ${business.name}`}
+      subtitle={
+        invitation.role === "owner"
+          ? "Como dueño: vas a manejar tu menú, tus pedidos y tu plan."
+          : `Como encargado de: ${branches}.`
+      }
+    >
       <div className="grid gap-4">
         {invitation.state === "expired" ? (
           <p className="type-body rounded-md bg-muted px-3 py-2">
