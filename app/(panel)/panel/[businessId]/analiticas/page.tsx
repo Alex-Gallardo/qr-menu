@@ -11,8 +11,8 @@ import {
   PeriodPicker,
   RankedList,
   summaryKpis,
-  UpgradeNote,
 } from "@/features/analytics/components/analytics-view";
+import { FeatureInvite } from "@/features/licensing/components/feature";
 import { parsePeriod, periodRanges, type Period } from "@/features/analytics/metrics";
 import { getBranchSummaries, getBreakdown, getSummary } from "@/features/analytics/server";
 import { hasFeature } from "@/features/licensing/entitlements";
@@ -74,10 +74,10 @@ async function Analytics({
             { label: "Ventas", value: formatQ(today.revenueCents) },
           ]}
         />
-        <UpgradeNote licenseHref={licenseHref}>
+        <FeatureInvite name="analytics_full" licenseHref={licenseHref}>
           El embudo, los productos más vistos y pedidos, los pedidos por hora y la comparación con
           la semana anterior vienen con el plan Pro.
-        </UpgradeNote>
+        </FeatureInvite>
       </PanelPage>
     );
   }
@@ -144,9 +144,9 @@ async function Analytics({
       ) : compare && exportHref ? (
         <ExportButton href={exportHref} />
       ) : (
-        <UpgradeNote licenseHref={licenseHref}>
+        <FeatureInvite name="analytics_compare" licenseHref={licenseHref}>
           La comparación por sucursal y exportar a Excel (CSV) vienen con el plan Negocio.
-        </UpgradeNote>
+        </FeatureInvite>
       )}
     </PanelPage>
   );

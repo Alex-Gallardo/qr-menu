@@ -3,7 +3,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { cn } from "cn";
 import { Button } from "@/components/ui/button";
-import { EditorSection, PlanLock } from "@/features/appearance/components/controls";
+import { EditorSection } from "@/features/appearance/components/controls";
 import { formatQ } from "@/lib/money";
 import {
   avgTicket,
@@ -338,22 +338,6 @@ export function ExportButton({ href }: { href: string }) {
         Exportar por día (CSV)
       </a>
     </Button>
-  );
-}
-
-export function UpgradeNote({
-  children,
-  licenseHref,
-}: {
-  children: ReactNode;
-  licenseHref?: string;
-}) {
-  return licenseHref ? (
-    <PlanLock licenseHref={licenseHref}>{children}</PlanLock>
-  ) : (
-    <p className="type-small rounded-md bg-muted px-3 py-2 text-muted-foreground">
-      {children} Pídele al dueño del negocio que mejore el plan.
-    </p>
   );
 }
 
