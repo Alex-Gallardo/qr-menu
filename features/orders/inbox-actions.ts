@@ -1,7 +1,7 @@
 "use server";
 
 import { cookies } from "next/headers";
-import { z } from "zod";
+import { z } from "@/lib/zod";
 import { getStaffSession } from "@/features/staff/server";
 import { STAFF_DEVICE_COOKIE } from "@/lib/auth/route-rules";
 import { getAuthUser } from "@/lib/auth/session";

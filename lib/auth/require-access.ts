@@ -1,6 +1,6 @@
 import "server-only";
 import { cache } from "react";
-import { z } from "zod";
+import { z } from "@/lib/zod";
 import { getEntitlements } from "@/features/licensing/server";
 import { db } from "@/lib/db";
 import { AccessError } from "@/lib/errors";

@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "@/lib/zod";
 import { parseQ } from "@/lib/money";
 import { BILLING_PERIODS, PAID_PLANS, PAYMENT_METHODS } from "./billing";
 

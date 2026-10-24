@@ -1,7 +1,7 @@
 "use server";
 
 import { updateTag } from "next/cache";
-import { z } from "zod";
+import { validationError, z } from "@/lib/zod";
 import { actionError, type ActionResult } from "@/lib/action-result";
 import { requireAccess } from "@/lib/auth/require-access";
 import { tags } from "@/lib/cache-tags";
@@ -25,14 +25,9 @@ async function ownerOf(businessId: string) {
   return { actorId: user.id };
 }
 
-const firstIssue = (error: z.ZodError) => ({
-  ok: false as const,
-  message: error.issues[0]?.message ?? "Revisa los datos.",
-});
-
 export async function saveBankAccount(input: unknown): Promise<ActionResult> {
   const parsed = bankAccountSchema.safeParse(input);
-  if (!parsed.success) return firstIssue(parsed.error);
+  if (!parsed.success) return validationError(parsed.error);
   try {
     const ctx = await ownerOf(parsed.data.businessId);
     const { accountId } = parsed.data;
@@ -55,7 +50,7 @@ export async function removeBankAccount(
   input: unknown,
 ): Promise<ActionResult<{ account: BankAccountRow }>> {
   const parsed = idsSchema.safeParse(input);
-  if (!parsed.success) return firstIssue(parsed.error);
+  if (!parsed.success) return validationError(parsed.error);
   try {
     const ctx = await ownerOf(parsed.data.businessId);
     const account = await deleteBankAccount(parsed.data.businessId, parsed.data.accountId, ctx);
@@ -84,7 +79,7 @@ const snapshotSchema = z.object({
 
 export async function undoRemoveBankAccount(input: unknown): Promise<ActionResult> {
   const parsed = snapshotSchema.safeParse(input);
-  if (!parsed.success) return firstIssue(parsed.error);
+  if (!parsed.success) return validationError(parsed.error);
   try {
     const ctx = await ownerOf(parsed.data.businessId);
     await restoreBankAccount(parsed.data.businessId, parsed.data.account, ctx);
@@ -99,7 +94,7 @@ export async function moveBankAccountAction(input: unknown): Promise<ActionResul
   const parsed = idsSchema
     .extend({ direction: z.union([z.literal(-1), z.literal(1)]) })
     .safeParse(input);
-  if (!parsed.success) return firstIssue(parsed.error);
+  if (!parsed.success) return validationError(parsed.error);
   try {
     await ownerOf(parsed.data.businessId);
     await moveBankAccount(parsed.data.businessId, parsed.data.accountId, parsed.data.direction);
@@ -112,7 +107,7 @@ export async function moveBankAccountAction(input: unknown): Promise<ActionResul
 
 export async function toggleBankAccount(input: unknown): Promise<ActionResult> {
   const parsed = idsSchema.extend({ isActive: z.boolean() }).safeParse(input);
-  if (!parsed.success) return firstIssue(parsed.error);
+  if (!parsed.success) return validationError(parsed.error);
   try {
     const ctx = await ownerOf(parsed.data.businessId);
     await setBankAccountActive(

@@ -1,7 +1,7 @@
 "use server";
 
 import { cookies, headers } from "next/headers";
-import { z } from "zod";
+import { z } from "@/lib/zod";
 import { getStaffSession } from "@/features/staff/server";
 import { actionError, type ActionResult } from "@/lib/action-result";
 import { audit } from "@/lib/audit";

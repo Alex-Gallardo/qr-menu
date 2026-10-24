@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "@/lib/zod";
 import { CLIENT_EVENTS } from "./metrics";
 
 /** Lote de eventos del menú público (POST /api/ev con sendBeacon). */

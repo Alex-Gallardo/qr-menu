@@ -2,6 +2,7 @@
 
 import { headers } from "next/headers";
 import { actionError, type ActionResult } from "@/lib/action-result";
+import { validationError } from "@/lib/zod";
 import { requireAccess } from "@/lib/auth/require-access";
 import { getAuthUser, getProfile } from "@/lib/auth/session";
 import { BRAND } from "@/lib/brand";
@@ -32,10 +33,6 @@ import {
   staffBranch,
 } from "./server";
 import { branchesLabel, INVITE_TTL_DAYS, invitePath } from "./team";
-
-function firstIssue(error: { issues: { message: string }[] }) {
-  return { ok: false as const, message: error.issues[0]?.message ?? "Revisa los datos." };
-}
 
 /** Origen de la petición (localhost, preview o producción) para el link. */
 async function origin() {
@@ -95,7 +92,7 @@ export async function inviteManagerAction(
   input: unknown,
 ): Promise<ActionResult<{ link: string; emailed: boolean }>> {
   const parsed = inviteSchema.safeParse(input);
-  if (!parsed.success) return firstIssue(parsed.error);
+  if (!parsed.success) return validationError(parsed.error);
   try {
     const { user } = await requireAccess(parsed.data.businessId, { roles: ["owner"], write: true });
     const { token } = await inviteManager(parsed.data, { actorId: user.id });
@@ -123,7 +120,7 @@ export async function renewInvitationAction(
   input: unknown,
 ): Promise<ActionResult<{ link: string; emailed: boolean }>> {
   const parsed = invitationIdSchema.safeParse(input);
-  if (!parsed.success) return firstIssue(parsed.error);
+  if (!parsed.success) return validationError(parsed.error);
   const { businessId, invitationId } = parsed.data;
   try {
     const { user } = await requireAccess(businessId, { roles: ["owner"], write: true });
@@ -144,7 +141,7 @@ export async function renewInvitationAction(
 
 export async function revokeInvitationAction(input: unknown): Promise<ActionResult> {
   const parsed = invitationIdSchema.safeParse(input);
-  if (!parsed.success) return firstIssue(parsed.error);
+  if (!parsed.success) return validationError(parsed.error);
   const { businessId, invitationId } = parsed.data;
   try {
     const { user } = await requireAccess(businessId, { roles: ["owner"], write: true });
@@ -157,7 +154,7 @@ export async function revokeInvitationAction(input: unknown): Promise<ActionResu
 
 export async function setMemberBranchesAction(input: unknown): Promise<ActionResult> {
   const parsed = memberBranchesSchema.safeParse(input);
-  if (!parsed.success) return firstIssue(parsed.error);
+  if (!parsed.success) return validationError(parsed.error);
   try {
     const { user } = await requireAccess(parsed.data.businessId, { roles: ["owner"], write: true });
     await setMemberBranches(parsed.data, { actorId: user.id });
@@ -169,7 +166,7 @@ export async function setMemberBranchesAction(input: unknown): Promise<ActionRes
 
 export async function removeMemberAction(input: unknown): Promise<ActionResult> {
   const parsed = memberIdSchema.safeParse(input);
-  if (!parsed.success) return firstIssue(parsed.error);
+  if (!parsed.success) return validationError(parsed.error);
   const { businessId, memberId } = parsed.data;
   try {
     const { user } = await requireAccess(businessId, { roles: ["owner"], write: true });
@@ -203,7 +200,7 @@ export async function acceptInvitationAction(
 /** Staff con PIN: el dueño, o el encargado en sus sucursales. */
 export async function createStaffAction(input: unknown): Promise<ActionResult> {
   const parsed = staffCreateSchema.safeParse(input);
-  if (!parsed.success) return firstIssue(parsed.error);
+  if (!parsed.success) return validationError(parsed.error);
   const { businessId, branchId } = parsed.data;
   try {
     const { user } = await requireAccess(businessId, {
@@ -226,7 +223,7 @@ async function staffAccess(businessId: string, staffId: string) {
 
 export async function changeStaffPinAction(input: unknown): Promise<ActionResult> {
   const parsed = staffPinSchema.safeParse(input);
-  if (!parsed.success) return firstIssue(parsed.error);
+  if (!parsed.success) return validationError(parsed.error);
   const { businessId, staffId, pin } = parsed.data;
   try {
     const { user } = await staffAccess(businessId, staffId);
@@ -239,7 +236,7 @@ export async function changeStaffPinAction(input: unknown): Promise<ActionResult
 
 export async function setStaffActiveAction(input: unknown): Promise<ActionResult> {
   const parsed = staffActiveSchema.safeParse(input);
-  if (!parsed.success) return firstIssue(parsed.error);
+  if (!parsed.success) return validationError(parsed.error);
   const { businessId, staffId, active } = parsed.data;
   try {
     const { user } = await staffAccess(businessId, staffId);

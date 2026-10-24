@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "@/lib/zod";
 import { isValidCoords } from "@/features/location/lib/coords";
 import { MENU_TEMPLATES } from "@/features/menus/structure";
 import { parseQ } from "@/lib/money";

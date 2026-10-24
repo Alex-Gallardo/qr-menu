@@ -1,7 +1,7 @@
 "use server";
 
 import { headers } from "next/headers";
-import { z } from "zod";
+import { validationError, z } from "@/lib/zod";
 import type { Prisma } from "@/generated/prisma/client";
 import { actionError, type ActionResult } from "@/lib/action-result";
 import { getAuthUser } from "@/lib/auth/session";
@@ -54,10 +54,6 @@ import {
  * Cada servidor deja su license_event y su auditoría (actor "platform").
  */
 
-function firstIssue(error: { issues: { message: string }[] }) {
-  return { ok: false as const, message: error.issues[0]?.message ?? "Revisa los datos." };
-}
-
 async function origin() {
   const h = await headers();
   return h.get("origin") ?? BRAND.url;
@@ -65,7 +61,7 @@ async function origin() {
 
 export async function changePlanAction(input: unknown): Promise<ActionResult> {
   const parsed = changePlanSchema.safeParse(input);
-  if (!parsed.success) return firstIssue(parsed.error);
+  if (!parsed.success) return validationError(parsed.error);
   try {
     const { user } = await requirePlatformAction("licenses.edit");
     await changePlan(parsed.data.businessId, parsed.data.planId, { actorId: user.id });
@@ -77,7 +73,7 @@ export async function changePlanAction(input: unknown): Promise<ActionResult> {
 
 export async function extendLicenseAction(input: unknown): Promise<ActionResult> {
   const parsed = extendSchema.safeParse(input);
-  if (!parsed.success) return firstIssue(parsed.error);
+  if (!parsed.success) return validationError(parsed.error);
   try {
     const { user } = await requirePlatformAction("licenses.extend");
     await extendLicense(parsed.data.businessId, parsed.data.days, { actorId: user.id });
@@ -89,7 +85,7 @@ export async function extendLicenseAction(input: unknown): Promise<ActionResult>
 
 export async function updateTermsAction(input: unknown): Promise<ActionResult> {
   const parsed = termsSchema.safeParse(input);
-  if (!parsed.success) return firstIssue(parsed.error);
+  if (!parsed.success) return validationError(parsed.error);
   try {
     const { user } = await requirePlatformAction("licenses.extend");
     await updateLicenseTerms(
@@ -109,7 +105,7 @@ export async function updateTermsAction(input: unknown): Promise<ActionResult> {
 
 export async function updateOverridesAction(input: unknown): Promise<ActionResult> {
   const parsed = overridesSchema.safeParse(input);
-  if (!parsed.success) return firstIssue(parsed.error);
+  if (!parsed.success) return validationError(parsed.error);
   let limits: Prisma.InputJsonValue | null;
   try {
     limits = parseLimitOverrides(parsed.data.limits) as Prisma.InputJsonValue | null;
@@ -131,7 +127,7 @@ export async function updateOverridesAction(input: unknown): Promise<ActionResul
 
 export async function setStatusAction(input: unknown): Promise<ActionResult> {
   const parsed = statusSchema.safeParse(input);
-  if (!parsed.success) return firstIssue(parsed.error);
+  if (!parsed.success) return validationError(parsed.error);
   try {
     const { user } = await requirePlatformAction("licenses.status");
     await setLicenseStatus(parsed.data.businessId, parsed.data.status, parsed.data.reason, {
@@ -145,7 +141,7 @@ export async function setStatusAction(input: unknown): Promise<ActionResult> {
 
 export async function verifyPaymentAction(input: unknown): Promise<ActionResult> {
   const parsed = paymentIdSchema.safeParse(input);
-  if (!parsed.success) return firstIssue(parsed.error);
+  if (!parsed.success) return validationError(parsed.error);
   try {
     const { user } = await requirePlatformAction("payments.verify");
     const { endsAt } = await verifyPayment(parsed.data.paymentId, { actorId: user.id });
@@ -160,7 +156,7 @@ export async function verifyPaymentAction(input: unknown): Promise<ActionResult>
 
 export async function rejectPaymentAction(input: unknown): Promise<ActionResult> {
   const parsed = rejectSchema.safeParse(input);
-  if (!parsed.success) return firstIssue(parsed.error);
+  if (!parsed.success) return validationError(parsed.error);
   try {
     const { user } = await requirePlatformAction("payments.verify");
     await rejectPayment(parsed.data.paymentId, parsed.data.reason, { actorId: user.id });
@@ -172,7 +168,7 @@ export async function rejectPaymentAction(input: unknown): Promise<ActionResult>
 
 export async function manualPaymentAction(input: unknown): Promise<ActionResult> {
   const parsed = manualPaymentSchema.safeParse(input);
-  if (!parsed.success) return firstIssue(parsed.error);
+  if (!parsed.success) return validationError(parsed.error);
   try {
     const { user } = await requirePlatformAction("payments.verify");
     const { endsAt } = await registerManualPayment(
@@ -198,7 +194,7 @@ export async function createAssistedBusinessAction(
   input: unknown,
 ): Promise<ActionResult<{ businessId: string; inviteLink: string }>> {
   const parsed = assistedBusinessSchema.safeParse(input);
-  if (!parsed.success) return firstIssue(parsed.error);
+  if (!parsed.success) return validationError(parsed.error);
   try {
     const { user } = await requirePlatformAction("businesses.create");
     const { priceOverride, notes, ...rest } = parsed.data;
@@ -227,7 +223,7 @@ export async function accessLinkAction(
   input: unknown,
 ): Promise<ActionResult<{ email: string; link: string }>> {
   const parsed = businessOnlySchema.safeParse(input);
-  if (!parsed.success) return firstIssue(parsed.error);
+  if (!parsed.success) return validationError(parsed.error);
   try {
     const { user } = await requirePlatformAction("support.access");
     const res = await ownerAccessLink(parsed.data.businessId, await origin(), { actorId: user.id });
@@ -239,7 +235,7 @@ export async function accessLinkAction(
 
 export async function closeStaffSessionsAction(input: unknown): Promise<ActionResult> {
   const parsed = businessOnlySchema.safeParse(input);
-  if (!parsed.success) return firstIssue(parsed.error);
+  if (!parsed.success) return validationError(parsed.error);
   try {
     const { user } = await requirePlatformAction("support.access");
     const count = await closeStaffSessions(parsed.data.businessId, { actorId: user.id });
@@ -254,7 +250,7 @@ export async function closeStaffSessionsAction(input: unknown): Promise<ActionRe
 
 export async function startImpersonationAction(input: unknown): Promise<ActionResult> {
   const parsed = impersonateSchema.safeParse(input);
-  if (!parsed.success) return firstIssue(parsed.error);
+  if (!parsed.success) return validationError(parsed.error);
   try {
     const { user } = await requirePlatformAction("businesses.impersonate");
     await startImpersonation(parsed.data.businessId, parsed.data.reason, { actorId: user.id });
@@ -276,7 +272,7 @@ export async function stopImpersonationAction(): Promise<ActionResult> {
 
 export async function saveSettingsAction(input: unknown): Promise<ActionResult> {
   const parsed = settingsSchema.safeParse(input);
-  if (!parsed.success) return firstIssue(parsed.error);
+  if (!parsed.success) return validationError(parsed.error);
   try {
     const { user } = await requirePlatformAction("settings.edit");
     const d = parsed.data;
@@ -299,7 +295,7 @@ export async function saveSettingsAction(input: unknown): Promise<ActionResult> 
 
 export async function setPlanPriceAction(input: unknown): Promise<ActionResult> {
   const parsed = planPriceSchema.safeParse(input);
-  if (!parsed.success) return firstIssue(parsed.error);
+  if (!parsed.success) return validationError(parsed.error);
   try {
     const { user } = await requirePlatformAction("settings.edit");
     await setPlanPrice(parsed.data.planId, parsed.data.priceGtq, { actorId: user.id });
@@ -311,7 +307,7 @@ export async function setPlanPriceAction(input: unknown): Promise<ActionResult> 
 
 export async function saveAnnouncementAction(input: unknown): Promise<ActionResult> {
   const parsed = announcementSchema.safeParse(input);
-  if (!parsed.success) return firstIssue(parsed.error);
+  if (!parsed.success) return validationError(parsed.error);
   try {
     const { user } = await requirePlatformAction("settings.edit");
     const d = parsed.data;
@@ -335,7 +331,7 @@ export async function saveAnnouncementAction(input: unknown): Promise<ActionResu
 
 export async function deleteAnnouncementAction(input: unknown): Promise<ActionResult> {
   const parsed = z.object({ id: z.uuid() }).safeParse(input);
-  if (!parsed.success) return firstIssue(parsed.error);
+  if (!parsed.success) return validationError(parsed.error);
   try {
     const { user } = await requirePlatformAction("settings.edit");
     await deleteAnnouncement(parsed.data.id, { actorId: user.id });

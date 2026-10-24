@@ -34,6 +34,7 @@ import { normalizeSplash, SPLASH_STYLES } from "@/features/public-menu/splash";
 import { normalizeTheme, presetSurface } from "@/features/public-menu/theme";
 import { runAction } from "@/lib/action-client";
 import { useAutosave } from "@/lib/use-autosave";
+import { validationError } from "@/lib/zod";
 import { saveTemplateStep } from "../actions";
 
 const ALL_FONTS = [...HEADING_FONTS, ...BODY_FONTS].map((f) => f.name);
@@ -79,8 +80,7 @@ export function BrandStep({
     async (value: AppearanceDoc) => {
       const input = { ...value, businessId };
       const parsed = appearanceSchema.safeParse(input);
-      if (!parsed.success)
-        return { ok: false, message: parsed.error.issues[0]?.message ?? "Revisa los datos." };
+      if (!parsed.success) return validationError(parsed.error);
       return saveAppearance(input);
     },
     [businessId],

@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "@/lib/zod";
 
 /** Bancos más comunes en Guatemala (sugerencias; se puede escribir otro). */
 export const GT_BANKS = [

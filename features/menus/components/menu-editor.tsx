@@ -50,6 +50,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { formatQ, parseQ } from "@/lib/money";
 import { useAutosave } from "@/lib/use-autosave";
+import { validationError } from "@/lib/zod";
 import { saveMenu } from "../actions";
 import { menuDocumentSchema } from "../schemas";
 import type { PickerProduct } from "../server";
@@ -115,7 +116,7 @@ export function MenuEditor({
       const input = { ...value, businessId, menuId };
       const parsed = menuDocumentSchema.safeParse(input);
       if (!parsed.success) {
-        return { ok: false, message: parsed.error.issues[0]?.message ?? "Revisa los datos." };
+        return validationError(parsed.error);
       }
       return saveMenu(input);
     },

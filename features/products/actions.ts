@@ -1,7 +1,7 @@
 "use server";
 
 import { updateTag } from "next/cache";
-import { z } from "zod";
+import { validationError, z } from "@/lib/zod";
 import { actionError, type ActionResult } from "@/lib/action-result";
 import { requireAccess } from "@/lib/auth/require-access";
 import { tags } from "@/lib/cache-tags";
@@ -39,14 +39,9 @@ const published = (businessId: string, branchId?: string) => {
   if (branchId) updateTag(tags.branch(branchId));
 };
 
-const firstIssue = (error: z.ZodError) => ({
-  ok: false as const,
-  message: error.issues[0]?.message ?? "Revisa los datos.",
-});
-
 export async function saveProduct(input: unknown): Promise<ActionResult<{ productId: string }>> {
   const parsed = productFormSchema.safeParse(input);
-  if (!parsed.success) return firstIssue(parsed.error);
+  if (!parsed.success) return validationError(parsed.error);
   const { businessId, productId } = parsed.data;
   try {
     const ctx = await editorOf(businessId);
@@ -77,7 +72,7 @@ const availabilitySchema = productRef.extend({
 
 export async function setAvailability(input: unknown): Promise<ActionResult> {
   const parsed = availabilitySchema.safeParse(input);
-  if (!parsed.success) return firstIssue(parsed.error);
+  if (!parsed.success) return validationError(parsed.error);
   const { businessId, productId, available, branchId } = parsed.data;
   try {
     const ctx = await editorOf(businessId, branchId);
@@ -102,7 +97,7 @@ export async function setAvailability(input: unknown): Promise<ActionResult> {
 
 export async function removeProduct(input: unknown): Promise<ActionResult<{ name: string }>> {
   const parsed = productRef.safeParse(input);
-  if (!parsed.success) return firstIssue(parsed.error);
+  if (!parsed.success) return validationError(parsed.error);
   const { businessId, productId } = parsed.data;
   try {
     const ctx = await editorOf(businessId);
@@ -116,7 +111,7 @@ export async function removeProduct(input: unknown): Promise<ActionResult<{ name
 
 export async function undoRemoveProduct(input: unknown): Promise<ActionResult> {
   const parsed = productRef.safeParse(input);
-  if (!parsed.success) return firstIssue(parsed.error);
+  if (!parsed.success) return validationError(parsed.error);
   const { businessId, productId } = parsed.data;
   try {
     const ctx = await editorOf(businessId);
@@ -130,7 +125,7 @@ export async function undoRemoveProduct(input: unknown): Promise<ActionResult> {
 
 export async function duplicate(input: unknown): Promise<ActionResult<{ productId: string }>> {
   const parsed = productRef.safeParse(input);
-  if (!parsed.success) return firstIssue(parsed.error);
+  if (!parsed.success) return validationError(parsed.error);
   const { businessId, productId } = parsed.data;
   try {
     const ctx = await editorOf(businessId);
@@ -146,7 +141,7 @@ const moveSchema = productRef.extend({ direction: z.union([z.literal(-1), z.lite
 
 export async function moveProductAction(input: unknown): Promise<ActionResult> {
   const parsed = moveSchema.safeParse(input);
-  if (!parsed.success) return firstIssue(parsed.error);
+  if (!parsed.success) return validationError(parsed.error);
   const { businessId, productId, direction } = parsed.data;
   try {
     await editorOf(businessId);
@@ -170,7 +165,7 @@ export async function saveCategory(
   input: unknown,
 ): Promise<ActionResult<{ categoryId: string; name: string }>> {
   const parsed = categoryInput.safeParse(input);
-  if (!parsed.success) return firstIssue(parsed.error);
+  if (!parsed.success) return validationError(parsed.error);
   const { businessId, categoryId, name } = parsed.data;
   try {
     const ctx = await editorOf(businessId);
@@ -197,7 +192,7 @@ export async function removeCategory(
   input: unknown,
 ): Promise<ActionResult<{ deleted: DeletedCategory }>> {
   const parsed = categoryRef.safeParse(input);
-  if (!parsed.success) return firstIssue(parsed.error);
+  if (!parsed.success) return validationError(parsed.error);
   const { businessId, categoryId } = parsed.data;
   try {
     const ctx = await editorOf(businessId);
@@ -224,7 +219,7 @@ const deletedCategorySchema = z.object({
 
 export async function undoRemoveCategory(input: unknown): Promise<ActionResult> {
   const parsed = deletedCategorySchema.safeParse(input);
-  if (!parsed.success) return firstIssue(parsed.error);
+  if (!parsed.success) return validationError(parsed.error);
   const { businessId, deleted } = parsed.data;
   try {
     const ctx = await editorOf(businessId);
@@ -240,7 +235,7 @@ export async function moveCategoryAction(input: unknown): Promise<ActionResult> 
   const parsed = categoryRef
     .extend({ direction: z.union([z.literal(-1), z.literal(1)]) })
     .safeParse(input);
-  if (!parsed.success) return firstIssue(parsed.error);
+  if (!parsed.success) return validationError(parsed.error);
   const { businessId, categoryId, direction } = parsed.data;
   try {
     await editorOf(businessId);

@@ -2,19 +2,16 @@
 
 import { updateTag } from "next/cache";
 import { actionError, type ActionResult } from "@/lib/action-result";
+import { validationError } from "@/lib/zod";
 import { requireAccess } from "@/lib/auth/require-access";
 import { tags } from "@/lib/cache-tags";
 import { branchFormSchema } from "./schemas";
 import { createBranchForBusiness, updateBranchForBusiness } from "./server";
 
-function firstIssue(error: { issues: { message: string }[] }) {
-  return { ok: false as const, message: error.issues[0]?.message ?? "Revisa los datos." };
-}
-
 /** Agregar sucursal: solo el dueño y dentro del límite del plan. */
 export async function createBranch(input: unknown): Promise<ActionResult<{ branchId: string }>> {
   const parsed = branchFormSchema.safeParse(input);
-  if (!parsed.success) return firstIssue(parsed.error);
+  if (!parsed.success) return validationError(parsed.error);
   try {
     const { user, entitlements } = await requireAccess(parsed.data.businessId, {
       roles: ["owner"],
@@ -31,7 +28,7 @@ export async function createBranch(input: unknown): Promise<ActionResult<{ branc
 /** Editar sucursal: el dueño, o el encargado si es una de sus sucursales. */
 export async function updateBranch(input: unknown): Promise<ActionResult> {
   const parsed = branchFormSchema.safeParse(input);
-  if (!parsed.success) return firstIssue(parsed.error);
+  if (!parsed.success) return validationError(parsed.error);
   const { businessId, branchId } = parsed.data;
   if (!branchId) return { ok: false, message: "Falta la sucursal." };
 

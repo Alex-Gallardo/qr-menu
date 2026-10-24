@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "@/lib/zod";
 import { MAX_REVIEW_COMMENT } from "./reviews";
 
 export const reviewSchema = z.object({

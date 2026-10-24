@@ -1,5 +1,5 @@
 import "server-only";
-import { z } from "zod";
+import { z } from "@/lib/zod";
 
 /**
  * Variables de entorno del servidor, validadas con Zod en el primer acceso.

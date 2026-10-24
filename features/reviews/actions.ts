@@ -2,14 +2,11 @@
 
 import { headers } from "next/headers";
 import { actionError, type ActionResult } from "@/lib/action-result";
+import { validationError } from "@/lib/zod";
 import { requireAccess } from "@/lib/auth/require-access";
 import { hashIp, hitRateLimit, retryLabel } from "@/lib/rate-limit";
 import { reviewSchema, reviewVisibilitySchema } from "./schemas";
 import { markGoogleClick, reviewBranch, setReviewHidden, submitReview } from "./server";
-
-function firstIssue(error: { issues: { message: string }[] }) {
-  return { ok: false as const, message: error.issues[0]?.message ?? "Revisa los datos." };
-}
 
 async function clientIp() {
   const h = await headers();
@@ -21,7 +18,7 @@ export async function submitReviewAction(
   input: unknown,
 ): Promise<ActionResult<{ googleUrl: string | null }>> {
   const parsed = reviewSchema.safeParse(input);
-  if (!parsed.success) return firstIssue(parsed.error);
+  if (!parsed.success) return validationError(parsed.error);
   try {
     const ip = await clientIp();
     if (ip) {
@@ -48,7 +45,7 @@ export async function markGoogleClickAction(orderId: unknown): Promise<void> {
 /** Ocultar o mostrar un comentario: el dueño, o el encargado de esa sucursal. */
 export async function setReviewHiddenAction(input: unknown): Promise<ActionResult> {
   const parsed = reviewVisibilitySchema.safeParse(input);
-  if (!parsed.success) return firstIssue(parsed.error);
+  if (!parsed.success) return validationError(parsed.error);
   const { businessId, reviewId, hidden } = parsed.data;
   try {
     const branchId = await reviewBranch(businessId, reviewId);

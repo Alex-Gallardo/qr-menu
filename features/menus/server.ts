@@ -1,5 +1,5 @@
 import "server-only";
-import { z } from "zod";
+import { z } from "@/lib/zod";
 import type { Entitlements } from "@/features/licensing/entitlements";
 import { assertWithinLimit } from "@/features/licensing/server";
 import { copyName } from "@/features/products/catalog";

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { z } from "zod";
+import { z } from "@/lib/zod";
 import { PageSkeleton } from "@/components/feedback/page-skeleton";
 import { BranchForm } from "@/features/branches/components/branch-form";
 import { toBranchFormInput } from "@/features/branches/form-values";

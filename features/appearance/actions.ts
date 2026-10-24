@@ -2,6 +2,7 @@
 
 import { updateTag } from "next/cache";
 import { actionError, type ActionResult } from "@/lib/action-result";
+import { validationError } from "@/lib/zod";
 import { requireAccess } from "@/lib/auth/require-access";
 import { tags } from "@/lib/cache-tags";
 import type { AppearanceDoc } from "./appearance";
@@ -15,7 +16,7 @@ import { updateAppearance } from "./server";
 export async function saveAppearance(input: unknown): Promise<ActionResult> {
   const parsed = appearanceSchema.safeParse(input);
   if (!parsed.success) {
-    return { ok: false, message: parsed.error.issues[0]?.message ?? "Revisa los datos." };
+    return validationError(parsed.error);
   }
   const { businessId, ...doc } = parsed.data;
   try {
