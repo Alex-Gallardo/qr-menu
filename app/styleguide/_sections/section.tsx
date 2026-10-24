@@ -14,7 +14,7 @@ export function Section({
   children: ReactNode;
 }) {
   return (
-    <section id={id} className="scroll-mt-20 border-t border-border py-10">
+    <section id={id} className="scroll-mt-32 border-t border-border py-10">
       <p className="type-caption font-semibold tracking-wider text-muted-foreground uppercase">
         {String(number).padStart(2, "0")}
       </p>

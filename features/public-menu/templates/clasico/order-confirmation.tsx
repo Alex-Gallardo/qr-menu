@@ -41,6 +41,7 @@ export function OrderConfirmation({
   menuHref,
   emailNotice,
   review,
+  embedded = false,
 }: {
   orderId: string;
   status: string;
@@ -55,7 +56,10 @@ export function OrderConfirmation({
   emailNotice: boolean;
   /** Reseña del pedido: la tarjeta aparece al entregarse (o 2 h después de pedir). */
   review: OrderReview | null;
+  /** Dentro de otra página (el styleguide): sin landmark <main> propio. */
+  embedded?: boolean;
 }) {
+  const Root = embedded ? "div" : "main";
   const webUrl = `https://web.whatsapp.com/send?phone=${branchWhatsapp.replace(/\D/g, "")}&text=${encodeURIComponent(message)}`;
 
   function openWhatsApp() {
@@ -99,7 +103,7 @@ export function OrderConfirmation({
     : "Lo antes posible";
 
   return (
-    <main className="grid gap-6 px-4 pt-8">
+    <Root className="grid gap-6 px-4 pt-8">
       <section className="relative grid justify-items-center gap-3 text-center">
         <div aria-hidden className="pointer-events-none absolute inset-x-0 top-6 h-0">
           {CONFETTI.map((p, i) => (
@@ -248,6 +252,6 @@ export function OrderConfirmation({
         <ArrowLeftIcon aria-hidden className="size-4" />
         Volver al menú
       </Link>
-    </main>
+    </Root>
   );
 }

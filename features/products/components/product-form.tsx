@@ -7,7 +7,9 @@ import { Controller, useForm, useWatch, type Control } from "react-hook-form";
 import { Field, FormMessage } from "@/components/forms/field";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
 import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import { ImageUploader } from "@/features/media/components/image-uploader";
 import { runAction } from "@/lib/action-client";
 import type { ActionResult } from "@/lib/action-result";
@@ -28,11 +30,6 @@ type Props = {
   canToggleEverywhere: boolean;
   listHref: string;
 };
-
-const textareaClass =
-  "w-full rounded-md border border-input bg-card px-4 py-3 text-base outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30 aria-invalid:border-destructive";
-const selectClass =
-  "h-12 w-full rounded-md border border-input bg-card px-4 text-base outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30";
 
 export function ProductForm({
   mode,
@@ -104,11 +101,10 @@ export function ProductForm({
           error={errors.description?.message}
           hint="Qué lleva y cómo se sirve. Se muestran 2 líneas en el menú."
         >
-          <textarea
+          <Textarea
             id="description"
             rows={3}
             aria-invalid={!!errors.description}
-            className={textareaClass}
             {...form.register("description")}
           />
         </Field>
@@ -119,14 +115,14 @@ export function ProductForm({
             categories.length === 0 ? "Crea categorías desde la lista de productos." : undefined
           }
         >
-          <select id="category_id" className={selectClass} {...form.register("category_id")}>
+          <NativeSelect id="category_id" {...form.register("category_id")}>
             <option value="">Sin categoría</option>
             {categories.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}
               </option>
             ))}
-          </select>
+          </NativeSelect>
         </Field>
         <Controller
           control={control}

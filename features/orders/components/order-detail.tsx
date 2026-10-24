@@ -1,22 +1,12 @@
 "use client";
 
-import {
-  ArrowLeftIcon,
-  CopyIcon,
-  ExternalLinkIcon,
-  MessageCircleIcon,
-  NavigationIcon,
-  PhoneIcon,
-} from "lucide-react";
-import dynamic from "next/dynamic";
+import { ArrowLeftIcon, MessageCircleIcon, PhoneIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { cn } from "cn";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import { formatCoords, mapLinks } from "@/features/location/lib/coords";
 import { runAction } from "@/lib/action-client";
 import { formatTimeGT, formatWhenGT, todayInGuatemala } from "@/lib/gt-time";
 import { formatQ } from "@/lib/money";
@@ -27,13 +17,10 @@ import { updateOrderStatusAction } from "../inbox-actions";
 import { scheduledLabel } from "../preorder";
 import { canTransition, primaryAction, STATUS_LABELS, type OrderStatus } from "../status";
 import { orderNumberLabel } from "../whatsapp";
-import { LiveBadge, STATUS_STYLES } from "./order-inbox";
+import { DeliveryInfo } from "./delivery-info";
+import { STATUS_STYLES } from "./order-card";
+import { LiveBadge } from "./order-inbox";
 import { useOrdersRealtime } from "./use-orders-realtime";
-
-const LocationMap = dynamic(() => import("@/features/location/components/location-map"), {
-  ssr: false,
-  loading: () => <Skeleton className="size-full rounded-none" />,
-});
 
 /**
  * Detalle del pedido en el panel: el siguiente paso, cliente con "Llamar" y
@@ -63,7 +50,6 @@ export function OrderDetail({
 
   const createdAt = new Date(order.createdAt);
   const next = primaryAction(order.status, order.orderType);
-  const links = order.location ? mapLinks(order.location) : null;
   const customerChat = order.customer.phone
     ? `https://api.whatsapp.com/send?phone=${order.customer.phone.replace(/\D/g, "")}&text=${encodeURIComponent(
         `Hola ${order.customer.name}, te escribimos por tu pedido ${orderNumberLabel(order.number)}.`,
@@ -81,15 +67,6 @@ export function OrderDetail({
       setConfirmCancel(false);
       router.refresh();
     });
-  }
-
-  async function copy(text: string, label: string) {
-    try {
-      await navigator.clipboard.writeText(text);
-      toast.success(`${label} copiado.`);
-    } catch {
-      toast.error("No se pudo copiar.");
-    }
   }
 
   return (
@@ -206,63 +183,11 @@ export function OrderDetail({
       </section>
 
       {order.orderType === "delivery" ? (
-        <section className="grid gap-3 rounded-lg border border-border bg-card p-4">
-          <h2 className="type-h3">Entrega</h2>
-          {order.address ? <p className="type-body">{order.address}</p> : null}
-          {order.addressReference ? (
-            <p className="type-small text-muted-foreground">Referencia: {order.addressReference}</p>
-          ) : null}
-          {order.location && links ? (
-            <>
-              <div className="relative isolate h-64 overflow-hidden rounded-md border border-border">
-                <LocationMap
-                  value={order.location}
-                  fallbackCenter={order.location}
-                  onChange={() => {}}
-                  readOnly
-                  className="size-full"
-                />
-              </div>
-              <p className="type-small text-muted-foreground">
-                {order.location.distanceKm !== null
-                  ? `A ${order.location.distanceKm} km de la sucursal · `
-                  : ""}
-                {order.location.source === "gps"
-                  ? `Ubicación del GPS${order.location.accuracyM !== null ? ` (±${Math.round(order.location.accuracyM)} m)` : ""}`
-                  : order.location.source === "mapa"
-                    ? "Marcada en el mapa por el cliente"
-                    : "Ubicación"}
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <Button asChild variant="outline" size="sm">
-                  <a href={links.google} target="_blank" rel="noopener noreferrer">
-                    <ExternalLinkIcon />
-                    Abrir en Google Maps
-                  </a>
-                </Button>
-                <Button asChild variant="outline" size="sm">
-                  <a href={links.waze} target="_blank" rel="noopener noreferrer">
-                    <NavigationIcon />
-                    Abrir en Waze
-                  </a>
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => void copy(formatCoords(order.location!), "Coordenadas")}
-                >
-                  <CopyIcon />
-                  Copiar coordenadas
-                </Button>
-              </div>
-            </>
-          ) : (
-            <p className="type-small text-muted-foreground">
-              Sin pin en el mapa: solo la dirección escrita.
-            </p>
-          )}
-        </section>
+        <DeliveryInfo
+          address={order.address}
+          addressReference={order.addressReference}
+          location={order.location}
+        />
       ) : null}
 
       <section className="grid gap-3 rounded-lg border border-border bg-card p-4">

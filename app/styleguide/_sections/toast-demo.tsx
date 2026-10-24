@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { BankAccountCard } from "@/features/payments/components/bank-account-card";
 
-/** Demos de toasts (éxito, error, deshacer) y de la cuenta para transferencia. */
+/** Demos de toasts (éxito, error, informativo, deshacer) y de la cuenta para transferencia. */
 export function ToastDemo() {
   return (
     <div className="grid gap-4 lg:grid-cols-2">
@@ -22,6 +22,13 @@ export function ToastDemo() {
           onClick={() => toast.error("No pudimos guardar la foto. Probemos otra vez.")}
         >
           Toast de error
+        </Button>
+        <Button
+          size="sm"
+          variant="secondary"
+          onClick={() => toast("Tu pedido se programó para mañana a las 07:30.")}
+        >
+          Toast informativo
         </Button>
         <Button
           size="sm"

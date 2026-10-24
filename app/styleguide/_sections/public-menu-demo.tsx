@@ -4,9 +4,7 @@ import { CalendarOffIcon, ClockIcon } from "lucide-react";
 import { useState } from "react";
 import { gtInstant, todayInGuatemala } from "@/lib/gt-time";
 import { addLine, priceCart, setLineQuantity, type CartLine } from "@/features/cart/cart";
-import { PALETTE_PRESETS } from "@/features/appearance/palettes";
-import { MENU_TEMPLATES } from "@/features/menus/structure";
-import { TEMPLATE_PARTS, type MenuTemplateId } from "@/features/public-menu/templates";
+import { TEMPLATE_PARTS } from "@/features/public-menu/templates";
 import { orderTiming, type TimingRules } from "@/features/orders/preorder";
 import type { PublicProduct } from "@/features/public-menu/payload";
 import {
@@ -21,6 +19,7 @@ import { CartBar } from "@/features/public-menu/templates/clasico/cart-bar";
 import { OrderSheet } from "@/features/public-menu/templates/clasico/order-sheet";
 import { ProductSheet } from "@/features/public-menu/templates/clasico/product-sheet";
 import { themeFromPreset } from "@/features/public-menu/theme";
+import { useStyleguideTheme } from "./theme-context";
 
 // Sucursal de ejemplo para la hoja de pedido: abre de 7:00 a 21:00, programa con 30 min.
 const DEMO_RULES: TimingRules = {
@@ -166,8 +165,8 @@ const SECTIONS = [
  * y en el menú de cada negocio.
  */
 export function PublicMenuDemo() {
-  const [paletteId, setPaletteId] = useState("tomate");
-  const [template, setTemplate] = useState<MenuTemplateId>("clasico");
+  // Paleta y plantilla: el selector de arriba del styleguide.
+  const { menuPalette: paletteId, template } = useStyleguideTheme();
   const { MenuSection, ProductCard } = TEMPLATE_PARTS[template];
   const [slot, setSlot] = useState("almuerzo");
   const [sheetId, setSheetId] = useState<string | null>(null);
@@ -185,34 +184,9 @@ export function PublicMenuDemo() {
 
   return (
     <div className="grid gap-6">
-      <div role="group" aria-label="Paleta" className="flex flex-wrap gap-2">
-        {PALETTE_PRESETS.map((p) => (
-          <button
-            key={p.id}
-            type="button"
-            aria-pressed={paletteId === p.id}
-            onClick={() => setPaletteId(p.id)}
-            className="type-small inline-flex h-10 items-center gap-2 rounded-full border border-border bg-card px-3 font-semibold aria-pressed:ring-3 aria-pressed:ring-ring/40"
-          >
-            <span aria-hidden className="size-4 rounded-full" style={{ background: p.primary }} />
-            {p.name}
-          </button>
-        ))}
-      </div>
-
-      <div role="group" aria-label="Plantilla" className="flex flex-wrap gap-2">
-        {MENU_TEMPLATES.map((t) => (
-          <button
-            key={t.value}
-            type="button"
-            aria-pressed={template === t.value}
-            onClick={() => setTemplate(t.value)}
-            className="type-small inline-flex h-10 items-center rounded-full border border-border bg-card px-4 font-semibold aria-pressed:ring-3 aria-pressed:ring-ring/40"
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
+      <p className="type-small text-muted-foreground">
+        Cambia la paleta y la plantilla con el selector de arriba.
+      </p>
 
       <div className="flex flex-wrap items-start gap-6">
         {/* Marco de 390 px (iPhone 12–15): la medida del criterio "pixel perfect". */}
@@ -351,7 +325,10 @@ export function PublicMenuDemo() {
 
         <div className="grid max-w-sm gap-3">
           <h3 className="type-h3">Avisos</h3>
-          <MenuShell theme={themeFromPreset(paletteId)}>
+          <MenuShell
+            theme={themeFromPreset(paletteId)}
+            className="min-h-0 overflow-hidden rounded-lg [&>div]:pb-0"
+          >
             <div className="grid gap-2 py-2">
               <MenuNotice icon={<CalendarOffIcon />} tone="closed">
                 Cerrado: Feriado

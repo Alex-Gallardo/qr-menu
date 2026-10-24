@@ -473,3 +473,10 @@ html:has(.splash-root[data-splash="on"]:not([data-contained])) {
     transition-duration: 1ms !important;
   }
 }
+/* /styleguide · Movimiento: "Simular menos movimiento" aplica la misma regla a la demo. */
+[data-menos-movimiento] *,
+[data-menos-movimiento] *::before,
+[data-menos-movimiento] *::after {
+  animation-duration: 1ms !important;
+  transition-duration: 1ms !important;
+}

@@ -1,6 +1,6 @@
 "use client";
 
-import { ClockIcon, ImageIcon, MinusIcon, PlusIcon, XIcon } from "lucide-react";
+import { ClockIcon, ImageIcon, XIcon } from "lucide-react";
 import Image from "next/image";
 import { useRef, useState } from "react";
 import { cn } from "cn";
@@ -11,11 +11,11 @@ import {
   clampQuantity,
   defaultSelection,
   MAX_NOTE,
-  MAX_QUANTITY,
   priceLine,
   toggleOption,
 } from "../../cart-line";
 import type { PublicProduct } from "../../payload";
+import { QuantityStepper } from "./quantity-stepper";
 import { SHEET_BODY, SHEET_DIALOG, useSheet } from "./sheet";
 
 export type ProductSheetLine = {
@@ -234,33 +234,11 @@ function Sheet({
             </p>
           ) : null}
           <div className="flex items-center gap-3">
-            <div
-              role="group"
-              aria-label="Cantidad"
-              className="flex items-center rounded-full border border-[var(--menu-line)]"
-            >
-              <button
-                type="button"
-                aria-label="Quitar uno"
-                disabled={quantity <= 1}
-                onClick={() => setQuantity((q) => clampQuantity(q - 1))}
-                className="grid size-12 place-items-center rounded-full disabled:opacity-40"
-              >
-                <MinusIcon aria-hidden className="size-5" />
-              </button>
-              <output aria-live="polite" className="type-price w-6 text-center">
-                {quantity}
-              </output>
-              <button
-                type="button"
-                aria-label="Agregar uno"
-                disabled={quantity >= MAX_QUANTITY}
-                onClick={() => setQuantity((q) => clampQuantity(q + 1))}
-                className="grid size-12 place-items-center rounded-full disabled:opacity-40"
-              >
-                <PlusIcon aria-hidden className="size-5" />
-              </button>
-            </div>
+            <QuantityStepper
+              label="Cantidad"
+              value={quantity}
+              onChange={(q) => setQuantity(clampQuantity(q))}
+            />
             <button
               type="button"
               onClick={add}

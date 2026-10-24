@@ -1,6 +1,6 @@
 "use client";
 
-import { ImageIcon, MinusIcon, PlusIcon, Trash2Icon, XIcon } from "lucide-react";
+import { ImageIcon, XIcon } from "lucide-react";
 import Image from "next/image";
 import { useRef, useState, type ReactNode } from "react";
 import { cn } from "cn";
@@ -26,9 +26,9 @@ import {
 import type { DeliveryLocation, OtherBranch } from "@/features/orders/delivery";
 import type { OrderTiming } from "@/features/orders/preorder";
 import { formatQ } from "@/lib/money";
-import { MAX_QUANTITY } from "../../cart-line";
 import { BankAccounts, type BankAccount } from "./bank-accounts";
 import { DeliveryLocationField } from "./delivery-location";
+import { QuantityStepper } from "./quantity-stepper";
 import { SHEET_BODY, SHEET_DIALOG, useSheet } from "./sheet";
 
 export type { BankAccount } from "./bank-accounts";
@@ -486,36 +486,14 @@ function CartLineRow({
             <span className="type-small text-[var(--menu-muted)] tabular-nums">
               {formatQ(line.unitCents)} c/u
             </span>
-            <div
-              role="group"
-              aria-label={`Cantidad de ${line.name}`}
-              className="flex items-center rounded-full border border-[var(--menu-line)]"
-            >
-              <button
-                type="button"
-                aria-label={line.quantity === 1 ? `Quitar ${line.name}` : "Quitar uno"}
-                onClick={() => onQuantity(line.key, line.quantity - 1)}
-                className="grid size-10 place-items-center rounded-full"
-              >
-                {line.quantity === 1 ? (
-                  <Trash2Icon aria-hidden className="size-4" />
-                ) : (
-                  <MinusIcon aria-hidden className="size-4" />
-                )}
-              </button>
-              <output aria-live="polite" className="type-price w-6 text-center">
-                {line.quantity}
-              </output>
-              <button
-                type="button"
-                aria-label="Agregar uno"
-                disabled={line.quantity >= MAX_QUANTITY}
-                onClick={() => onQuantity(line.key, line.quantity + 1)}
-                className="grid size-10 place-items-center rounded-full disabled:opacity-40"
-              >
-                <PlusIcon aria-hidden className="size-4" />
-              </button>
-            </div>
+            <QuantityStepper
+              label={`Cantidad de ${line.name}`}
+              value={line.quantity}
+              onChange={(q) => onQuantity(line.key, q)}
+              removable
+              removeLabel={`Quitar ${line.name}`}
+              compact
+            />
           </div>
         )}
       </div>
@@ -611,7 +589,8 @@ function Choices<T extends string>({
   );
 }
 
-function WhenField({
+/** "¿Para cuándo?": lo antes posible o programar día y hora (con los horarios de la sucursal). */
+export function WhenField({
   timing,
   value,
   onChange,

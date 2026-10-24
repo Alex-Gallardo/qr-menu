@@ -17,6 +17,7 @@ import { Field, FormMessage } from "@/components/forms/field";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PrefixedInput } from "@/components/forms/prefixed-input";
+import { RadioCards } from "@/components/forms/radio-cards";
 import { Switch } from "@/components/ui/switch";
 import { slugify } from "@/features/businesses/slug";
 import { googleReviewUrl } from "@/features/reviews/reviews";
@@ -42,7 +43,7 @@ type Props = {
   mapCenter?: Coords;
 };
 
-const PREORDER_OPTIONS = [
+export const PREORDER_OPTIONS = [
   {
     value: "off",
     title: "No permitir",
@@ -352,29 +353,15 @@ export function BranchForm({
           control={control}
           name="preorder_mode"
           render={({ field }) => (
-            <div
-              role="radiogroup"
-              aria-label="Pedidos fuera de horario"
-              className="grid gap-2 sm:grid-cols-3"
-            >
-              {PREORDER_OPTIONS.map((o) => {
-                const disabled = !canPreorder && o.value !== "off" && field.value !== o.value;
-                return (
-                  <button
-                    key={o.value}
-                    type="button"
-                    role="radio"
-                    aria-checked={field.value === o.value}
-                    disabled={disabled}
-                    onClick={() => field.onChange(o.value)}
-                    className="grid gap-1 rounded-lg border border-border bg-card p-4 text-left transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50 aria-checked:border-primary aria-checked:bg-primary/5 aria-checked:ring-2 aria-checked:ring-primary/30"
-                  >
-                    <span className="type-small font-semibold">{o.title}</span>
-                    <span className="type-caption text-muted-foreground">{o.text}</span>
-                  </button>
-                );
-              })}
-            </div>
+            <RadioCards
+              label="Pedidos fuera de horario"
+              options={PREORDER_OPTIONS.map((o) => ({
+                ...o,
+                disabled: !canPreorder && o.value !== "off" && field.value !== o.value,
+              }))}
+              value={field.value}
+              onChange={field.onChange}
+            />
           )}
         />
         {preorderMode !== "off" ? (
