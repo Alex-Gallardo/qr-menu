@@ -1,16 +1,12 @@
 "use server";
 
 import { after } from "next/server";
-import { z } from "zod";
+import { validationError, z } from "@/lib/zod";
 import { actionError, type ActionResult } from "@/lib/action-result";
 import { requireAccess } from "@/lib/auth/require-access";
 import { db } from "@/lib/db";
 import { paymentSchema, receiptUploadSchema } from "./schemas";
 import { notifyAdminsOfPayment, receiptViewUrl, signReceiptUpload, submitPayment } from "./server";
-
-function firstIssue(error: { issues: { message: string }[] }) {
-  return { ok: false as const, message: error.issues[0]?.message ?? "Revisa los datos." };
-}
 
 /*
  * Pagos de la licencia: solo el dueño. Sin `write`: una cuenta en pausa o
@@ -21,7 +17,7 @@ export async function createReceiptUpload(
   input: unknown,
 ): Promise<ActionResult<{ signedUrl: string; path: string }>> {
   const parsed = receiptUploadSchema.safeParse(input);
-  if (!parsed.success) return firstIssue(parsed.error);
+  if (!parsed.success) return validationError(parsed.error);
   try {
     await requireAccess(parsed.data.businessId, { roles: ["owner"] });
     return { ok: true, data: await signReceiptUpload(parsed.data.businessId, parsed.data.type) };
@@ -32,7 +28,7 @@ export async function createReceiptUpload(
 
 export async function submitPaymentAction(input: unknown): Promise<ActionResult> {
   const parsed = paymentSchema.safeParse(input);
-  if (!parsed.success) return firstIssue(parsed.error);
+  if (!parsed.success) return validationError(parsed.error);
   try {
     const { user } = await requireAccess(parsed.data.businessId, { roles: ["owner"] });
     const payment = await submitPayment(parsed.data, { actorId: user.id });

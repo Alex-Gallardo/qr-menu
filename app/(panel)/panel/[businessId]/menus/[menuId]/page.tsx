@@ -3,7 +3,7 @@ import { ArrowLeftIcon } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { z } from "zod";
+import { z } from "@/lib/zod";
 import { PageSkeleton } from "@/components/feedback/page-skeleton";
 import { Button } from "@/components/ui/button";
 import { MenuEditor } from "@/features/menus/components/menu-editor";

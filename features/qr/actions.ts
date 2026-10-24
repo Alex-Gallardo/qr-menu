@@ -1,6 +1,7 @@
 "use server";
 
 import { actionError, type ActionResult } from "@/lib/action-result";
+import { validationError } from "@/lib/zod";
 import { requireAccess } from "@/lib/auth/require-access";
 import { db } from "@/lib/db";
 import { AppError } from "@/lib/errors";
@@ -13,7 +14,7 @@ const ROLES = ["owner", "manager"] as const;
 export async function createQrAction(input: unknown): Promise<ActionResult> {
   const parsed = createQrSchema.safeParse(input);
   if (!parsed.success) {
-    return { ok: false, message: parsed.error.issues[0]?.message ?? "Revisa los datos." };
+    return validationError(parsed.error);
   }
   try {
     const { user } = await requireAccess(parsed.data.businessId, {

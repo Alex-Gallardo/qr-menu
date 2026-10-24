@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "@/lib/zod";
 import { MAX_LINES } from "@/features/cart/cart";
 import { MAX_NOTE, MAX_QUANTITY } from "@/features/public-menu/cart-line";
 import { MAX_ADDRESS, MAX_NAME, MAX_ORDER_NOTE, MAX_TABLE } from "./checkout";

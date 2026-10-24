@@ -1,7 +1,7 @@
 "use server";
 
 import { updateTag } from "next/cache";
-import { z } from "zod";
+import { validationError, z } from "@/lib/zod";
 import { slugProblem } from "@/features/businesses/server";
 import { SLUG_MESSAGES } from "@/features/businesses/slug";
 import { hasFeature } from "@/features/licensing/entitlements";
@@ -24,10 +24,6 @@ import {
   publishBusiness,
   setDefaultTemplate,
 } from "./server";
-
-function firstIssue(error: { issues: { message: string }[] }) {
-  return { ok: false as const, message: error.issues[0]?.message ?? "Revisa los datos." };
-}
 
 async function requireSignedIn() {
   const user = await getAuthUser();
@@ -59,7 +55,7 @@ export async function saveBusinessStep(
   input: unknown,
 ): Promise<ActionResult<{ businessId: string }>> {
   const parsed = businessStepSchema.safeParse(input);
-  if (!parsed.success) return firstIssue(parsed.error);
+  if (!parsed.success) return validationError(parsed.error);
   try {
     const user = await requireSignedIn();
     const hit = await hitRateLimit(`onboarding:${user.id}`, { limit: 20, windowSec: 3600 });
@@ -79,7 +75,7 @@ export async function saveBusinessStep(
 /** Paso 2: plantilla del menú principal. */
 export async function saveTemplateStep(input: unknown): Promise<ActionResult> {
   const parsed = templateStepSchema.safeParse(input);
-  if (!parsed.success) return firstIssue(parsed.error);
+  if (!parsed.success) return validationError(parsed.error);
   const { businessId, template } = parsed.data;
   try {
     const { entitlements } = await requireAccess(businessId, { roles: ["owner"], write: true });
@@ -96,7 +92,7 @@ export async function saveTemplateStep(input: unknown): Promise<ActionResult> {
 /** Paso 3: los primeros productos, ya puestos en el menú principal. */
 export async function saveProductsStep(input: unknown): Promise<ActionResult> {
   const parsed = productsStepSchema.safeParse(input);
-  if (!parsed.success) return firstIssue(parsed.error);
+  if (!parsed.success) return validationError(parsed.error);
   try {
     const { user } = await requireAccess(parsed.data.businessId, {
       roles: ["owner"],
@@ -116,7 +112,7 @@ export async function saveProductsStep(input: unknown): Promise<ActionResult> {
 /** Paso 4: publicar (y el QR de la sucursal). */
 export async function publishStep(input: unknown): Promise<ActionResult> {
   const parsed = businessIdSchema.safeParse(input);
-  if (!parsed.success) return firstIssue(parsed.error);
+  if (!parsed.success) return validationError(parsed.error);
   try {
     const { user } = await requireAccess(parsed.data.businessId, {
       roles: ["owner"],

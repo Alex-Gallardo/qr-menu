@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "@/lib/zod";
 import { parseQ } from "@/lib/money";
 import { MAX_ITEMS_PER_SECTION, MAX_SECTIONS, MENU_TEMPLATES } from "./structure";
 

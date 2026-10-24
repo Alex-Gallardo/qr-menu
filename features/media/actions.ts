@@ -1,7 +1,7 @@
 "use server";
 
 import { updateTag } from "next/cache";
-import { z } from "zod";
+import { z } from "@/lib/zod";
 import { actionError, type ActionResult } from "@/lib/action-result";
 import { audit } from "@/lib/audit";
 import { requireAccess } from "@/lib/auth/require-access";

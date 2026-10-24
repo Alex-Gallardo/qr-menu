@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "@/lib/zod";
 import { FEATURES } from "@/features/licensing/plan-catalog";
 import { parseQ } from "@/lib/money";
 import { toE164 } from "@/lib/phone";

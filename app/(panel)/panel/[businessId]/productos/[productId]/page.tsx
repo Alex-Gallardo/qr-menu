@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { z } from "zod";
+import { z } from "@/lib/zod";
 import { PageSkeleton } from "@/components/feedback/page-skeleton";
 import { PanelPage } from "@/features/panel/components/panel-page";
 import { getPanelContext } from "@/features/panel/context";

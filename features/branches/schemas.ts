@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "@/lib/zod";
 import { slugFormatProblem, SLUG_MESSAGES } from "@/features/businesses/slug";
 import { parseQ } from "@/lib/money";
 import { toE164 } from "@/lib/phone";

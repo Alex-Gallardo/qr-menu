@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "@/lib/zod";
 
 /** Esquemas compartidos por los formularios (cliente) y las Server Actions. */
 

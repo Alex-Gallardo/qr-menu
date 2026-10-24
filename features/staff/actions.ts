@@ -1,7 +1,7 @@
 "use server";
 
 import { cookies } from "next/headers";
-import { z } from "zod";
+import { validationError, z } from "@/lib/zod";
 import { requireAccess } from "@/lib/auth/require-access";
 import { STAFF_DEVICE_COOKIE } from "@/lib/auth/route-rules";
 import { getAuthUser } from "@/lib/auth/session";
@@ -31,7 +31,7 @@ const authorizeSchema = z.object({
  */
 export async function authorizeDeviceAction(input: unknown): Promise<ActionResult> {
   const parsed = authorizeSchema.safeParse(input);
-  if (!parsed.success) return { ok: false, message: parsed.error.issues[0]!.message };
+  if (!parsed.success) return validationError(parsed.error);
   try {
     const { businessId, branchId, name } = parsed.data;
     const { user } = await requireAccess(businessId, {

@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "@/lib/zod";
 import { safeHttpsUrl } from "@/lib/safe-url";
 import { BODY_FONTS, HEADING_FONTS } from "./fonts";
 import { PALETTE_PRESETS } from "./palettes";

@@ -3,7 +3,7 @@ import { assertWithinLimit } from "@/features/licensing/server";
 import { audit, diffFields } from "@/lib/audit";
 import { db } from "@/lib/db";
 import { AppError } from "@/lib/errors";
-import { z } from "zod";
+import { z } from "@/lib/zod";
 import { slotKeySchema, type SlotFormOutput } from "./schemas";
 import { findOverlap, formatSlotRange, SLOT_KEY_LABELS, sortSlots } from "./slots";
 
