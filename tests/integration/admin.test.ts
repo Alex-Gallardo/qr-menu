@@ -325,6 +325,12 @@ describe("alta asistida y soporte", () => {
       price_override_gtq: 99,
     });
     await acceptInvitation(token, { id: ownerId, email: "fundador-qrm042@qrmenu.test" });
+    // Una prueba suspendida vuelve a ser prueba al reactivarse.
+    await setLicenseStatus(res.businessId, "suspended", "Pausa de prueba", ctx);
+    await setLicenseStatus(res.businessId, "active", "Listo", ctx);
+    expect(
+      (await db().licenses.findUniqueOrThrow({ where: { business_id: res.businessId } })).status,
+    ).toBe("trial");
     const member = await db().business_members.findFirstOrThrow({
       where: { business_id: res.businessId },
     });

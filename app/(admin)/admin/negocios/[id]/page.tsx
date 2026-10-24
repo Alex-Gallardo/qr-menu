@@ -115,7 +115,7 @@ async function Business({ params }: { params: Promise<{ id: string }> }) {
         />
       ) : null}
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-2 [&>*]:min-w-0">
         <EditorSection title="Equipo">
           <ul className="grid gap-2">
             {d.members.map((m, i) => (
@@ -138,7 +138,7 @@ async function Business({ params }: { params: Promise<{ id: string }> }) {
           </ul>
         </EditorSection>
         <EditorSection title="Actividad (30 días)">
-          <ul className="grid gap-1">
+          <ul className="grid min-w-0 gap-1">
             {d.orders30.map((o) => (
               <li key={o.branch} className="type-small flex justify-between">
                 <span>{o.branch}</span>
@@ -160,7 +160,7 @@ async function Business({ params }: { params: Promise<{ id: string }> }) {
         openStaffSessions={d.openStaffSessions}
       />
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-2 [&>*]:min-w-0">
         <EditorSection title="Pagos">
           {license?.payments.length ? (
             <ul className="grid gap-2">
@@ -194,9 +194,9 @@ async function Business({ params }: { params: Promise<{ id: string }> }) {
           ) : null}
         </EditorSection>
         <EditorSection title="Historial de la licencia">
-          <ul className="grid gap-1">
+          <ul className="grid min-w-0 gap-1">
             {license?.events.map((ev) => (
-              <li key={ev.id} className="type-small">
+              <li key={ev.id} className="type-small min-w-0">
                 <span className="font-semibold">{ev.type}</span>{" "}
                 <span className="text-muted-foreground">· {formatWhenGT(ev.created_at, now)}</span>
                 {ev.data ? (

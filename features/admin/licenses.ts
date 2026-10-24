@@ -148,13 +148,24 @@ export async function setLicenseStatus(
 ) {
   const license = await licenseOf(businessId);
   if (license.status === status) return;
+  // Reactivar vuelve al estado previo a la pausa (una prueba sigue siendo prueba).
+  let next: "suspended" | "cancelled" | "trial" | "active" | "grace" = status;
+  if (status === "active") {
+    const paused = await db().license_events.findFirst({
+      where: { license_id: license.id, type: { in: ["suspended", "cancelled"] } },
+      orderBy: { created_at: "desc" },
+      select: { data: true },
+    });
+    const from = (paused?.data as { from?: string } | null)?.from;
+    if (from === "trial" || from === "grace") next = from;
+  }
   await db().licenses.update({
     where: { id: license.id },
-    data: { status, updated_by: ctx.actorId },
+    data: { status: next, updated_by: ctx.actorId },
   });
   const type =
     status === "suspended" ? "suspended" : status === "cancelled" ? "cancelled" : "reactivated";
-  await record(businessId, license.id, type, { from: license.status, reason }, ctx);
+  await record(businessId, license.id, type, { from: license.status, to: next, reason }, ctx);
 }
 
 /** Plan y periodo con que se envió la boleta (evento payment_submitted). */

@@ -456,6 +456,21 @@ Las cuentas para pagar salen de `platform_settings.payment_accounts` (lista de `
 - [ ] Funciones bloqueadas: en un negocio Gratis o Pro, Analíticas y Equipo → staff muestran la invitación del plan que las incluye (`<Feature>` / `FeatureInvite`); el encargado ve "Pídele al dueño…".
 - [ ] Al terminar en el demo, borra el pago de prueba, su archivo en `receipts/{negocio}/`, el evento `payment_submitted` y la auditoría.
 
+### Super admin (QRM-042): criterio "Toda acción en auditoría; vencida pasa a gracia y luego a Gratis"
+
+Entra con una cuenta de plataforma (`profiles.platform_role` admin, soporte o ventas) y 2FA. Cada rol ve solo sus pestañas (`features/admin/permissions.ts`).
+
+- [ ] **Tablero**: negocios, MRR (activas pagadas, con precio especial), pagos por verificar, altas de la semana, conteo por estado, "Vencen en 7 días", "En gracia", "Pasaron a Gratis esta semana", publicados sin pedidos y pedidos por día.
+- [ ] **Negocios** → buscar por nombre, link o correo del dueño → ficha: plan, uso contra límites, funciones, equipo con último acceso, pedidos por sucursal, pagos e historial de la licencia.
+- [ ] En la ficha: cambiar plan (a Gratis oculta lo que excede; de vuelta, reaparece), **+7/+30/+365 días**, precio especial, días de gracia, notas, límites y funciones a la medida, **Suspender / Reactivar / Cancelar** con motivo (reactivar vuelve a prueba si era prueba).
+- [ ] **Crear negocio** (alta asistida): queda sin publicar con su licencia (p. ej. Pro, 60 días, Q99) y da el link de invitación de **dueño** para mandar por WhatsApp; al aceptar, esa persona queda como dueña.
+- [ ] **Soporte**: "Entrar en solo lectura" con motivo → el panel del negocio con banner rojo; nada se puede guardar; **Salir** vuelve a la ficha. "Enlace de acceso para el dueño" (magic link para WhatsApp) y "Cerrar sesiones de staff".
+- [ ] **Pagos**: por verificar (con link a la boleta) → **Verificar** (plan pagado, activa hasta el fin del periodo desde el fin actual, lo oculto reaparece) o **Rechazar** con motivo (el negocio lo ve en Mi plan). Pago manual desde la ficha.
+- [ ] **Anuncios**: audiencia `all`, `plan:pro` o `business:{id}` → banner en el panel de esos negocios (se cierra por navegador).
+- [ ] **Configuración**: mantenimiento, días de prueba/fundador/gracia, links reservados, **cuentas para pagar** (salen en Mi plan) y precios de los planes.
+- [ ] **Auditoría**: cada acción anterior aparece con quién (o "Sistema" para el cron) y su detalle; filtro por negocio y acción.
+- [ ] **Cron diario** (`vercel.json`, 12:00 UTC = 6:00 GT, `/api/cron/licenses` con `CRON_SECRET`): activa vencida → gracia; fin de gracia o prueba vencida → Gratis (oculta, no borra); recordatorios de 7, 3 y 1 día (evento `reminder`; correo al dueño si Resend está activo). Probarlo a mano: `curl -H "Authorization: Bearer $CRON_SECRET" https://<dominio>/api/cron/licenses`.
+
 ### Encargado (permisos)
 
 - [ ] Sal y entra como **encargado** → el selector solo muestra **Antigua** (sin "Todas").
@@ -523,6 +538,7 @@ Fallas detectadas en la revisión que se corrigen al final del MVP. No bloquean 
 | 20  | Onboarding (QRM-039)     | Sin recorrer completo en el navegador con una cuenta nueva (la sesión de pruebas es la del dueño del demo y crear cuentas en Supabase queda para el usuario). El flujo completo se probó en integración (alta, corrección, plantilla, productos, publicar, QR) y las 4 pantallas se revisaron con el demo sin guardar. Falta el criterio con 3 personas. Cambio relacionado: el menú puede mostrarse en un iframe de la propia app (SAMEORIGIN). | Probar §4 (QRM-039) con 3 personas y cuentas nuevas; revisar minutes_to_publish.                       | 2026-10-23, QRM-039                 |
 | 21  | Equipo (QRM-040)         | Sin probar en el navegador: aceptar una invitación con una cuenta nueva y entrar como encargado (la sesión de pruebas es la del dueño), y el correo real de la invitación (Resend sin dominio verificado; se probó con el envío apagado: queda el link para WhatsApp). Aceptar, sucursales, quitar y "solo ve sus sucursales" están en integración.                                                                                              | Probar §4 (QRM-040) con una cuenta nueva y, con el dominio verificado en Resend, el correo.            | 2026-10-23, QRM-040                 |
 | 22  | Mi plan (QRM-041)        | Faltan las cuentas reales de la plataforma en platform_settings.payment_accounts (hoy la página pide escribir por WhatsApp). La lista de /admin y el correo a los admins no se vieron en el navegador (cuenta de plataforma con 2FA; Resend sin dominio). Las invitaciones de planes Gratis y Pro no se vieron (el demo es Negocio); el envío de la boleta sí se probó con el demo.                                                              | Cargar payment_accounts (SQL o super admin en QRM-042) y probar §4 (QRM-041) con un negocio en Gratis. | 2026-10-23, QRM-041                 |
+| 23  | Super admin (QRM-042)    | La UI de /admin se probó con un parche local (no subido) que trató la sesión de pruebas como admin con 2FA; falta entrar con la cuenta real de plataforma. Sin hacer: entrar al negocio CON escritura (con motivo), transferir propiedad, exportar datos y restaurar productos borrados. Los correos (recordatorios, pago verificado/rechazado, boleta nueva) dependen de Resend con dominio.                                                    | Entrar a /admin con tu cuenta (2FA), revisar §4 (QRM-042) y confirmar el cron en Vercel → Crons.       | 2026-10-24, QRM-042                 |
 
 El detalle de los puntos 4 a 8 y lo que se verificó está en [reporte-verificacion-2026-10-22.md](reporte-verificacion-2026-10-22.md).
 
