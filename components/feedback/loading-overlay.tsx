@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { cancelLoading, retryLoading, useLoading } from "@/lib/loading/store";
 import { Loader } from "./loaders";
 
-const SLOW_MESSAGE = "Está tardando más de lo normal";
+export const SLOW_MESSAGE = "Está tardando más de lo normal";
 
 /**
  * Modal global "Cargando…". Usa <dialog> nativo con showModal(): fondo inerte,

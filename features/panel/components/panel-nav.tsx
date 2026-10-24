@@ -47,12 +47,15 @@ export function SidebarNav({ businessId, groups }: { businessId: string; groups:
 }
 
 /** Pestañas inferiores en móvil: Pedidos, Menú, Inicio, Más. */
-export function BottomTabs({ businessId }: { businessId: string }) {
+export function BottomTabs({ businessId, className }: { businessId: string; className?: string }) {
   const pathname = usePathname();
   return (
     <nav
       aria-label="Secciones principales"
-      className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-card/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden"
+      className={cn(
+        "fixed inset-x-0 bottom-0 z-30 border-t border-border bg-card/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden",
+        className,
+      )}
     >
       <ul className="mx-auto grid max-w-landing grid-cols-4">
         {MOBILE_TABS.map((tab) => {
