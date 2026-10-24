@@ -53,7 +53,7 @@ export async function listManagers(businessId: string) {
       },
     }),
     db().business_invitations.findMany({
-      where: { business_id: businessId, accepted_at: null, revoked_at: null },
+      where: { business_id: businessId, role: "manager", accepted_at: null, revoked_at: null },
       orderBy: { created_at: "desc" },
       select: {
         id: true,
@@ -97,6 +97,7 @@ export async function inviteManager(input: InviteInput, { actorId }: Ctx) {
   const pending = await db().business_invitations.findMany({
     where: {
       business_id: businessId,
+      role: "manager",
       accepted_at: null,
       revoked_at: null,
       expires_at: { gt: new Date() },
@@ -158,7 +159,13 @@ export async function inviteManager(input: InviteInput, { actorId }: Ctx) {
 /** Reenviar: link nuevo (el anterior deja de servir) y 7 días más. */
 export async function renewInvitation(businessId: string, invitationId: string, { actorId }: Ctx) {
   const inv = await db().business_invitations.findFirst({
-    where: { id: invitationId, business_id: businessId, accepted_at: null, revoked_at: null },
+    where: {
+      id: invitationId,
+      business_id: businessId,
+      role: "manager",
+      accepted_at: null,
+      revoked_at: null,
+    },
     select: { id: true, email: true },
   });
   if (!inv) throw new AppError("not_found", "Esa invitación ya no está pendiente.");
@@ -180,7 +187,13 @@ export async function renewInvitation(businessId: string, invitationId: string, 
 
 export async function revokeInvitation(businessId: string, invitationId: string, { actorId }: Ctx) {
   const { count } = await db().business_invitations.updateMany({
-    where: { id: invitationId, business_id: businessId, accepted_at: null, revoked_at: null },
+    where: {
+      id: invitationId,
+      business_id: businessId,
+      role: "manager",
+      accepted_at: null,
+      revoked_at: null,
+    },
     data: { revoked_at: new Date() },
   });
   if (count === 0) throw new AppError("not_found", "Esa invitación ya no está pendiente.");
@@ -202,6 +215,7 @@ export async function getInvitation(token: string) {
       id: true,
       business_id: true,
       email: true,
+      role: true,
       all_branches: true,
       branch_ids: true,
       expires_at: true,
@@ -251,8 +265,9 @@ export async function acceptInvitation(token: string, user: { id: string; email:
         data: {
           business_id: inv.business_id,
           user_id: user.id,
-          role: "manager",
-          all_branches: inv.all_branches,
+          // "owner" solo en el alta asistida desde el super admin (QRM-042).
+          role: inv.role,
+          all_branches: inv.role === "owner" || inv.all_branches,
           branches: { create: branchIds.map((branch_id) => ({ branch_id })) },
         },
       });
