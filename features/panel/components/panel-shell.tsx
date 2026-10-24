@@ -60,7 +60,12 @@ export function PanelShell({ ctx, children }: { ctx: PanelContext; children: Rea
         </div>
       </header>
 
-      <LicenseBanner businessId={business.id} entitlements={entitlements} isOwner={isOwner} />
+      <LicenseBanner
+        businessId={business.id}
+        entitlements={entitlements}
+        isOwner={isOwner}
+        pendingPayment={ctx.pendingPayment}
+      />
       <main className="pb-24 lg:pb-0">{children}</main>
       <BottomTabs businessId={business.id} />
     </div>

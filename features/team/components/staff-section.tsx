@@ -8,7 +8,8 @@ import { Field, FormMessage } from "@/components/forms/field";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import { Choice, EditorSection, PlanLock } from "@/features/appearance/components/controls";
+import { Choice, EditorSection } from "@/features/appearance/components/controls";
+import { FeatureInvite } from "@/features/licensing/components/feature";
 import { LimitCard } from "@/features/licensing/components/limit-card";
 import { PIN_MAX, PIN_MIN } from "@/features/staff/pin";
 import { runAction } from "@/lib/action-client";
@@ -55,13 +56,7 @@ export function StaffSection({
       description="Para la caja y la cocina: entran con su PIN en la tablet autorizada de su sucursal y ven la bandeja de pedidos."
     >
       {!allowed ? (
-        licenseHref ? (
-          <PlanLock licenseHref={licenseHref}>El staff con PIN es del plan Pro.</PlanLock>
-        ) : (
-          <p className="type-small text-muted-foreground">
-            El plan de este negocio no incluye staff con PIN.
-          </p>
-        )
+        <FeatureInvite name="staff_pin" licenseHref={licenseHref} />
       ) : (
         <>
           {staff.length === 0 ? (

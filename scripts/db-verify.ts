@@ -57,6 +57,11 @@ const checks: Check[] = [
     ok: (r) => r[0]?.public === true,
   },
   {
+    name: "Bucket receipts privado (boletas)",
+    sql: `select public from storage.buckets where id = 'receipts'`,
+    ok: (r) => r[0]?.public === false,
+  },
+  {
     name: "Políticas de Storage para media",
     sql: `select count(*)::int as n from pg_policies
           where schemaname = 'storage' and tablename = 'objects' and policyname like 'miembros %'`,

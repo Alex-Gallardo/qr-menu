@@ -2,6 +2,7 @@ import "server-only";
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import { cache } from "react";
+import { hasPendingPayment } from "@/features/billing/server";
 import { getEntitlements } from "@/features/licensing/server";
 import { visibleBranchIds } from "@/lib/auth/access";
 import { getMembership } from "@/lib/auth/require-access";
@@ -22,20 +23,23 @@ export const getPanelContext = cache(async (businessId: string) => {
   const member = await getMembership(user.id, businessId);
   if (!member) notFound();
 
-  const [business, branches, entitlements, profile, cookieStore] = await Promise.all([
-    db().businesses.findUnique({
-      where: { id: businessId },
-      select: { id: true, name: true, slug: true, logo_url: true },
-    }),
-    db().branches.findMany({
-      where: { business_id: businessId, hidden_by_license: false },
-      orderBy: [{ sort: "asc" }, { created_at: "asc" }],
-      select: { id: true, name: true, slug: true, is_active: true },
-    }),
-    getEntitlements(businessId),
-    getProfile(user.id),
-    cookies(),
-  ]);
+  const [business, branches, entitlements, profile, cookieStore, pendingPayment] =
+    await Promise.all([
+      db().businesses.findUnique({
+        where: { id: businessId },
+        select: { id: true, name: true, slug: true, logo_url: true },
+      }),
+      db().branches.findMany({
+        where: { business_id: businessId, hidden_by_license: false },
+        orderBy: [{ sort: "asc" }, { created_at: "asc" }],
+        select: { id: true, name: true, slug: true, is_active: true },
+      }),
+      getEntitlements(businessId),
+      getProfile(user.id),
+      cookies(),
+      // Boleta en verificación (aviso del panel; solo le importa al dueño).
+      member.role === "owner" ? hasPendingPayment(businessId) : false,
+    ]);
   if (!business) notFound();
 
   const visibleIds = visibleBranchIds(
@@ -59,6 +63,7 @@ export const getPanelContext = cache(async (businessId: string) => {
     branches: visibleBranches,
     selectedBranch,
     entitlements,
+    pendingPayment,
   };
 });
 
