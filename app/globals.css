@@ -290,6 +290,47 @@ html:has(.splash-root[data-splash="on"]:not([data-contained])) {
 .splash-root:is([data-splash="on"], [data-splash="skip"]) .splash-menu {
   animation: splash-menu-in var(--splash-exit) var(--splash-ease) var(--splash-wait) backwards;
 }
+/* Landing: el celular del hero repite la bienvenida (se levanta y revela el menú). */
+.hero-splash {
+  animation: hero-splash 6s var(--ease-out-soft) infinite;
+}
+.hero-menu {
+  animation: hero-menu 6s var(--ease-out-soft) infinite;
+}
+@keyframes hero-splash {
+  0%,
+  22% {
+    transform: translateY(0);
+  }
+  34%,
+  92% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+@keyframes hero-menu {
+  0%,
+  24% {
+    opacity: 0.4;
+    transform: translateY(12px);
+  }
+  38%,
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-splash {
+    animation: none;
+    transform: translateY(-100%);
+  }
+  .hero-menu {
+    animation: none;
+  }
+}
 @keyframes splash-out-lift {
   to {
     transform: translateY(-100%);

@@ -13,6 +13,8 @@ import { BusinessStepForm } from "@/features/onboarding/components/business-step
 import { ProductsStep } from "@/features/onboarding/components/products-step";
 import { PublishStep } from "@/features/onboarding/components/publish-step";
 import { StepsNav } from "@/features/onboarding/components/steps-nav";
+import { GoogleAnalytics } from "@/features/marketing/components/ga";
+import { SignupTracker } from "@/features/marketing/components/signup-tracker";
 import { checklist, maxStep, ONBOARDING_STEPS, parseStep } from "@/features/onboarding/onboarding";
 import {
   getChecklistData,
@@ -66,6 +68,13 @@ async function Onboarding({
         <SignOutButton />
       </header>
       <StepsNav current={step} max={maxStep(progress)} />
+      {/* GA4: la cuenta nueva llegó al asistente (registro completo). */}
+      {!onboarding ? (
+        <>
+          <SignupTracker userId={user.id} />
+          <GoogleAnalytics />
+        </>
+      ) : null}
       <div className="grid gap-1">
         <p className="type-caption font-semibold text-muted-foreground">Paso {step} de 4</p>
         <h1 className="type-h1">{meta.title}</h1>

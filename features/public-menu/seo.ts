@@ -16,6 +16,7 @@ export const ROBOTS_DISALLOW = [
   "/registro",
   "/recuperar",
   "/onboarding",
+  "/invitacion",
   "/mantenimiento",
   "/styleguide",
   // Confirmación de pedidos: links privados del comensal.
