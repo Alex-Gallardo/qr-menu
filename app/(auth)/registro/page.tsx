@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { AuthCard, FormSkeleton } from "@/features/auth/components/auth-card";
 import { SignUpForm } from "@/features/auth/components/sign-up-form";
+import { GoogleAnalytics } from "@/features/marketing/components/ga";
 import { safeNext } from "@/lib/auth/route-rules";
 
 export const metadata: Metadata = { title: "Crea tu menú" };
@@ -40,6 +41,7 @@ async function SignUp({
       }
     >
       <SignUpForm next={next} email={email} />
+      <GoogleAnalytics />
     </AuthCard>
   );
 }

@@ -10,5 +10,11 @@ import { BRAND } from "@/lib/brand";
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   await connection();
-  return sitemapEntries(BRAND.url, await listIndexableBusinesses());
+  const pages = ["/precios", "/legal/terminos", "/legal/privacidad"].map((path) => ({
+    url: new URL(path, BRAND.url).toString(),
+    changeFrequency: "monthly" as const,
+    priority: path === "/precios" ? 0.8 : 0.3,
+  }));
+  const [home, ...menus] = sitemapEntries(BRAND.url, await listIndexableBusinesses());
+  return [home!, ...pages, ...menus];
 }
