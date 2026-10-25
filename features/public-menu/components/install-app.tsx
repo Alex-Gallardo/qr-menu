@@ -2,6 +2,7 @@
 
 import { DownloadIcon, PlusSquareIcon, ShareIcon, WifiOffIcon, XIcon } from "lucide-react";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { track } from "@/features/analytics/track";
 import { isIOSDevice } from "@/features/notifications/support";
 import { installOffer, isInAppBrowser, type InstallOffer } from "../pwa";
 
@@ -28,10 +29,13 @@ const subscribeOnline = (cb: () => void) => {
  */
 export function InstallApp({
   businessId,
+  branchId,
   businessSlug,
   businessName,
 }: {
   businessId: string;
+  /** Sucursal donde se instaló (para analíticas). */
+  branchId: string;
   businessSlug: string;
   businessName: string;
 }) {
@@ -73,14 +77,17 @@ export function InstallApp({
       setPrompt(e as InstallPromptEvent);
       update(true);
     };
-    const onInstalled = () => setOffer(null);
+    const onInstalled = () => {
+      setOffer(null);
+      track({ businessId, branchId }, "app_installed");
+    };
     window.addEventListener("beforeinstallprompt", onPrompt);
     window.addEventListener("appinstalled", onInstalled);
     return () => {
       window.removeEventListener("beforeinstallprompt", onPrompt);
       window.removeEventListener("appinstalled", onInstalled);
     };
-  }, [businessId]);
+  }, [businessId, branchId]);
 
   const dismiss = () => {
     setOffer(null);
@@ -103,33 +110,11 @@ export function InstallApp({
   return (
     <>
       {offer ? (
-        <aside
-          aria-label="Instalar la app"
-          className="mx-4 mt-8 flex items-center gap-3 rounded-[var(--menu-radius)] border border-[var(--menu-line)] bg-[var(--menu-surface)] p-3"
-        >
-          <span className="grid size-10 shrink-0 place-items-center rounded-full bg-[var(--menu-soft)] text-[var(--menu-primary)]">
-            <DownloadIcon aria-hidden className="size-5" />
-          </span>
-          <p className="type-small min-w-0 flex-1">
-            <strong className="block">Ten {businessName} en tu celular</strong>
-            <span className="text-[var(--menu-muted)]">Pide más rápido desde el ícono.</span>
-          </p>
-          <button
-            type="button"
-            onClick={() => void install()}
-            className="type-small h-10 shrink-0 rounded-full bg-[var(--menu-primary)] px-4 font-semibold text-[var(--menu-on-primary)]"
-          >
-            Instalar
-          </button>
-          <button
-            type="button"
-            onClick={dismiss}
-            aria-label="Ahora no"
-            className="grid size-10 shrink-0 place-items-center rounded-full text-[var(--menu-muted)] hover:bg-[var(--menu-soft)]"
-          >
-            <XIcon aria-hidden className="size-4" />
-          </button>
-        </aside>
+        <InstallBanner
+          businessName={businessName}
+          onInstall={() => void install()}
+          onDismiss={dismiss}
+        />
       ) : null}
 
       <dialog
@@ -163,6 +148,47 @@ export function InstallApp({
         </button>
       </dialog>
     </>
+  );
+}
+
+/** Tarjeta "Ten {negocio} en tu celular" con Instalar y Ahora no. */
+export function InstallBanner({
+  businessName,
+  onInstall,
+  onDismiss,
+}: {
+  businessName: string;
+  onInstall: () => void;
+  onDismiss: () => void;
+}) {
+  return (
+    <aside
+      aria-label="Instalar la app"
+      className="mx-4 mt-8 flex items-center gap-3 rounded-[var(--menu-radius)] border border-[var(--menu-line)] bg-[var(--menu-surface)] p-3"
+    >
+      <span className="grid size-10 shrink-0 place-items-center rounded-full bg-[var(--menu-soft)] text-[var(--menu-primary)]">
+        <DownloadIcon aria-hidden className="size-5" />
+      </span>
+      <p className="type-small min-w-0 flex-1">
+        <strong className="block">Ten {businessName} en tu celular</strong>
+        <span className="text-[var(--menu-muted)]">Pide más rápido desde el ícono.</span>
+      </p>
+      <button
+        type="button"
+        onClick={onInstall}
+        className="type-small h-10 shrink-0 rounded-full bg-[var(--menu-primary)] px-4 font-semibold text-[var(--menu-on-primary)]"
+      >
+        Instalar
+      </button>
+      <button
+        type="button"
+        onClick={onDismiss}
+        aria-label="Ahora no"
+        className="grid size-10 shrink-0 place-items-center rounded-full text-[var(--menu-muted)] hover:bg-[var(--menu-soft)]"
+      >
+        <XIcon aria-hidden className="size-4" />
+      </button>
+    </aside>
   );
 }
 

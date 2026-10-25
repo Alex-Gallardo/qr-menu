@@ -1,7 +1,7 @@
 "use server";
 
 import { updateTag } from "next/cache";
-import { z } from "zod";
+import { validationError, z } from "@/lib/zod";
 import { actionError, type ActionResult } from "@/lib/action-result";
 import { requireAccess } from "@/lib/auth/require-access";
 import { tags } from "@/lib/cache-tags";
@@ -21,14 +21,9 @@ async function ownerOf(businessId: string) {
 /** El menú público resuelve el menú del día con las franjas: se publica al instante. */
 const published = (businessId: string) => updateTag(tags.business(businessId));
 
-const firstIssue = (error: z.ZodError) => ({
-  ok: false as const,
-  message: error.issues[0]?.message ?? "Revisa los datos.",
-});
-
 export async function saveSlot(input: unknown): Promise<ActionResult> {
   const parsed = slotFormSchema.safeParse(input);
-  if (!parsed.success) return firstIssue(parsed.error);
+  if (!parsed.success) return validationError(parsed.error);
   const { businessId, slotId } = parsed.data;
   try {
     const ctx = await ownerOf(businessId);
@@ -48,7 +43,7 @@ const slotRef = z.object({ businessId: z.uuid(), slotId: z.uuid() });
 
 export async function toggleSlot(input: unknown): Promise<ActionResult> {
   const parsed = slotRef.extend({ active: z.boolean() }).safeParse(input);
-  if (!parsed.success) return firstIssue(parsed.error);
+  if (!parsed.success) return validationError(parsed.error);
   const { businessId, slotId, active } = parsed.data;
   try {
     const ctx = await ownerOf(businessId);
@@ -67,7 +62,7 @@ export async function removeSlot(
   input: unknown,
 ): Promise<ActionResult<{ name: string; schedules: number }>> {
   const parsed = slotRef.safeParse(input);
-  if (!parsed.success) return firstIssue(parsed.error);
+  if (!parsed.success) return validationError(parsed.error);
   const { businessId, slotId } = parsed.data;
   try {
     const ctx = await ownerOf(businessId);
@@ -81,7 +76,7 @@ export async function removeSlot(
 
 export async function undoRemoveSlot(input: unknown): Promise<ActionResult> {
   const parsed = slotRef.safeParse(input);
-  if (!parsed.success) return firstIssue(parsed.error);
+  if (!parsed.success) return validationError(parsed.error);
   const { businessId, slotId } = parsed.data;
   try {
     const ctx = await ownerOf(businessId);
@@ -118,7 +113,7 @@ const publishedSchedule = (businessId: string, branchId: string | null) => {
 /** Autoguardado de la cuadrícula. */
 export async function saveScheduleAction(input: unknown): Promise<ActionResult> {
   const parsed = scheduleGridSchema.safeParse(input);
-  if (!parsed.success) return firstIssue(parsed.error);
+  if (!parsed.success) return validationError(parsed.error);
   const { businessId, branchId, cells } = parsed.data;
   try {
     const ctx = await scheduleEditor(businessId, branchId);
@@ -142,7 +137,7 @@ async function overrideEditor(businessId: string, branchId: string | null, withM
 
 export async function saveOverrideAction(input: unknown): Promise<ActionResult> {
   const parsed = overrideSchema.safeParse(input);
-  if (!parsed.success) return firstIssue(parsed.error);
+  if (!parsed.success) return validationError(parsed.error);
   const { businessId, branchId, menuId } = parsed.data;
   try {
     const ctx = await overrideEditor(businessId, branchId, menuId !== null);
@@ -161,7 +156,7 @@ export async function removeOverrideAction(
   input: unknown,
 ): Promise<ActionResult<{ restore: OverrideInput }>> {
   const parsed = z.object({ businessId: z.uuid(), overrideId: z.uuid() }).safeParse(input);
-  if (!parsed.success) return firstIssue(parsed.error);
+  if (!parsed.success) return validationError(parsed.error);
   const { businessId, overrideId } = parsed.data;
   try {
     const branchId = await overrideBranch(businessId, overrideId);

@@ -7,7 +7,33 @@ const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
   prettier,
-  globalIgnores([".next/**", "out/**", "build/**", "coverage/**", "generated/**", "next-env.d.ts"]),
+  {
+    // Zod siempre desde lib/zod: registra los mensajes en español antes de crear esquemas.
+    ignores: ["lib/zod.ts"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          paths: [
+            { name: "zod", message: 'Importa z desde "@/lib/zod" (mensajes en español).' },
+            { name: "zod/v4", message: 'Importa z desde "@/lib/zod" (mensajes en español).' },
+          ],
+        },
+      ],
+    },
+  },
+  globalIgnores([
+    ".next/**",
+    "out/**",
+    "build/**",
+    "coverage/**",
+    "generated/**",
+    "next-env.d.ts",
+    "tests/e2e/.data/**",
+    "tests/e2e/.results/**",
+    "tests/e2e/.report/**",
+    ".lighthouseci/**",
+  ]),
 ]);
 
 export default eslintConfig;

@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "@/lib/zod";
 import { parseQ } from "@/lib/money";
 import { TAG_VALUES } from "./catalog";
 import { groupRuleProblem, MAX_DELTA_CENTS, MAX_GROUPS, MAX_OPTIONS, parseDelta } from "./options";

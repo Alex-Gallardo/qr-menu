@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { runAction } from "@/lib/action-client";
 import { enrollTotp, verifyTotp, type TotpEnrollment } from "../actions";
-import { useAction } from "./use-action";
 
 type Props = { next: string } & (
   { mode: "challenge"; factorId: string } | { mode: "enroll"; factorId?: undefined }
@@ -85,13 +84,22 @@ function CodeForm({
   enrolling: boolean;
 }) {
   const [code, setCode] = useState("");
-  const { run, pending, result } = useAction(verifyTotp);
+  const [error, setError] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
 
   return (
     <form
       onSubmit={(e) => {
         e.preventDefault();
-        run({ factorId, code, next });
+        startTransition(async () => {
+          setError(null);
+          const result = await runAction(() => verifyTotp({ factorId, code, next }));
+          if (!result.ok) return setError(result.message);
+          // Carga completa con la sesión ya verificada (aal2): el router del
+          // cliente guarda el /admin de antes del código (que redirigía aquí) y
+          // una navegación suave lo reusaría. Ver también verifyTotp.
+          window.location.assign(result.data.next);
+        });
       }}
       className="grid gap-4"
     >
@@ -108,7 +116,7 @@ function CodeForm({
           autoFocus
         />
       </Field>
-      {result && !result.ok ? <FormMessage tone="error">{result.message}</FormMessage> : null}
+      {error ? <FormMessage tone="error">{error}</FormMessage> : null}
       <Button type="submit" loading={pending} disabled={code.length !== 6} className="w-full">
         {enrolling ? "Activar y continuar" : "Verificar"}
       </Button>

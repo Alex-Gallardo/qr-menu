@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Bricolage_Grotesque, Inter } from "next/font/google";
-import { LoadingOverlay } from "@/components/feedback/loading-overlay";
-import { Toaster } from "@/components/feedback/toaster";
+import { GlobalFeedback } from "@/components/feedback/global-feedback";
 import { BRAND } from "@/lib/brand";
 import "./globals.css";
 
@@ -26,8 +25,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="es-GT" className={`${inter.variable} ${bricolage.variable}`}>
       <body>
         {children}
-        <LoadingOverlay />
-        <Toaster />
+        <GlobalFeedback />
       </body>
     </html>
   );

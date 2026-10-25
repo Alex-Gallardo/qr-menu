@@ -8,6 +8,8 @@ import { toast } from "sonner";
 import { markWhatsAppOpenedAction } from "@/features/orders/actions";
 import { ORDER_TYPE_LABELS, PAY_METHOD_LABELS } from "@/features/orders/checkout";
 import { scheduledLabel } from "@/features/orders/preorder";
+import { ReviewCard } from "@/features/reviews/components/review-card";
+import type { OrderReview } from "@/features/reviews/server";
 import { orderNumberLabel, type MessageOrder } from "@/features/orders/whatsapp";
 import { formatQ } from "@/lib/money";
 import { formatPhone } from "@/lib/phone";
@@ -38,6 +40,8 @@ export function OrderConfirmation({
   bankAccounts,
   menuHref,
   emailNotice,
+  review,
+  embedded = false,
 }: {
   orderId: string;
   status: string;
@@ -50,7 +54,12 @@ export function OrderConfirmation({
   menuHref: string;
   /** Dejó su correo y el envío está activo: "Te enviamos el resumen a tu correo". */
   emailNotice: boolean;
+  /** Reseña del pedido: la tarjeta aparece al entregarse (o 2 h después de pedir). */
+  review: OrderReview | null;
+  /** Dentro de otra página (el styleguide): sin landmark <main> propio. */
+  embedded?: boolean;
 }) {
+  const Root = embedded ? "div" : "main";
   const webUrl = `https://web.whatsapp.com/send?phone=${branchWhatsapp.replace(/\D/g, "")}&text=${encodeURIComponent(message)}`;
 
   function openWhatsApp() {
@@ -94,7 +103,7 @@ export function OrderConfirmation({
     : "Lo antes posible";
 
   return (
-    <main className="grid gap-6 px-4 pt-8">
+    <Root className="grid gap-6 px-4 pt-8">
       <section className="relative grid justify-items-center gap-3 text-center">
         <div aria-hidden className="pointer-events-none absolute inset-x-0 top-6 h-0">
           {CONFETTI.map((p, i) => (
@@ -134,6 +143,10 @@ export function OrderConfirmation({
           <p className="type-small text-[var(--menu-muted)]">Te enviamos el resumen a tu correo.</p>
         ) : null}
       </section>
+
+      {review && (review.open || review.review) ? (
+        <ReviewCard orderId={orderId} initial={review} />
+      ) : null}
 
       <section className="grid gap-3 rounded-[var(--menu-radius)] border border-[var(--menu-line)] bg-[var(--menu-surface)] p-4">
         <p className="type-small">
@@ -239,6 +252,6 @@ export function OrderConfirmation({
         <ArrowLeftIcon aria-hidden className="size-4" />
         Volver al menú
       </Link>
-    </main>
+    </Root>
   );
 }

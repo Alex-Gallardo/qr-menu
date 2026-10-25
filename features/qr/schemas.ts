@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "@/lib/zod";
 import { MAX_TABLE_NUMBER, MAX_TABLES_AT_ONCE } from "./codes";
 
 const tableNumber = z.coerce

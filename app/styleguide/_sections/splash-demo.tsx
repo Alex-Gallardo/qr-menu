@@ -3,7 +3,6 @@
 import { PlayIcon } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { PALETTE_PRESETS } from "@/features/appearance/palettes";
 import { Splash } from "@/features/public-menu/components/splash";
 import {
   normalizeSplash,
@@ -20,6 +19,7 @@ import {
   ProductCard,
 } from "@/features/public-menu/templates/clasico/components";
 import { themeFromPreset } from "@/features/public-menu/theme";
+import { useStyleguideTheme } from "./theme-context";
 
 const photo = (id: string) => `https://images.unsplash.com/photo-${id}?w=1200&q=80&auto=format`;
 
@@ -42,8 +42,9 @@ export function SplashDemo() {
   const [durationMs, setDurationMs] = useState(1800);
   const [run, setRun] = useState(0);
 
-  const theme = themeFromPreset("tomate");
-  const accent = PALETTE_PRESETS[0]!.accent;
+  const { menuPalette } = useStyleguideTheme();
+  const theme = themeFromPreset(menuPalette);
+  const accent = theme.accent;
   const config = normalizeSplash(
     {
       splash_style: style,

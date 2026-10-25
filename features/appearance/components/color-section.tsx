@@ -35,7 +35,7 @@ export const colorsOf = (doc: AppearanceDoc): PaletteColors => ({
   text: doc.color_text,
 });
 
-const toColumns = (c: PaletteColors) => ({
+export const toColumns = (c: PaletteColors) => ({
   color_primary: c.primary,
   color_accent: c.accent,
   color_bg: c.bg,
@@ -44,7 +44,7 @@ const toColumns = (c: PaletteColors) => ({
 });
 
 /** Lee el logo en un canvas pequeño (necesita CORS: el bucket de Storage lo permite). */
-async function logoPixels(url: string) {
+export async function logoPixels(url: string) {
   const img = new Image();
   img.crossOrigin = "anonymous";
   img.src = url;

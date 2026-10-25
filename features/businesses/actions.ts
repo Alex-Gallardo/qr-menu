@@ -2,6 +2,7 @@
 
 import { updateTag } from "next/cache";
 import { actionError, type ActionResult } from "@/lib/action-result";
+import { validationError } from "@/lib/zod";
 import { audit, diffFields } from "@/lib/audit";
 import { requireAccess } from "@/lib/auth/require-access";
 import { tags } from "@/lib/cache-tags";
@@ -32,7 +33,7 @@ export async function checkSlugAvailability(input: unknown): Promise<SlugCheck> 
 export async function updateBusinessSettings(input: unknown): Promise<ActionResult> {
   const parsed = businessSettingsSchema.safeParse(input);
   if (!parsed.success) {
-    return { ok: false, message: parsed.error.issues[0]?.message ?? "Revisa los datos." };
+    return validationError(parsed.error);
   }
   const { businessId, ...data } = parsed.data;
 

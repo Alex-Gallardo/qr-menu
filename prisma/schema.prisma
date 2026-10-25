@@ -144,6 +144,30 @@ model business_members {
   @@index([user_id])
 }
 
+/// Invitación de encargado por correo (QRM-040). El link lleva el token; en la base solo su hash.
+model business_invitations {
+  id           String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  business_id  String     @db.Uuid
+  /// En minúsculas; quien acepta debe entrar con este correo
+  email        String
+  role         MemberRole @default(manager)
+  all_branches Boolean    @default(false)
+  /// Sucursales asignadas cuando all_branches es false
+  branch_ids   String[]   @db.Uuid
+  /// sha256 del token del link
+  token_hash   String     @unique
+  invited_by   String?    @db.Uuid
+  expires_at   DateTime   @db.Timestamptz(6)
+  accepted_at  DateTime?  @db.Timestamptz(6)
+  accepted_by  String?    @db.Uuid
+  revoked_at   DateTime?  @db.Timestamptz(6)
+  created_at   DateTime   @default(now()) @db.Timestamptz(6)
+
+  business businesses @relation(fields: [business_id], references: [id], onDelete: Cascade)
+
+  @@index([business_id, created_at])
+}
+
 model member_branches {
   member_id String @db.Uuid
   branch_id String @db.Uuid
@@ -250,6 +274,7 @@ model businesses {
 
   branches           branches[]
   members            business_members[]
+  invitations        business_invitations[]
   staff              staff_members[]
   staff_devices      staff_devices[]
   staff_sessions     staff_sessions[]

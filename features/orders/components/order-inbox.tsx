@@ -1,7 +1,6 @@
 "use client";
 
-import { BellIcon, BellOffIcon, ChevronRightIcon, ClockIcon, MapPinIcon } from "lucide-react";
-import Link from "next/link";
+import { BellIcon, BellOffIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
@@ -10,31 +9,22 @@ import { Button } from "@/components/ui/button";
 import { useNowMinute } from "@/features/public-menu/use-now";
 import { runAction } from "@/lib/action-client";
 import { formatQ } from "@/lib/money";
-import { ORDER_TYPE_LABELS, PAY_METHOD_LABELS, type OrderType } from "../checkout";
+import type { OrderType } from "../checkout";
 import type { InboxOrder } from "../inbox";
 import { updateOrderStatusAction } from "../inbox-actions";
-import { scheduledLabel } from "../preorder";
 import {
-  ago,
   INBOX_FILTERS,
   matchesFilter,
-  primaryAction,
   STATUS_LABELS,
   type InboxFilter,
   type OrderStatus,
 } from "../status";
 import { orderNumberLabel } from "../whatsapp";
 import { blinkTitle, playChime, soundReady, unlockSound, vibrate } from "./order-alert";
+import { OrderCard } from "./order-card";
 import { useOrdersRealtime, type OrderRow, type RealtimeState } from "./use-orders-realtime";
 
-export const STATUS_STYLES: Record<OrderStatus, string> = {
-  new: "bg-primary text-primary-foreground",
-  accepted: "bg-maiz text-frijol",
-  preparing: "bg-maiz text-frijol",
-  ready: "bg-success text-white",
-  delivered: "bg-muted text-muted-foreground",
-  cancelled: "bg-muted text-muted-foreground line-through",
-};
+export { STATUS_STYLES } from "./order-card";
 
 const TYPE_FILTERS: { value: OrderType | "todos"; label: string }[] = [
   { value: "todos", label: "Todos" },
@@ -199,85 +189,17 @@ export function OrderInbox({
       ) : (
         <ul className="grid gap-3 md:grid-cols-2">
           {shown.map((order) => {
-            const next = primaryAction(order.status, order.orderType);
             const detail = `${detailBase ?? `/panel/${businessId}/pedidos`}/${order.id}`;
             return (
-              <li
+              <OrderCard
                 key={order.id}
-                className={cn(
-                  "grid gap-2 rounded-lg border bg-card p-4 shadow-1",
-                  order.status === "new"
-                    ? "border-primary ring-2 ring-primary/20"
-                    : "border-border",
-                )}
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <Link href={detail} className="type-h3 hover:underline">
-                    {orderNumberLabel(order.number)}
-                  </Link>
-                  <span
-                    className={cn(
-                      "type-caption rounded-full px-2.5 py-1 font-semibold",
-                      STATUS_STYLES[order.status],
-                      order.status === "new" && "animate-latido",
-                    )}
-                  >
-                    {STATUS_LABELS[order.status]}
-                  </span>
-                </div>
-                <p className="type-small flex flex-wrap items-center gap-x-2 gap-y-1 text-muted-foreground">
-                  <span className="font-semibold text-foreground">
-                    {ORDER_TYPE_LABELS[order.orderType]}
-                    {order.orderType === "dine_in" && order.tableLabel
-                      ? ` · ${order.tableLabel}`
-                      : ""}
-                  </span>
-                  {order.scheduledFor ? (
-                    <span className="inline-flex items-center gap-1 font-semibold text-foreground">
-                      <ClockIcon aria-hidden className="size-3.5" />
-                      {scheduledLabel(new Date(order.scheduledFor).toISOString(), clock)}
-                    </span>
-                  ) : null}
-                  {now ? <span>{ago(order.createdAt, now)}</span> : null}
-                  {showBranch ? <span>· {order.branch.name}</span> : null}
-                </p>
-                {order.orderType === "delivery" && order.address ? (
-                  <p className="type-small flex items-start gap-1 text-muted-foreground">
-                    <MapPinIcon aria-hidden className="mt-0.5 size-3.5 shrink-0" />
-                    <span className="line-clamp-1">{order.address}</span>
-                  </p>
-                ) : null}
-                <p className="type-body">
-                  <span className="font-semibold">{order.customerName}</span>
-                  <span className="line-clamp-2 text-muted-foreground">{order.summary}</span>
-                </p>
-                <div className="mt-1 flex items-center justify-between gap-2">
-                  <p className="type-small">
-                    <span className="type-price">{formatQ(order.totalCents)}</span>
-                    <span className="text-muted-foreground">
-                      {" "}
-                      · {PAY_METHOD_LABELS[order.payment]}
-                    </span>
-                  </p>
-                  <div className="flex items-center gap-1">
-                    {next ? (
-                      <Button
-                        type="button"
-                        size="sm"
-                        loading={pending && busyId === order.id}
-                        onClick={() => move(order, next.to)}
-                      >
-                        {next.label}
-                      </Button>
-                    ) : null}
-                    <Button asChild variant="ghost" size="icon-sm" aria-label="Ver detalle">
-                      <Link href={detail}>
-                        <ChevronRightIcon />
-                      </Link>
-                    </Button>
-                  </div>
-                </div>
-              </li>
+                order={order}
+                href={detail}
+                showBranch={showBranch}
+                now={now}
+                busy={pending && busyId === order.id}
+                onAdvance={(to) => move(order, to)}
+              />
             );
           })}
         </ul>

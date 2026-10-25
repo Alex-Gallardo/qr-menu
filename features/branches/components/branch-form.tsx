@@ -16,8 +16,11 @@ import { cn } from "cn";
 import { Field, FormMessage } from "@/components/forms/field";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PrefixedInput } from "@/components/forms/prefixed-input";
+import { RadioCards } from "@/components/forms/radio-cards";
 import { Switch } from "@/components/ui/switch";
 import { slugify } from "@/features/businesses/slug";
+import { googleReviewUrl } from "@/features/reviews/reviews";
 import { LocationPicker } from "@/features/location/components/location-picker";
 import type { Coords } from "@/features/location/lib/coords";
 import { runAction } from "@/lib/action-client";
@@ -40,7 +43,7 @@ type Props = {
   mapCenter?: Coords;
 };
 
-const PREORDER_OPTIONS = [
+export const PREORDER_OPTIONS = [
   {
     value: "off",
     title: "No permitir",
@@ -76,10 +79,11 @@ export function BranchForm({
   });
   const { errors, isDirty } = form.formState;
   const control = form.control;
-  const [slug, acceptsDelivery, preorderMode] = useWatch({
+  const [slug, acceptsDelivery, preorderMode, placeId] = useWatch({
     control,
-    name: ["slug", "accepts_delivery", "preorder_mode"],
+    name: ["slug", "accepts_delivery", "preorder_mode", "google_place_id"],
   });
+  const reviewUrl = googleReviewUrl(placeId?.trim());
 
   // La Server Action vuelve a validar con el mismo esquema: se envían los valores crudos.
   const onSubmit = form.handleSubmit(() =>
@@ -208,7 +212,34 @@ export function BranchForm({
             id="google_place_id"
             label="Google Place ID (opcional)"
             error={errors.google_place_id?.message}
-            hint="Para invitar a tus clientes a dejar reseña en Google."
+            hint={
+              reviewUrl ? (
+                <>
+                  Tus clientes verán &quot;Publicar también en Google&quot; al calificar.{" "}
+                  <a
+                    href={reviewUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-semibold text-primary underline-offset-4 hover:underline"
+                  >
+                    Probar el enlace de reseñas
+                  </a>
+                </>
+              ) : (
+                <>
+                  Para invitar a tus clientes a dejar reseña en Google. Búscalo en el{" "}
+                  <a
+                    href="https://developers.google.com/maps/documentation/places/web-service/place-id#find-id"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-semibold text-primary underline-offset-4 hover:underline"
+                  >
+                    buscador de Place ID
+                  </a>
+                  .
+                </>
+              )
+            }
           >
             <Input
               id="google_place_id"
@@ -322,29 +353,15 @@ export function BranchForm({
           control={control}
           name="preorder_mode"
           render={({ field }) => (
-            <div
-              role="radiogroup"
-              aria-label="Pedidos fuera de horario"
-              className="grid gap-2 sm:grid-cols-3"
-            >
-              {PREORDER_OPTIONS.map((o) => {
-                const disabled = !canPreorder && o.value !== "off" && field.value !== o.value;
-                return (
-                  <button
-                    key={o.value}
-                    type="button"
-                    role="radio"
-                    aria-checked={field.value === o.value}
-                    disabled={disabled}
-                    onClick={() => field.onChange(o.value)}
-                    className="grid gap-1 rounded-lg border border-border bg-card p-4 text-left transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50 aria-checked:border-primary aria-checked:bg-primary/5 aria-checked:ring-2 aria-checked:ring-primary/30"
-                  >
-                    <span className="type-small font-semibold">{o.title}</span>
-                    <span className="type-caption text-muted-foreground">{o.text}</span>
-                  </button>
-                );
-              })}
-            </div>
+            <RadioCards
+              label="Pedidos fuera de horario"
+              options={PREORDER_OPTIONS.map((o) => ({
+                ...o,
+                disabled: !canPreorder && o.value !== "off" && field.value !== o.value,
+              }))}
+              value={field.value}
+              onChange={field.onChange}
+            />
           )}
         />
         {preorderMode !== "off" ? (
@@ -513,39 +530,5 @@ function DayRow({
         ) : null}
       </div>
     </li>
-  );
-}
-
-/** Input con prefijo (+502, Q) o sufijo (km, min). */
-function PrefixedInput({
-  prefix,
-  suffix,
-  invalid,
-  className,
-  ...props
-}: React.ComponentProps<"input"> & { prefix?: string; suffix?: string; invalid?: boolean }) {
-  return (
-    <div
-      className={cn(
-        "flex h-12 items-stretch overflow-hidden rounded-md border border-input bg-card focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/30",
-        invalid && "border-destructive",
-      )}
-    >
-      {prefix ? (
-        <span className="type-small flex items-center bg-muted px-3 text-muted-foreground">
-          {prefix}
-        </span>
-      ) : null}
-      <input
-        aria-invalid={invalid || undefined}
-        className={cn("min-w-0 flex-1 bg-transparent px-3 text-base outline-none", className)}
-        {...props}
-      />
-      {suffix ? (
-        <span className="type-small flex items-center bg-muted px-3 text-muted-foreground">
-          {suffix}
-        </span>
-      ) : null}
-    </div>
   );
 }

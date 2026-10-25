@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "@/lib/zod";
 
 /** Esquemas compartidos por los formularios (cliente) y las Server Actions. */
 
@@ -28,6 +28,8 @@ export const signUpSchema = z.object({
   fullName: z.string().trim().min(2, "Escribe tu nombre.").max(80),
   email,
   password,
+  /** A dónde volver al confirmar (p. ej. una invitación de equipo); por defecto, el asistente. */
+  next: nextSchema,
 });
 
 export const resetRequestSchema = z.object({ email });

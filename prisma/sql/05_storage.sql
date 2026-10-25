@@ -46,3 +46,15 @@ create policy "miembros borran archivos" on storage.objects
     bucket_id = 'media'
     and public.is_member(public.storage_business_id(name), array['owner', 'manager'])
   );
+
+-- Boletas de pago de licencias (QRM-041): bucket PRIVADO. Sin políticas para
+-- usuarios: el servidor da una URL firmada para subir y otra (corta) para verlas.
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values (
+  'receipts', 'receipts', false, 8388608,
+  array['image/webp', 'image/jpeg', 'image/png', 'application/pdf']
+)
+on conflict (id) do update set
+  public = false,
+  file_size_limit = excluded.file_size_limit,
+  allowed_mime_types = excluded.allowed_mime_types;

@@ -21,6 +21,7 @@ export const RESERVED_SLUGS = [
   "styleguide",
   "q",
   "onboarding",
+  "invitacion",
   "ayuda",
   "soporte",
   "mantenimiento",

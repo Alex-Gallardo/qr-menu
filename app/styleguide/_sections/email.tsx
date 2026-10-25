@@ -60,7 +60,7 @@ export function EmailSection() {
   return (
     <Section
       id="correos"
-      number={13}
+      number={18}
       title="Correo de confirmación"
       description="Lo recibe solo el comensal que dejó su correo (nunca el negocio). HTML con tablas y estilos en línea para Gmail y Outlook, más versión de texto. Es la plantilla real con un pedido de ejemplo."
     >

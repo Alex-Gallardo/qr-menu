@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "@/lib/zod";
 
 /**
  * Variables públicas (disponibles en el navegador). Next.js solo las incrusta

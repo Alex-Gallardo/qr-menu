@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "@/lib/zod";
 import { slotTimeProblem } from "./slots";
 
 export const slotKeySchema = z.enum(["breakfast", "lunch", "dinner", "custom"]);

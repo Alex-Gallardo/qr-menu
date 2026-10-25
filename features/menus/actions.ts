@@ -1,7 +1,7 @@
 "use server";
 
 import { updateTag } from "next/cache";
-import { z } from "zod";
+import { validationError, z } from "@/lib/zod";
 import { actionError, type ActionResult } from "@/lib/action-result";
 import { requireAccess } from "@/lib/auth/require-access";
 import { tags } from "@/lib/cache-tags";
@@ -25,14 +25,9 @@ async function editorOf(businessId: string) {
 /** El menú público se arma con los menús: cada cambio se publica al instante. */
 const published = (businessId: string) => updateTag(tags.business(businessId));
 
-const firstIssue = (error: z.ZodError) => ({
-  ok: false as const,
-  message: error.issues[0]?.message ?? "Revisa los datos.",
-});
-
 export async function createMenuAction(input: unknown): Promise<ActionResult<{ menuId: string }>> {
   const parsed = z.object({ businessId: z.uuid(), name: menuNameSchema }).safeParse(input);
-  if (!parsed.success) return firstIssue(parsed.error);
+  if (!parsed.success) return validationError(parsed.error);
   const { businessId, name } = parsed.data;
   try {
     const ctx = await editorOf(businessId);
@@ -47,7 +42,7 @@ export async function createMenuAction(input: unknown): Promise<ActionResult<{ m
 /** Autoguardado del editor. */
 export async function saveMenu(input: unknown): Promise<ActionResult> {
   const parsed = menuDocumentSchema.safeParse(input);
-  if (!parsed.success) return firstIssue(parsed.error);
+  if (!parsed.success) return validationError(parsed.error);
   try {
     const { entitlements } = await editorOf(parsed.data.businessId);
     await saveMenuDocument(parsed.data, entitlements);
@@ -64,7 +59,7 @@ export async function duplicateMenuAction(
   input: unknown,
 ): Promise<ActionResult<{ menuId: string }>> {
   const parsed = menuRef.safeParse(input);
-  if (!parsed.success) return firstIssue(parsed.error);
+  if (!parsed.success) return validationError(parsed.error);
   const { businessId, menuId } = parsed.data;
   try {
     const ctx = await editorOf(businessId);
@@ -78,7 +73,7 @@ export async function duplicateMenuAction(
 
 export async function toggleMenu(input: unknown): Promise<ActionResult> {
   const parsed = menuRef.extend({ active: z.boolean() }).safeParse(input);
-  if (!parsed.success) return firstIssue(parsed.error);
+  if (!parsed.success) return validationError(parsed.error);
   const { businessId, menuId, active } = parsed.data;
   try {
     const ctx = await editorOf(businessId);
@@ -92,7 +87,7 @@ export async function toggleMenu(input: unknown): Promise<ActionResult> {
 
 export async function makeDefaultMenu(input: unknown): Promise<ActionResult> {
   const parsed = menuRef.safeParse(input);
-  if (!parsed.success) return firstIssue(parsed.error);
+  if (!parsed.success) return validationError(parsed.error);
   const { businessId, menuId } = parsed.data;
   try {
     const ctx = await editorOf(businessId);
@@ -108,7 +103,7 @@ export async function removeMenu(
   input: unknown,
 ): Promise<ActionResult<{ name: string; schedules: number; wasDefault: boolean }>> {
   const parsed = menuRef.safeParse(input);
-  if (!parsed.success) return firstIssue(parsed.error);
+  if (!parsed.success) return validationError(parsed.error);
   const { businessId, menuId } = parsed.data;
   try {
     const ctx = await editorOf(businessId);
@@ -122,7 +117,7 @@ export async function removeMenu(
 
 export async function undoRemoveMenu(input: unknown): Promise<ActionResult> {
   const parsed = menuRef.safeParse(input);
-  if (!parsed.success) return firstIssue(parsed.error);
+  if (!parsed.success) return validationError(parsed.error);
   const { businessId, menuId } = parsed.data;
   try {
     const ctx = await editorOf(businessId);

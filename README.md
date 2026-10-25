@@ -135,23 +135,25 @@ export async function createBranch(input: unknown): Promise<ActionResult> {
 
 ## Scripts
 
-| Script                  | Qué hace                                              |
-| ----------------------- | ----------------------------------------------------- |
-| `pnpm dev`              | Servidor de desarrollo                                |
-| `pnpm build`            | Build de producción                                   |
-| `pnpm lint`             | ESLint (sin warnings permitidos)                      |
-| `pnpm typecheck`        | Genera tipos de rutas y corre `tsc`                   |
-| `pnpm format`           | Formatea con Prettier                                 |
-| `pnpm test`             | Pruebas unitarias con Vitest                          |
-| `pnpm test:integration` | Pruebas contra Supabase dev (requiere `pnpm db:seed`) |
-| `pnpm check`            | Lint + typecheck + formato + tests                    |
-| `pnpm db:migrate`       | Crea y aplica migraciones (dev)                       |
-| `pnpm db:sql`           | Aplica el SQL de Supabase (RLS, etc.)                 |
-| `pnpm db:verify`        | Verifica tablas, RLS y políticas                      |
-| `pnpm db:deploy`        | Migraciones + SQL en producción                       |
-| `pnpm db:seed`          | Datos semilla (planes, demo, usuarios)                |
-| `pnpm db:status`        | Estado de las migraciones                             |
-| `pnpm db:studio`        | Explorador visual de la base de datos                 |
+| Script                  | Qué hace                                                                        |
+| ----------------------- | ------------------------------------------------------------------------------- |
+| `pnpm dev`              | Servidor de desarrollo                                                          |
+| `pnpm build`            | Build de producción                                                             |
+| `pnpm lint`             | ESLint (sin warnings permitidos)                                                |
+| `pnpm typecheck`        | Genera tipos de rutas y corre `tsc`                                             |
+| `pnpm format`           | Formatea con Prettier                                                           |
+| `pnpm test`             | Pruebas unitarias con Vitest                                                    |
+| `pnpm test:integration` | Pruebas contra Supabase dev (requiere `pnpm db:seed`)                           |
+| `pnpm test:e2e`         | E2E con Playwright (C1–C3, D1, S1, S2, A2) contra el build (`pnpm build` antes) |
+| `pnpm test:lighthouse`  | Lighthouse CI móvil (landing, precios, legal; `LHCI_MENU=1` suma el menú)       |
+| `pnpm check`            | Lint + typecheck + formato + tests                                              |
+| `pnpm db:migrate`       | Crea y aplica migraciones (dev)                                                 |
+| `pnpm db:sql`           | Aplica el SQL de Supabase (RLS, etc.)                                           |
+| `pnpm db:verify`        | Verifica tablas, RLS y políticas                                                |
+| `pnpm db:deploy`        | Migraciones + SQL en producción                                                 |
+| `pnpm db:seed`          | Datos semilla (planes, demo, usuarios)                                          |
+| `pnpm db:status`        | Estado de las migraciones                                                       |
+| `pnpm db:studio`        | Explorador visual de la base de datos                                           |
 
 ## Flujo de trabajo con Git
 

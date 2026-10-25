@@ -2,8 +2,8 @@
 
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import type { z } from "zod";
 import type { ActionResult } from "@/lib/action-result";
+import { validationError } from "@/lib/zod";
 import { safeNext } from "@/lib/auth/route-rules";
 import { requireUser } from "@/lib/auth/session";
 import { BRAND } from "@/lib/brand";
@@ -20,10 +20,6 @@ import {
 
 export type { ActionResult } from "@/lib/action-result";
 
-function invalid(error: z.ZodError): ActionResult {
-  return { ok: false, message: error.issues[0]?.message ?? "Revisa los datos." };
-}
-
 /** Origen de la petición (localhost, preview o producción) para los enlaces de correo. */
 async function origin() {
   const h = await headers();
@@ -36,7 +32,7 @@ async function callbackUrl(next: string) {
 
 export async function signInWithPassword(input: unknown): Promise<ActionResult> {
   const parsed = signInSchema.safeParse(input);
-  if (!parsed.success) return invalid(parsed.error);
+  if (!parsed.success) return validationError(parsed.error);
 
   const supabase = await createSupabaseServerClient();
   const { error } = await supabase.auth.signInWithPassword({
@@ -50,7 +46,7 @@ export async function signInWithPassword(input: unknown): Promise<ActionResult> 
 
 export async function sendMagicLink(input: unknown): Promise<ActionResult> {
   const parsed = magicLinkSchema.safeParse(input);
-  if (!parsed.success) return invalid(parsed.error);
+  if (!parsed.success) return validationError(parsed.error);
 
   const supabase = await createSupabaseServerClient();
   const { error } = await supabase.auth.signInWithOtp({
@@ -70,7 +66,7 @@ export async function sendMagicLink(input: unknown): Promise<ActionResult> {
 
 export async function signUp(input: unknown): Promise<ActionResult> {
   const parsed = signUpSchema.safeParse(input);
-  if (!parsed.success) return invalid(parsed.error);
+  if (!parsed.success) return validationError(parsed.error);
 
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.auth.signUp({
@@ -78,13 +74,13 @@ export async function signUp(input: unknown): Promise<ActionResult> {
     password: parsed.data.password,
     options: {
       data: { full_name: parsed.data.fullName },
-      emailRedirectTo: await callbackUrl("/onboarding"),
+      emailRedirectTo: await callbackUrl(safeNext(parsed.data.next, "/onboarding")),
     },
   });
   if (error) return { ok: false, message: authErrorMessage(error) };
 
   // Con confirmación de correo desactivada, Supabase ya devuelve la sesión.
-  if (data.session) redirect("/onboarding");
+  if (data.session) redirect(safeNext(parsed.data.next, "/onboarding"));
   return {
     ok: true,
     message: `Te enviamos un correo a ${parsed.data.email}. Ábrelo para confirmar tu cuenta.`,
@@ -93,7 +89,7 @@ export async function signUp(input: unknown): Promise<ActionResult> {
 
 export async function requestPasswordReset(input: unknown): Promise<ActionResult> {
   const parsed = resetRequestSchema.safeParse(input);
-  if (!parsed.success) return invalid(parsed.error);
+  if (!parsed.success) return validationError(parsed.error);
 
   const supabase = await createSupabaseServerClient();
   const { error } = await supabase.auth.resetPasswordForEmail(parsed.data.email, {
@@ -110,7 +106,7 @@ export async function requestPasswordReset(input: unknown): Promise<ActionResult
 
 export async function updatePassword(input: unknown): Promise<ActionResult> {
   const parsed = newPasswordSchema.safeParse(input);
-  if (!parsed.success) return invalid(parsed.error);
+  if (!parsed.success) return validationError(parsed.error);
 
   await requireUser("/recuperar/nueva");
   const supabase = await createSupabaseServerClient();
@@ -153,9 +149,14 @@ export async function enrollTotp(): Promise<TotpEnrollment> {
   };
 }
 
-export async function verifyTotp(input: unknown): Promise<ActionResult> {
+/**
+ * Verifica el código TOTP. No hace redirect(): el render del destino en esta
+ * misma respuesta todavía vería la sesión de antes (aal1) y /admin volvería a
+ * pedir el código. El formulario navega a `next` con una petición nueva.
+ */
+export async function verifyTotp(input: unknown): Promise<ActionResult<{ next: string }>> {
   const parsed = totpSchema.safeParse(input);
-  if (!parsed.success) return invalid(parsed.error);
+  if (!parsed.success) return validationError(parsed.error);
 
   await requireUser("/entrar/2fa");
   const supabase = await createSupabaseServerClient();
@@ -164,6 +165,5 @@ export async function verifyTotp(input: unknown): Promise<ActionResult> {
     code: parsed.data.code,
   });
   if (error) return { ok: false, message: authErrorMessage(error) };
-
-  redirect(safeNext(parsed.data.next, "/admin"));
+  return { ok: true, data: { next: safeNext(parsed.data.next, "/admin") } };
 }

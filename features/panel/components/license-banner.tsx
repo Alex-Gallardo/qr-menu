@@ -1,4 +1,4 @@
-import { AlertTriangleIcon, ClockIcon, PauseCircleIcon } from "lucide-react";
+import { AlertTriangleIcon, ClockIcon, HourglassIcon, PauseCircleIcon } from "lucide-react";
 import Link from "next/link";
 import type { Entitlements } from "@/features/licensing/entitlements";
 import { panelHref } from "../nav";
@@ -8,10 +8,13 @@ export function LicenseBanner({
   businessId,
   entitlements,
   isOwner,
+  pendingPayment = false,
 }: {
   businessId: string;
   entitlements: Entitlements;
   isOwner: boolean;
+  /** Ya subió una boleta y está en verificación (guía D6: "Pago en verificación"). */
+  pendingPayment?: boolean;
 }) {
   const { status, daysLeft } = entitlements;
   const days = daysLeft === 1 ? "1 día" : `${daysLeft} días`;
@@ -19,7 +22,11 @@ export function LicenseBanner({
   let tone: "info" | "warning" | "danger";
   let icon: React.ReactNode;
   let text: string;
-  if (status === "trial" && daysLeft !== null && daysLeft <= 7) {
+  if (pendingPayment && status !== "suspended") {
+    tone = "info";
+    icon = <HourglassIcon />;
+    text = "Pago en verificación: recibimos tu boleta y te avisamos aquí al revisarla.";
+  } else if (status === "trial" && daysLeft !== null && daysLeft <= 7) {
     tone = "info";
     icon = <ClockIcon />;
     text = `Te quedan ${days} de prueba gratis.`;
@@ -59,7 +66,7 @@ export function LicenseBanner({
           href={panelHref(businessId, "ajustes/licencia")}
           className="font-semibold underline underline-offset-2"
         >
-          Ver cómo pagar
+          {pendingPayment ? "Ver mi plan" : "Ver cómo pagar"}
         </Link>
       ) : null}
     </div>

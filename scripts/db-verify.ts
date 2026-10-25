@@ -10,7 +10,7 @@ import { Client } from "pg";
 config({ path: ".env.local", quiet: true });
 config({ quiet: true });
 
-const EXPECTED_TABLES = 38;
+const EXPECTED_TABLES = 39;
 
 type Check = { name: string; sql: string; ok: (rows: Record<string, unknown>[]) => boolean };
 
@@ -55,6 +55,11 @@ const checks: Check[] = [
     name: "Bucket media público",
     sql: `select public from storage.buckets where id = 'media'`,
     ok: (r) => r[0]?.public === true,
+  },
+  {
+    name: "Bucket receipts privado (boletas)",
+    sql: `select public from storage.buckets where id = 'receipts'`,
+    ok: (r) => r[0]?.public === false,
   },
   {
     name: "Políticas de Storage para media",

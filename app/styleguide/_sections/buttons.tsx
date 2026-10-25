@@ -2,16 +2,17 @@ import { MessageCircleIcon, PlusIcon, Trash2Icon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Section } from "./section";
 
+// hover: la misma clase que pone buttonVariants al pasar el mouse (para verla fija).
 const VARIANTS = [
-  { variant: "default", label: "Primario" },
-  { variant: "secondary", label: "Secundario" },
-  { variant: "outline", label: "Contorno" },
-  { variant: "ghost", label: "Fantasma" },
-  { variant: "destructive", label: "Eliminar" },
-  { variant: "whatsapp", label: "Pedir por WhatsApp" },
+  { variant: "default", label: "Primario", hover: "bg-tomate-700" },
+  { variant: "secondary", label: "Secundario", hover: "bg-[#e8e0d6]" },
+  { variant: "outline", label: "Contorno", hover: "bg-muted" },
+  { variant: "ghost", label: "Fantasma", hover: "bg-muted" },
+  { variant: "destructive", label: "Eliminar", hover: "bg-[#a82626]" },
+  { variant: "whatsapp", label: "Pedir por WhatsApp", hover: "bg-[#1fbe5b]" },
 ] as const;
 
-const STATES = ["Normal", "Foco", "Deshabilitado", "Cargando"] as const;
+const STATES = ["Normal", "Hover", "Presionado", "Foco", "Deshabilitado", "Cargando"] as const;
 
 export function ButtonsSection() {
   return (
@@ -19,10 +20,10 @@ export function ButtonsSection() {
       id="botones"
       number={7}
       title="Botones"
-      description="48 px de alto por defecto. Hover y presionado (scale 0.96, 120 ms) se ven al interactuar. “Cargando” muestra spinner, deshabilita y evita dobles envíos."
+      description="48 px de alto por defecto. Hover oscurece el fondo; presionado escala a 0.96 en 120 ms; el foco de teclado muestra un anillo de 3 px. “Cargando” muestra spinner, deshabilita y evita dobles envíos."
     >
       <div className="overflow-x-auto rounded-lg border border-border bg-card shadow-1">
-        <table className="w-full min-w-[760px] text-left">
+        <table className="w-full min-w-[1080px] text-left">
           <thead>
             <tr className="type-caption border-b border-border text-muted-foreground">
               <th className="p-3 font-semibold">Variante</th>
@@ -34,13 +35,25 @@ export function ButtonsSection() {
             </tr>
           </thead>
           <tbody>
-            {VARIANTS.map(({ variant, label }) => {
+            {VARIANTS.map(({ variant, label, hover }) => {
               const icon = variant === "whatsapp" ? <MessageCircleIcon /> : null;
               return (
                 <tr key={variant} className="border-b border-border last:border-0">
                   <td className="p-3 font-mono text-sm">{variant}</td>
                   <td className="p-3">
                     <Button variant={variant}>
+                      {icon}
+                      {label}
+                    </Button>
+                  </td>
+                  <td className="p-3">
+                    <Button variant={variant} className={hover}>
+                      {icon}
+                      {label}
+                    </Button>
+                  </td>
+                  <td className="p-3">
+                    <Button variant={variant} className={`${hover} scale-[0.96]`}>
                       {icon}
                       {label}
                     </Button>

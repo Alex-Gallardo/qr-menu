@@ -40,3 +40,9 @@ Thumbs.db
 
 # cliente Prisma generado
 /generated/
+
+# E2E (Playwright y Lighthouse CI)
+/tests/e2e/.data/
+/tests/e2e/.results/
+/tests/e2e/.report/
+/.lighthouseci/

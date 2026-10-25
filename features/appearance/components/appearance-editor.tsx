@@ -13,6 +13,7 @@ import { normalizeSplash } from "@/features/public-menu/splash";
 import { normalizeTheme } from "@/features/public-menu/theme";
 import { BRAND } from "@/lib/brand";
 import { useAutosave } from "@/lib/use-autosave";
+import { validationError } from "@/lib/zod";
 import { saveAppearance } from "../actions";
 import { followPrimary, type AppearanceAllowance, type AppearanceDoc } from "../appearance";
 import { fontClasses } from "../font-loaders";
@@ -84,8 +85,7 @@ export function AppearanceEditor({
       const input = { ...value, businessId };
       // Se valida aquí para avisar sin ir al servidor; la acción vuelve a validar.
       const parsed = appearanceSchema.safeParse(input);
-      if (!parsed.success)
-        return { ok: false, message: parsed.error.issues[0]?.message ?? "Revisa los datos." };
+      if (!parsed.success) return validationError(parsed.error);
       return saveAppearance(input);
     },
     [businessId],

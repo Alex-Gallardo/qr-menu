@@ -5,6 +5,8 @@ import { SignOutButton } from "@/features/auth/components/sign-out-button";
 import type { PanelContext } from "../context";
 import { navForRole, panelHref } from "../nav";
 import { BranchSwitcher } from "./branch-switcher";
+import { Announcements } from "./announcements";
+import { ImpersonationBanner } from "./impersonation-banner";
 import { LicenseBanner } from "./license-banner";
 import { BottomTabs, SidebarNav } from "./panel-nav";
 
@@ -60,7 +62,16 @@ export function PanelShell({ ctx, children }: { ctx: PanelContext; children: Rea
         </div>
       </header>
 
-      <LicenseBanner businessId={business.id} entitlements={entitlements} isOwner={isOwner} />
+      {ctx.impersonating ? (
+        <ImpersonationBanner businessId={business.id} businessName={business.name} />
+      ) : null}
+      <Announcements items={ctx.announcements} />
+      <LicenseBanner
+        businessId={business.id}
+        entitlements={entitlements}
+        isOwner={isOwner}
+        pendingPayment={ctx.pendingPayment}
+      />
       <main className="pb-24 lg:pb-0">{children}</main>
       <BottomTabs businessId={business.id} />
     </div>
