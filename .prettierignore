@@ -7,3 +7,9 @@ pnpm-lock.yaml
 next-env.d.ts
 AGENTS.md
 generated
+
+# E2E y Lighthouse CI (generados)
+tests/e2e/.data
+tests/e2e/.results
+tests/e2e/.report
+.lighthouseci
