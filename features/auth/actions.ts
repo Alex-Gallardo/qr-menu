@@ -149,7 +149,12 @@ export async function enrollTotp(): Promise<TotpEnrollment> {
   };
 }
 
-export async function verifyTotp(input: unknown): Promise<ActionResult> {
+/**
+ * Verifica el código TOTP. No hace redirect(): el render del destino en esta
+ * misma respuesta todavía vería la sesión de antes (aal1) y /admin volvería a
+ * pedir el código. El formulario navega a `next` con una petición nueva.
+ */
+export async function verifyTotp(input: unknown): Promise<ActionResult<{ next: string }>> {
   const parsed = totpSchema.safeParse(input);
   if (!parsed.success) return validationError(parsed.error);
 
@@ -160,6 +165,5 @@ export async function verifyTotp(input: unknown): Promise<ActionResult> {
     code: parsed.data.code,
   });
   if (error) return { ok: false, message: authErrorMessage(error) };
-
-  redirect(safeNext(parsed.data.next, "/admin"));
+  return { ok: true, data: { next: safeNext(parsed.data.next, "/admin") } };
 }
