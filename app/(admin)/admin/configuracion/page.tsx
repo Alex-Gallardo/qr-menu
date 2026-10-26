@@ -8,6 +8,9 @@ import { db } from "@/lib/db";
 
 export const metadata: Metadata = { title: "Configuración" };
 
+// Ver admin/layout.tsx: el super admin siempre espera al servidor.
+export const instant = false;
+
 /** Configuración global (platform_settings) y precios de los planes. */
 export default function Page() {
   return (

@@ -10,6 +10,9 @@ import { formatWhenGT } from "@/lib/gt-time";
 
 export const metadata: Metadata = { title: "Auditoría" };
 
+// Ver admin/layout.tsx: el super admin siempre espera al servidor.
+export const instant = false;
+
 /** Auditoría de todo (negocios y plataforma), con filtro por negocio y acción. */
 export default function Page({ searchParams }: PageProps<"/admin/auditoria">) {
   return (

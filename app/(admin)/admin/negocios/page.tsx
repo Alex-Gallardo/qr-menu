@@ -11,6 +11,9 @@ import { listBusinesses } from "@/features/admin/queries";
 
 export const metadata: Metadata = { title: "Negocios" };
 
+// Ver admin/layout.tsx: el super admin siempre espera al servidor.
+export const instant = false;
+
 /** Negocios: búsqueda por nombre, link o correo del dueño. */
 export default function Page({ searchParams }: PageProps<"/admin/negocios">) {
   return (

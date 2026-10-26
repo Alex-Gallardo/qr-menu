@@ -8,6 +8,9 @@ import { todayInGuatemala } from "@/lib/gt-time";
 
 export const metadata: Metadata = { title: "Anuncios" };
 
+// Ver admin/layout.tsx: el super admin siempre espera al servidor.
+export const instant = false;
+
 /** Banners en los paneles de los negocios, por audiencia. */
 export default function Page() {
   return (

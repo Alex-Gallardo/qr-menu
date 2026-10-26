@@ -12,6 +12,10 @@ export const metadata: Metadata = {
   robots: { index: false },
 };
 
+// Exige sesión de plataforma con 2FA (y responde 404 sin rol): entrar aquí
+// siempre espera al servidor, así que no se valida como navegación instantánea.
+export const instant = false;
+
 /**
  * Equipo de la plataforma con 2FA. Cada página repite la verificación (con su
  * permiso), porque los layouts no se vuelven a renderizar al navegar.

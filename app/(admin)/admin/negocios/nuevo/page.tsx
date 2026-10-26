@@ -8,6 +8,9 @@ import { BRAND } from "@/lib/brand";
 
 export const metadata: Metadata = { title: "Crear negocio" };
 
+// Ver admin/layout.tsx: el super admin siempre espera al servidor.
+export const instant = false;
+
 /** Alta asistida de un fundador (guía A1). */
 export default function Page() {
   return (

@@ -477,7 +477,7 @@ function SectionCard({
             items={section.items.map((i) => i.key)}
             strategy={verticalListSortingStrategy}
           >
-            <ul className="grid divide-y divide-border rounded-lg border border-border">
+            <ul className="grid divide-y divide-border overflow-hidden rounded-lg border border-border">
               {section.items.map((item, index) => (
                 <ItemRow
                   key={item.key}

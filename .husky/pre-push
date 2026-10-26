@@ -1,1 +1,2 @@
-pnpm typecheck
+# npm (no pnpm): funciona en cualquier terminal con Node, aunque no vea pnpm.
+npm run --silent typecheck

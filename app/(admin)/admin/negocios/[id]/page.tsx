@@ -22,6 +22,9 @@ import { formatQ } from "@/lib/money";
 
 export const metadata: Metadata = { title: "Negocio" };
 
+// Ver admin/layout.tsx: el super admin siempre espera al servidor.
+export const instant = false;
+
 /** Ficha del negocio en el super admin: licencia, uso, equipo, pagos, historial y soporte. */
 export default function Page({ params }: PageProps<"/admin/negocios/[id]">) {
   return (

@@ -1,1 +1,2 @@
-pnpm exec lint-staged
+# npx (no pnpm): funciona en cualquier terminal con Node, aunque no vea pnpm.
+npx --no -- lint-staged
