@@ -11,6 +11,9 @@ import { PAYMENT_STATUS_LABELS } from "@/features/billing/billing";
 
 export const metadata: Metadata = { title: "Pagos" };
 
+// Ver admin/layout.tsx: el super admin siempre espera al servidor.
+export const instant = false;
+
 const TABS = ["pending", "verified", "rejected"] as const;
 
 /** Pagos de licencias (guía A2): por verificar, verificados y rechazados. */

@@ -8,6 +8,9 @@ import type { EffectiveStatus } from "@/features/licensing/entitlements";
 import { formatDateEs, todayInGuatemala } from "@/lib/gt-time";
 import { formatQ } from "@/lib/money";
 
+// Ver admin/layout.tsx: el super admin siempre espera al servidor.
+export const instant = false;
+
 /** Tablero (guía "Uso y métricas"): estados, MRR, vencimientos, gracia, pagos y actividad. */
 export default function AdminHomePage() {
   return (
